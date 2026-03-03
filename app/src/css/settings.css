@@ -1,0 +1,793 @@
+@font-face {
+  font-family: 'SF Pro Rounded';
+  src: url('../assets/fonts/SFR.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ndot 57 Aligned';
+  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
+/* --- THEME VARIABLES --- */
+:root {
+  --bg-main: #000000;
+  --bg-secondary: #1C1C1E;
+  --bg-active: #2C2C2E;
+  --text-main: #FFFFFF;
+  --text-dim: #8E8E93;
+  --sep: rgba(84, 84, 88, 0.65);
+  --accent: #0A84FF;
+  --accent1: #FF453A;
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --glass-bg: rgba(30, 30, 30, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --transparent: #ffffff06;
+  --ui-refresh-token: 0;
+}
+
+:root[data-theme="light"] {
+  --bg-main: #F2F2F7;
+  --bg-secondary: #FFFFFF;
+  --bg-active: #E5E5EA;
+  --text-main: #000000;
+  --text-dim: #8A8A8E;
+  --sep: rgba(60, 60, 67, 0.29);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.1);
+}
+
+html {
+  --ui-refresh-token: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, Roboto;
+  margin: 0;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+body::before {
+  content: "";
+  display: none;
+  opacity: calc(var(--ui-refresh-token) * 0);
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px;
+  height: 100vh;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.container::-webkit-scrollbar {
+  display: none;
+}
+
+.header-main {
+  padding: 40px 0 20px 0;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+.header-main h1 {
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.settings-group {
+  background-color: none;
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-secondary);
+  border-radius: 0;
+  border: 0.5px solid var(--sep);
+  padding: 12px 20px;
+  min-height: 48px;
+  transition: background-color 0.6s;
+  transform: scaleX(0.99);
+}
+
+.row:first-child {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.row:last-child {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.row.clickable {
+  cursor: pointer;
+}
+
+.row.clickable:active {
+  background-color: var(--bg-active);
+}
+
+.label {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.value {
+  color: var(--text-dim);
+  text-align: right;
+  font-size: 17px;
+}
+
+.chevron {
+  width: 14px;
+  height: 14px;
+  stroke: var(--text-dim);
+  fill: none;
+  stroke-width: 2.5;
+  margin-left: 8px;
+}
+
+/* --- Iframe Portal --- */
+#portal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background-color: var(--bg-main);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+#portal-layer.active {
+  transform: translateX(0);
+}
+
+.portal-nav {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--glass-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 0.5px solid var(--sep);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.back-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+#portal-frame {
+  flex-grow: 1;
+  border: none;
+  width: 100%;
+  background: var(--bg-main);
+}
+
+/* --- Custom Modal --- */
+/* =====================================================
+           MODAL SYSTEM - WORKS WITH ALL THEMES
+           ===================================================== */
+
+/* --- Custom Modal Base --- */
+#custom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+#custom-modal-overlay.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-box {
+  background: var(--glass-bg);
+  border: 0.5px solid var(--glass-border);
+  padding: 24px;
+  border-radius: 24px;
+  max-width: 320px;
+  width: 85%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+#modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text-main);
+}
+
+#modal-message {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+#modal-input-container {
+  margin-bottom: 20px;
+}
+
+#modal-input-container input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  border: 1px solid var(--sep);
+  background: rgba(128, 128, 128, 0.1);
+  color: var(--text-main);
+  outline: none;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+#modal-input-container input:focus {
+  border-color: var(--accent);
+  background: rgba(128, 128, 128, 0.15);
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-btn:active {
+  transform: scale(0.97);
+}
+
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-btn {
+  background: var(--accent);
+  color: white;
+}
+
+.modal-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--sep);
+}
+
+.btn-secondary:active {
+  background: var(--bg-active);
+}
+
+/* =====================================================
+           NOTHING OS 4 - MODAL OVERRIDES
+           ===================================================== */
+
+html[data-ui="nothing"] #custom-modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+html[data-ui="nothing"] .modal-box {
+  background: var(--bg-card);
+  border: none;
+  border-radius: 26px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: 28px;
+}
+
+html[data-ui="nothing"] #modal-title {
+  font-family: 'Ndot 57 Aligned', monospace;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+html[data-ui="nothing"] #modal-message {
+  font-family: 'NType 82 Regular', monospace;
+}
+
+html[data-ui="nothing"] .modal-btn {
+  font-family: 'Ndot 57 Aligned', monospace;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+html[data-ui="nothing"] .modal-btn:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+html[data-ui="nothing"][data-theme="light"] .modal-btn:active {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+html[data-ui="nothing"][data-theme="dark"] .modal-btn:active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+html[data-ui="nothing"] .btn-secondary {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+}
+
+/* =====================================================
+           MD3E (MATERIAL YOU) - MODAL OVERRIDES
+           ===================================================== */
+
+html[data-ui="md3e"] #custom-modal-overlay {
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(3px);
+}
+
+html[data-ui="md3e"] .modal-box {
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4);
+  padding: 24px;
+  width: 90%;
+  max-width: 340px;
+}
+
+html[data-ui="md3e"] #modal-title {
+  font-family: "Google Sans", sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+html[data-ui="md3e"] #modal-message {
+  font-family: "Google Sans", sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  font-weight: 400;
+}
+
+html[data-ui="md3e"] .modal-btn {
+  font-family: "Google Sans", sans-serif;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.2s cubic-bezier(0.4, 0, 1, 1);
+}
+
+html[data-ui="md3e"] .modal-btn {
+  background: var(--accent);
+  color: white;
+}
+
+html[data-ui="md3e"] .modal-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+html[data-ui="md3e"] .btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  font-weight: 700;
+}
+
+html[data-ui="md3e"] .btn-secondary:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+html[data-ui="md3e"][data-theme="dark"] .btn-secondary:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* =====================================================
+           iOS (DEFAULT) - MODAL OVERRIDES
+           ===================================================== */
+
+html[data-ui="ios"] #custom-modal-overlay {
+  background: var(--overlay-bg);
+  backdrop-filter: blur(12px);
+}
+
+html[data-ui="ios"] .modal-box {
+  background: var(--glass-bg);
+  border: 0.5px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+html[data-ui="ios"] #modal-title {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+html[data-ui="ios"] #modal-message {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", sans-serif;
+  font-weight: 400;
+}
+
+html[data-ui="ios"] .modal-btn {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", sans-serif;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+html[data-ui="ios"] .modal-btn:active {
+  opacity: 0.5;
+}
+
+html[data-ui="ios"] .btn-secondary {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-main);
+}
+
+html[data-ui="ios"] .btn-secondary:active {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+html[data-ui="ios"][data-theme="light"] .btn-secondary {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* =====================================================
+           UTILITY ANIMATIONS
+           ===================================================== */
+
+@keyframes modalSlide {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes buttonPress {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.97);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.modal-btn:active {
+  animation: buttonPress 0.2s ease-out;
+}
+
+/* =====================================================
+           RESPONSIVE - Mobile Adjustments
+           ===================================================== */
+
+@media (max-width: 480px) {
+  .modal-box {
+    border-radius: 20px;
+    width: 90%;
+    max-width: 100%;
+    padding: 20px;
+  }
+
+  #modal-title {
+    font-size: 18px;
+  }
+
+  #modal-message {
+    font-size: 14px;
+  }
+
+  .modal-btn {
+    font-size: 16px;
+    padding: 11px;
+    min-height: 40px;
+  }
+
+  html[data-ui="md3e"] .modal-box {
+    padding: 20px;
+  }
+
+  html[data-ui="nothing"] .modal-box {
+    border-radius: 24px;
+    padding: 20px;
+  }
+}
+
+/* =====================================================
+           ACCESSIBILITY
+           ===================================================== */
+
+.modal-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+#modal-input-container input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .modal-box,
+  #custom-modal-overlay,
+  .modal-btn,
+  #modal-input-container input {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-main);
+  opacity: 0.8;
+}
+
+/* =====================================================
+        NOTHING OS 4 – SAFE OVERRIDES (REAL STRUCTURE)
+        ===================================================== */
+html[data-ui="nothing"] {
+  --accent: rgb(215, 25, 33);
+  --bg-main: #F3F3F3;
+  --bg-card: #FFFFFF;
+}
+
+html[data-ui="nothing"][data-theme="dark"] {
+  --accent: rgb(215, 25, 33);
+  --bg-main: #000000;
+  --bg-card: #1B1B1B;
+}
+
+html[data-ui="nothing"] body {
+  font-family: 'NType 82 Regular';
+}
+
+/* Card surface: near-black, elevated, NO border */
+html[data-ui="nothing"][data-theme="dark"] .settings-group {
+  border: none;
+}
+
+html[data-ui="nothing"][data-theme="light"] .settings-group {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.008),
+    0 2px 6px rgba(0, 0, 0, 0.002);
+}
+
+/* Rows */
+html[data-ui="nothing"] .row {
+  background: var(--bg-card);
+  border: none;
+  border-bottom: 3px solid var(--bg-main);
+  border-radius: 5px;
+}
+
+html[data-ui="nothing"] .row:first-child {
+  border-radius: 26px 26px 5px 5px;
+}
+
+html[data-ui="nothing"] .row:last-child {
+  border-bottom: none;
+  border-radius: 5px 5px 26px 26px;
+}
+
+html[data-ui="nothing"] .row:only-child {
+  border-radius: 26px;
+}
+
+html[data-ui="nothing"] .settings-group {
+  margin-top: 12px;
+  border: none;
+  background: none;
+}
+
+/* Neutral press feedback (Nothing style) */
+html[data-ui="nothing"][data-theme="light"] .row.clickable:active {
+  background-color: rgba(0, 0, 0, 0.130);
+}
+
+html[data-ui="nothing"][data-theme="dark"] .row.clickable:active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+html[data-ui="nothing"] .label {
+  font-family: 'Ndot 57 Aligned';
+}
+
+/* =====================================================
+        MD3E – SAFE PATCH (NO COLOR-MIX, NO NEW TOKENS)
+        ===================================================== */
+html[data-ui="md3e"][data-theme="light"] {
+
+  --base: color-mix(in srgb,
+      #ffffff,
+      rgb(var(--md-seed)) 5%);
+
+  --bg-main: color-mix(in srgb, var(--base) 96%,
+      rgb(var(--md-seed)) 4%);
+
+  --bg-secondary: color-mix(in srgb, var(--base) 85%,
+      rgb(var(--md-seed)) 15%);
+
+  --accent: rgb(var(--md-seed));
+  --border: rgba(0, 0, 0, 0.12);
+  --clickable: color-mix(in srgb,
+      rgba(255, 255, 255, 0.130) 70%,
+      rgb(var(--md-seed)) 30%);
+}
+
+html[data-ui="md3e"][data-theme="dark"] {
+
+  --base: color-mix(in srgb,
+      #1c1b1f,
+      rgb(var(--md-seed)) 5%);
+
+  --bg-main: color-mix(in srgb, var(--base) 98%,
+      rgb(var(--md-seed)) 2%);
+  --bg-secondary: color-mix(in srgb,
+      var(--base) 80%,
+      rgb(var(--md-seed)) 20%);
+  --bg-active: #2B2930;
+
+  --text-main: #E6E1E5;
+  --text-dim: #CAC4D0;
+
+  --sep: rgba(255, 255, 255, 0.12);
+  --accent: rgb(var(--md-seed));
+  --border: rgba(255, 255, 255, 0.12);
+  --clickable: color-mix(in srgb,
+      rgba(0, 0, 0, 0.10) 90%,
+      rgb(var(--md-seed)) 10%);
+}
+
+html[data-ui="md3e"] body {
+  font-family: "Google Sans", sans-serif;
+  background: var(--bg-main);
+}
+
+/* Card geometry */
+html[data-ui="md3e"] .settings-group {
+  background: none;
+  border: none;
+
+}
+
+/* Row geometry */
+html[data-ui="md3e"] .row {
+  background: var(--bg-secondary);
+  border: none;
+}
+
+html[data-ui="md3e"] .row:first-child {
+  border-bottom: 1px solid var(--bg-main);
+  border-radius: 26px 26px 7px 7px;
+}
+
+html[data-ui="md3e"] .row:nth-child(n+1):not(:first-child, :last-child) {
+  border-top: 2.5px solid var(--bg-main);
+  border-bottom: 1px solid var(--bg-main);
+  border-radius: 7px;
+}
+
+html[data-ui="md3e"] .row:last-child {
+  border-top: 2.5px solid var(--bg-main);
+  border-radius: 7px 7px 26px 26px;
+}
+
+html[data-ui="md3e"] .row:only-child {
+  border-radius: 26px;
+}
+
+/* Material press state */
+html[data-ui="md3e"][data-theme="light"] .row.clickable:active {
+  background-color: var(--clickable);
+}
+
+html[data-ui="md3e"][data-theme="dark"] .row.clickable:active {
+  background-color: var(--clickable);
+}
+
+html[data-ui="md3e"] .portal-nav {
+  background-color: var(--bg-secondary);
+}

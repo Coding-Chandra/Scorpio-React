@@ -1,0 +1,434 @@
+/* ===================================================== */
+/* PROFILE PAGE - MATCHES SETTINGS DESIGN SYSTEM */
+/* ===================================================== */
+
+@font-face {
+  font-family: 'SFR';
+  src: url('../assets/fonts/SFR.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ndot 57 Aligned';
+  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
+
+.profile-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ===================================================== */
+/* THEME SPECIFIC AVATARS */
+/* ===================================================== */
+
+/* iOS Theme */
+html[data-ui="ios"] .profile-avatar {
+    background: linear-gradient(135deg, #007aff, #0a84ff);
+}
+
+/* Material You / MD3E Theme */
+html[data-ui="md3e"] .profile-avatar {
+    background: rgb(var(--md-seed));
+}
+
+/* Nothing OS Theme */
+html[data-ui="nothing"] .profile-avatar {
+    background: linear-gradient(135deg, #D71921, #ff6b35);
+}
+
+/* ===================================================== */
+/* MODAL STYLES */
+/* ===================================================== */
+
+#custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+#custom-modal-overlay.hidden {
+    display: none;
+}
+
+.modal-box {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px;
+    max-width: 400px;
+    width: 100%;
+}
+
+/* iOS Modal */
+html[data-ui="ios"] .modal-box {
+    border-radius: 14px;
+}
+
+/* Material You Modal */
+html[data-ui="md3e"] .modal-box {
+    border-radius: 28px;
+}
+
+/* Nothing OS Modal */
+html[data-ui="nothing"] .modal-box {
+    border-radius: 8px;
+}
+
+.modal-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--accent);
+    color: white;
+    transition: all 0.2s ease-out;
+}
+
+/* iOS Button */
+html[data-ui="ios"] .modal-btn {
+    background: #007aff;
+    border-radius: 8px;
+}
+
+html[data-ui="ios"] .modal-btn:active:not(:disabled) {
+    background: #0051d5;
+}
+
+/* Material You Button */
+html[data-ui="md3e"] .modal-btn {
+    background: rgb(var(--md-seed));
+    border-radius: 8px;
+}
+
+/* Nothing OS Button */
+html[data-ui="nothing"] .modal-btn {
+    background: #D71921;
+    border-radius: 4px;
+}
+
+html[data-ui="nothing"] .modal-btn:active:not(:disabled) {
+    background: #a01419;
+}
+
+.modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modal-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.modal-btn.btn-secondary {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.modal-btn.btn-secondary:active {
+    background: var(--bg-input);
+}
+
+/* ===================================================== */
+/* FORM INPUTS */
+/* ===================================================== */
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 16px;
+    transition: all 0.2s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+/* iOS Input */
+html[data-ui="ios"] .form-input:focus {
+    border-color: #007aff;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* Material You Input */
+html[data-ui="md3e"] .form-input {
+    border-radius: 8px;
+}
+
+html[data-ui="md3e"] .form-input:focus {
+    border-color: rgb(var(--md-seed));
+    box-shadow: 0 0 0 3px rgba(var(--md-seed), 0.1);
+}
+
+/* Nothing OS Input */
+html[data-ui="nothing"] .form-input {
+    border-radius: 4px;
+}
+
+html[data-ui="nothing"] .form-input:focus {
+    border-color: #D71921;
+    box-shadow: inset 0 0 0 1px rgba(215, 25, 33, 0.3);
+}
+
+.form-input::placeholder {
+    color: var(--text-dim);
+    opacity: 0.6;
+}
+
+/* ===================================================== */
+/* FLOATING ACTION BUTTON */
+/* ===================================================== */
+
+.edit-btn-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 100;
+}
+
+/* iOS FAB */
+html[data-ui="ios"] .edit-btn-float {
+    background: #007aff;
+}
+
+/* Material You FAB */
+html[data-ui="md3e"] .edit-btn-float {
+    background: rgb(var(--md-seed));
+}
+
+/* Nothing OS FAB */
+html[data-ui="nothing"] .edit-btn-float {
+    background: #D71921;
+}
+
+.edit-btn-float svg {
+    width: 24px;
+    height: 24px;
+    stroke: white;
+    fill: none;
+    stroke-width: 2;
+}
+
+.edit-btn-float:active {
+    transform: scale(0.9);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ===================================================== */
+/* ANIMATIONS */
+/* ===================================================== */
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pageSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes listItemSlideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes modalScaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes modalBackdropFade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ===================================================== */
+/* STATS GRID */
+/* ===================================================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.stat-card {
+    padding: 16px;
+    background: var(--bg-input);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.2s ease-out;
+}
+.stats-group {
+          background-color: none;
+          margin-bottom: 25px;
+          overflow: hidden;
+        }
+
+/* iOS Stat Card */
+html[data-ui="ios"] .stat-card {
+    border-radius: 12px;
+    background: rgba(0, 122, 255, 0.05);
+    border: 1px solid rgba(0, 122, 255, 0.1);
+}
+
+/* Material You Stat Card */
+html[data-ui="md3e"] .stat-card {
+    border-radius: 12px;
+    background: rgba(var(--md-seed), 0.05);
+    border: 1px solid rgba(var(--md-seed), 0.1);
+}
+
+/* Nothing OS Stat Card */
+html[data-ui="nothing"] .stat-card {
+    border-radius: 8px;
+    background: rgba(215, 25, 33, 0.05);
+    border: 1px solid rgba(215, 25, 33, 0.1);
+}
+
+.stat-card:active {
+    transform: scale(0.98);
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 600px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+}
+
+/* ===================================================== */
+
+@media print {
+    .edit-btn-float,
+    #custom-modal-overlay {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .edit-btn-float {
+        bottom: 30px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+    }
+    
+    .modal-box {
+        margin: 20px;
+        border-radius: 12px;
+    }
+}

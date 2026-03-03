@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>User Profile</title>
+    <script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notesApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+    <link rel="stylesheet" href="../css/settings.css">
+    <link rel="stylesheet" href="../css/animations.css">
+    <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../css/avatars.css">
+    </head>
+<body>
+<div class="container animate-fade-in">
+    <div class="header-main animate-slide-in">
+        <h1>Profile</h1>
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.1s">
+        <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px 0;">
+            <img id="profileAvatarDisplay" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;" />
+            <div style="flex: 1;">
+                <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 4px 0;">Avatar</p>
+                
+                <button class="edit-btn-float" onclick="window.toggleAvatarEditMode()" title="Edit Avatar" style="width: 32px; height: 32px;">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"></path><path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="avatarEditSection" class="settings-group" style="display: none; animation-delay: 0.1s;">
+        <div style="padding: 16px; background: var(--bg-input); border-radius: 12px; gap: 12px; display: flex; flex-direction: column;">
+            <div>
+                <label style="display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600;">Avatar Style</label>
+                <div class="avatar-mode-toggle" style="width: 100%; gap: 8px;">
+                    <button type="button" class="avatar-mode-btn" id="initialsMode" onclick="window.toggleAvatarMode('initials')">Initials</button>
+                    <button type="button" class="avatar-mode-btn" id="emojiMode" onclick="window.toggleAvatarMode('emoji')">Emoji</button>
+                </div>
+            </div>
+
+            <div id="avatarActionButtons">
+                <button type="button" class="change-gradient-btn" onclick="window.selectGradient()">Change Gradient</button>
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-direction: row-reverse;">
+                <button class="modal-btn" onclick="window.toggleAvatarEditMode()" id="avatarDoneBtn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.12s">
+        <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px 0;">
+            <div style="flex: 1;">
+                <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 4px 0;">Name</p>
+                <p id="displayNameText" style="font-size: 18px; font-weight: 600; color: var(--text-main); margin: 0;">Loading...</p>
+                <button class="edit-btn-float" onclick="toggleEditMode()" title="Edit Display Name" style="width: 32px; height: 32px;">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"></path><path d="M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editSection" class="settings-group" style="display: none; animation-delay: 0.12s;">
+        <div style="padding: 16px; background: var(--bg-input); border-radius: 12px; gap: 12px; display: flex; flex-direction: column;">
+            <div>
+                <label style="display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600;">Edit Name</label>
+                <input type="text" id="displayNameInput" placeholder="Enter display name" class="form-input">
+                <p style="font-size: 12px; color: var(--text-dim); margin: 6px 0 0 0;">Your name might be visible to others</p>
+            </div>
+
+            <div style="display: flex; gap: 12px; flex-direction: row-reverse;">
+                <button class="modal-btn" onclick="window.saveDisplayName()" id="saveBtn">Save Changes</button>
+                <button class="modal-btn" onclick="window.toggleEditMode()" style="opacity: 0.6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="statsSection"></div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.25s">
+        <div class="row">
+            <span class="label">Email Address</span>
+            <span id="emailText" class="value">Loading...</span>
+        </div>
+        <div class="row clickable" onclick="window.exportData()" id="exportBtn">
+            <span class="label" style="color: var(--accent);">Export All Notes</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+    </div>
+    <div class="settings-group" style="animation-delay: 0.25s;">
+        <p id="exportStatus" style="font-size: 12px; color: var(--text-dim); padding: 8px 16px 0 16px; margin: 0;"></p>
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
+        <div class="row">
+            <span class="label">User ID</span>
+            <span id="userIdText" class="value">Loading...</span>
+        </div>
+        <div class="row">
+            <span class="label">Joined</span>
+            <span id="joinedText" class="value">Loading...</span>
+        </div>
+        <div class="row">
+            <span class="label">Last Updated</span>
+            <span id="lastUpdatedText" class="value">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<div id="custom-modal-overlay" class="hidden">
+    <div class="modal-box animate-scale-in">
+        <h3 id="modal-title" style="margin: 0 0 8px 0; font-size: 20px;">Title</h3>
+        <p id="modal-message" style="color: var(--text-dim); font-size: 15px; margin: 0 0 24px 0;">Message</p>
+        <div id="modal-input-container"></div>
+        <div style="display: flex; flex-direction: row-reverse;">
+            <button onclick="window.closeCustomModal()" class="modal-btn" style="opacity: 0.6;">Cancel</button>
+            <button id="modal-confirm-btn" class="modal-btn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.container {
+    animation: pageFadeIn 0.4s ease-out forwards;
+}
+
+.header-main {
+    animation: pageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.settings-group {
+    animation: listItemSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+}
+
+.settings-group .row.clickable {
+    transition: all 0.2s ease-out;
+}
+
+.settings-group .row.clickable:active {
+    transform: scale(0.98);
+}
+
+#custom-modal-overlay {
+    animation: modalBackdropFade 0.3s ease-out forwards;
+}
+
+#custom-modal-overlay.hidden {
+    animation: modalBackdropFade 0.3s ease-out reverse forwards;
+}
+
+.modal-box {
+    animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.row.clickable .chevron {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.row.clickable:active .chevron {
+    transform: rotate(90deg);
+}
+
+.row.clickable {
+    position: relative;
+    overflow: hidden;
+}
+
+.row.clickable::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+    pointer-events: none;
+}
+
+.row.clickable:active::before {
+    opacity: 0.05;
+}
+
+.value {
+    transition: opacity 0.2s ease-out;
+}
+
+.modal-btn {
+    transition: all 0.2s ease-out;
+}
+
+.modal-btn:active {
+    transform: scale(0.95);
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 16px;
+    transition: all 0.2s ease-out;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+.form-input::placeholder {
+    color: var(--text-dim);
+    opacity: 0.6;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pageSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes listItemSlideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes modalScaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes modalBackdropFade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+</style>
+
+<script src="../js/avatars.js"></script>
+<script type="module" src="../js/profile.js"></script>
+</body>
+</html>

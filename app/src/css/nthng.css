@@ -1,0 +1,324 @@
+/* =====================================================
+   NOTHING OS THEME
+   Accent: Nothing Red (#D71921)
+   ===================================================== */
+
+@font-face {
+  font-family: 'Ndot 57 Aligned';
+  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+/* -----------------------------------------------------
+   1. ROOT TOKENS (Nothing scale system)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] {
+  /* Accent */
+  --accent-color: #D71921;
+  --accent: #D71921;
+
+  /* Spacing — Nothing launcher scale (8px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+
+  /* Radius (sharp, mechanical) */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+
+  /* Motion */
+  --motion-fast: 80ms;
+  --motion-medium: 160ms;
+  --motion-slow: 260ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Typography */
+  --font-family: 'NType 82 Regular';
+  --font-family2: 'Ndot 57 Aligned';
+  --font-family-ui: 'Inter', sans-serif;
+  --letter-tight: 0.02em;
+  --letter-wide: 0.06em;
+
+  /* Dot matrix */
+  --dot-size: 1.6px;
+  --dot-gap: 6px;
+  --dot-color: rgba(215,25,33,0.35);
+}
+
+/* -----------------------------------------------------
+   2. DARK MODE (Nothing Dark)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-main: #000000;
+  --bg-card: #1B1B1B;
+  --bg-elevated: #141414;
+
+  --text-main: #FFFFFF;
+  --text-dim: rgba(255,255,255,0.60);
+
+  --border-color: rgba(255,255,255,0.18);
+}
+
+/* -----------------------------------------------------
+   3. LIGHT MODE (Nothing Light)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"][data-theme="light"] {
+  color-scheme: light;
+
+  --bg-main: #F3F3F3;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #F2F2F2;
+
+  --text-main: #000000;
+  --text-dim: rgba(0,0,0,0.55);
+
+  --border-color: rgba(0,0,0,0.16);
+}
+
+/* -----------------------------------------------------
+   4. APP BASE
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  letter-spacing: var(--letter-tight);
+}
+
+/* -----------------------------------------------------
+   5. PANELS / CARDS
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .pane,
+:root[data-ui="nothing"] .glass-panel,
+:root[data-ui="nothing"] .glass-panel-strong {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* -----------------------------------------------------
+   6. DOT-MATRIX SYNC / LOADING
+----------------------------------------------------- */
+
+@keyframes nothing-sync {
+  0%   { opacity: 0.25; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.25; }
+}
+
+:root[data-ui="nothing"] .sync-indicator {
+  width: 32px;
+  height: 12px;
+
+  background-image:
+    radial-gradient(
+      var(--accent-color) var(--dot-size),
+      transparent var(--dot-size)
+    );
+  background-size: var(--dot-gap) var(--dot-gap);
+
+  animation: nothing-sync 1.2s linear infinite;
+}
+
+/* -----------------------------------------------------
+   7. RED GLYPH INDICATORS
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .glyph {
+  color: var(--text-dim);
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+:root[data-ui="nothing"] .glyph.active,
+:root[data-ui="nothing"] .glyph.alert {
+  color: var(--accent-color);
+}
+
+/* Small red dot glyph */
+
+:root[data-ui="nothing"] .glyph-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  display: inline-block;
+}
+
+/* -----------------------------------------------------
+   8. SIDEBAR / LIST ITEMS
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .folder-item,
+:root[data-ui="nothing"] .note-item {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+:root[data-ui="nothing"] .folder-item:hover,
+:root[data-ui="nothing"] .note-item:hover {
+  background: var(--bg-elevated);
+}
+
+/* Active — dot matrix strip */
+
+:root[data-ui="nothing"] .folder-item.active::before,
+:root[data-ui="nothing"] .note-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--space-2);
+  bottom: var(--space-2);
+  width: 4px;
+
+  background-image:
+    radial-gradient(
+      var(--accent-color) var(--dot-size),
+      transparent var(--dot-size)
+    );
+  background-size: 4px var(--dot-gap);
+
+  animation: nothing-sync 1.6s linear infinite;
+}
+
+/* -----------------------------------------------------
+   9. NOTHING-STYLE TOGGLE SWITCH
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .toggle {
+  width: 36px;
+  height: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  position: relative;
+  cursor: pointer;
+}
+
+:root[data-ui="nothing"] .toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-dim);
+  border-radius: var(--radius-xs);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+:root[data-ui="nothing"] .toggle.active {
+  border-color: var(--accent-color);
+}
+
+:root[data-ui="nothing"] .toggle.active::after {
+  transform: translateX(16px);
+  background: var(--accent-color);
+}
+
+/* -----------------------------------------------------
+   10. EDITOR
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] #noteTitleInput{
+  background: transparent;
+  color: var(--text-main);
+  font-family: var(--font-family);
+  caret-color: var(--accent-color);
+}
+:root[data-ui="nothing"] .note-content-editable {
+  color: var(--text-main);
+  font-weight: 400;
+  font-family: var(--font-family-ui);
+  caret-color: var(--accent-color);
+}
+:root[data-ui="nothing"] .note-preview{
+  font-family: var(--font-family-ui);
+  font-weight: 400;
+}
+
+/* Focus — animated dot underline */
+
+:root[data-ui="nothing"] .note-content-editable:focus::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 6px;
+
+  background-image:
+    radial-gradient(
+      var(--accent-color) 1.4px,
+      transparent 1.4px
+    );
+  background-size: 6px 6px;
+
+  animation: nothing-sync 1.2s linear infinite;
+}
+
+:root[data-ui="nothing"] .editor-meta-info.editor-meta-info{
+  background: var(--bg-card); 
+}
+@media (max-width: 768px) {
+  :root[data-ui="nothing"] .editor-meta-info.editor-meta-info{
+    background: var(--bg-card); 
+  }
+}
+:root[data-ui="nothing"] .toolbar{
+  background: var(--bg-card);
+}
+
+:root[data-ui="nothing"] .note-item.active,
+:root[data-ui="nothing"] .folder-item.active{
+  background-color: #D7192130;
+}
+/* -----------------------------------------------------
+   11. POP-UPS / DIALOGS (Nothing language)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .dialog,
+:root[data-ui="nothing"] .menu,
+:root[data-ui="nothing"] .dropdown,
+:root[data-ui="nothing"] .popover {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  box-shadow: none;
+  letter-spacing: var(--letter-tight);
+}
+
+/* Dialog red signal bar */
+
+:root[data-ui="nothing"] .dialog::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-color);
+}

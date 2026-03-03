@@ -1,0 +1,548 @@
+:root {
+    --primary-blue: #0071e3; 
+    --bg-dark: #000;
+    --card-bg: rgba(28, 28, 30, 0.7);
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.15);
+    --text-main: #f5f5f7;
+    --text-dim: #86868b;
+    --glass-blur: blur(35px);
+}
+
+@font-face {
+    font-family: SF Pro Rounded;
+    src: url(../assets/fonts/SFR.ttf) format("truetype");
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", sans-serif;
+    background-color: var(--bg-dark);
+    background-image: 
+        /* Primary gradient mesh */
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.25) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 60% -20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at -10% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 45%);
+    background-attachment: fixed;
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease-in-out infinite;
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 0%;
+    }
+    25% {
+        background-position: 50% 25%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    75% {
+        background-position: 50% 75%;
+    }
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+/* --- Header & Footer --- */
+.top-nav {
+    width: 100%;
+    padding: 25px 50px;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.legal-footer {
+    width: 100%;
+    padding: 50px 20px;
+    border-top: 1px solid var(--border-color);
+    background: rgba(0,0,0,0.3);
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { color: var(--text-dim); text-decoration: none; }
+
+/* --- Container & Card --- */
+.auth-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1.5rem;
+    width: 100%;
+}
+
+.app-branding { margin-bottom: 15px; }
+.app-logo { width: 90px; height: 90px; border-radius: 26px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); }
+
+.auth-card {
+    background: var(--card-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    padding: 3.5rem 2.5rem;
+    border-radius: 32px;
+    border: 1px solid var(--border-color);
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+}
+
+h2 { font-size: 1.9rem; margin-bottom: 3rem; font-weight: 600; }
+
+/* --- Inputs & Autofill Fix --- */
+.input-stack {
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+}
+
+input {
+    width: 100%;
+    padding: 1.2rem;
+    background: var(--input-bg);
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    color: #fff;
+    font-size: 17px;
+    outline: none;
+}
+
+input:last-child { border-bottom: none; }
+
+/* --- FIX FOR UGLY AUTOFILL --- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+    box-shadow: inset 0 0 20px 20px rgba(0, 0, 0, 0) !important;
+}
+
+/* --- Animations --- */
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from {
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    to {
+        max-height: 150px;
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0, 113, 227, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(0, 113, 227, 0); }
+}
+
+.password-group {
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.password-group.active {
+    max-height: 100px;
+    opacity: 1;
+    animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-card {
+    animation: slideUpFade 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+/* --- MOBILE-FIRST REVAMP (max-width: 768px) --- */
+@media (max-width: 768px) {
+    /* Header - Minimal, clean */
+    .top-nav {
+        padding: 20px 16px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    /* Main container - full height experience */
+    .auth-container {
+        padding: 1.5rem 0;
+        min-height: 100vh;
+        justify-content: space-between;
+    }
+
+    /* Card - Optimized for mobile viewing */
+    .auth-card {
+        margin: 0 12px;
+        padding: 2.25rem 1.5rem;
+        border-radius: 24px;
+        backdrop-filter: blur(30px);
+        -webkit-backdrop-filter: blur(30px);
+    }
+
+    .auth-card:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    /* Heading - Better mobile hierarchy */
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        font-weight: 600;
+        line-height: 1.25;
+        letter-spacing: -0.5px;
+    }
+
+    /* Logo - Optimized size */
+    .app-logo {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    .app-branding {
+        margin-bottom: 16px;
+        animation: fadeIn 0.8s ease-out 0.1s backwards;
+    }
+
+    /* Input stack - Better visual separation */
+    .input-stack {
+        margin-bottom: 1.8rem;
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    input {
+        padding: 1.3rem 1.2rem;
+        font-size: 16px;
+        min-height: 52px;
+        background: rgba(255, 255, 255, 0.04);
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: #f5f5f7;
+        outline: none;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    input:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-bottom-color: rgba(0, 113, 227, 0.5);
+    }
+
+    input:last-child {
+        border-bottom: none;
+    }
+
+    /* Input autofill improvements */
+    input:-webkit-autofill {
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: #f5f5f7 !important;
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    input:-webkit-autofill:focus {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Button - Prominent touch target */
+    button[type="submit"] {
+        padding: 1.35rem 1.2rem;
+        font-size: 16px;
+        font-weight: 700;
+        min-height: 54px;
+        border-radius: 14px;
+        border: none;
+        background: var(--primary-blue);
+        color: white;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.3px;
+        box-shadow: 0 4px 16px rgba(0, 113, 227, 0.3);
+    }
+
+    button[type="submit"]:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 8px rgba(0, 113, 227, 0.4);
+    }
+
+    button[type="submit"]:focus {
+        outline: none;
+        box-shadow: 0 4px 16px rgba(0, 113, 227, 0.5);
+    }
+
+    /* Card links - Better mobile UX */
+    .card-links {
+        margin-top: 1.8rem;
+        gap: 12px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-links a {
+        font-size: 14px;
+        color: var(--primary-blue);
+        text-decoration: none;
+        padding: 10px 0;
+        transition: color 0.2s ease, transform 0.2s ease;
+        display: block;
+        font-weight: 500;
+    }
+
+    .card-links a:active {
+        transform: scale(0.98);
+        opacity: 0.8;
+    }
+
+    /* Footer - Mobile-optimized */
+    .legal-footer {
+        margin-top: auto;
+        padding: 24px 16px;
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 14px;
+        font-size: 12px;
+    }
+
+    .footer-links {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .footer-links a {
+        font-size: 12px;
+        color: var(--text-dim);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .footer-links a:active {
+        color: var(--primary-blue);
+    }
+
+    footer p {
+        font-size: 11px;
+        color: var(--text-dim);
+    }
+}
+
+/* --- EXTRA SMALL PHONES (max-width: 480px) --- */
+@media (max-width: 480px) {
+    .top-nav {
+        padding: 16px 14px;
+        font-size: 0.9rem;
+    }
+
+    .auth-container {
+        padding: 1rem 0;
+    }
+
+    .auth-card {
+        margin: 0 10px;
+        padding: 2rem 1.35rem;
+        border-radius: 22px;
+    }
+
+    h2 {
+        font-size: 1.35rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .app-logo {
+        width: 68px;
+        height: 68px;
+        border-radius: 18px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.75);
+    }
+
+    .app-branding {
+        margin-bottom: 14px;
+    }
+
+    .input-stack {
+        margin-bottom: 1.6rem;
+        border-radius: 12px;
+    }
+
+    input {
+        padding: 1.25rem 1.15rem;
+        font-size: 16px;
+        min-height: 50px;
+    }
+
+    button[type="submit"] {
+        padding: 1.3rem 1rem;
+        font-size: 15px;
+        min-height: 50px;
+        border-radius: 12px;
+    }
+
+    .card-links {
+        margin-top: 1.6rem;
+    }
+
+    .card-links a {
+        font-size: 13px;
+    }
+
+    .legal-footer {
+        padding: 20px 12px;
+    }
+
+    .footer-content {
+        font-size: 11px;
+    }
+
+    .footer-links {
+        gap: 10px;
+    }
+
+    .footer-links a {
+        font-size: 11px;
+    }
+
+    footer p {
+        font-size: 10px;
+    }
+}
+
+/* --- TINY PHONES (max-width: 360px) --- */
+@media (max-width: 360px) {
+    .top-nav {
+        padding: 14px 12px;
+        font-size: 0.85rem;
+    }
+
+    .auth-card {
+        margin: 0 8px;
+        padding: 1.75rem 1.25rem;
+    }
+
+    h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1.6rem;
+    }
+
+    .app-logo {
+        width: 64px;
+        height: 64px;
+    }
+
+    input {
+        padding: 1.2rem 1rem;
+        font-size: 15px;
+    }
+
+    button[type="submit"] {
+        padding: 1.2rem 0.9rem;
+        font-size: 15px;
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-12px); }
+    75% { transform: translateX(12px); }
+}
+.shake { animation: shake 0.4s ease-in-out; }
+
+/* --- Button --- */
+button[type="submit"] {
+    background: var(--primary-blue);
+    color: white;
+    padding: 1.1rem;
+    border-radius: 14px;
+    border: none;
+    font-size: 17px;
+    font-weight: 600;
+    width: 100%;
+    cursor: pointer;
+}
+
+.card-links {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.card-links a { color: var(--primary-blue); text-decoration: none; font-size: 15px; }
+
+/* Chrome / Edge / Safari */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        rgba(0, 113, 227, 0.45),
+        rgba(0, 113, 227, 0.2)
+    );
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        rgba(0, 113, 227, 0.75),
+        rgba(0, 113, 227, 0.4)
+    );
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,113,227,0.5) transparent;
+}

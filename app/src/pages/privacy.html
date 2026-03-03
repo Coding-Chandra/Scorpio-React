@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Notoj Notes</title>
+        <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <style>
+        @import url(./src/assets/fonts/SFR.ttf);
+
+        :root {
+            /* Apple Dark Mode Palette */
+            --bg-color: #000000;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --link-color: #2997ff;
+            --section-border: #38383a;
+            --callout-bg: #1c1c1e;
+            --warning-bg: rgba(255, 69, 58, 0.15); /* Low opacity red */
+            --warning-border: rgba(255, 69, 58, 0.3);
+            --warning-text: #ff453a;
+        }
+
+        /* --- Theme Data --- */
+        :root[data-theme="light"] {
+            --bg-color: #F2F2F7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --link-color: #007aff;
+            --section-border: #d2d2d7;
+            --callout-bg: #ffffff;
+            --warning-bg: rgba(255, 59, 48, 0.1);
+            --warning-border: rgba(255, 59, 48, 0.2);
+            --warning-text: #ff3b30;
+        }
+
+        body {
+            font-family: SF Pro Rounded, -apple-system, BlinkMacSystemFont, "SF Pro Text";
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px 100px 24px;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--section-border);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        p {
+            font-size: 17px;
+            margin-bottom: 1.2em;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        li {
+            font-size: 17px;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Dark Mode Callout Box */
+        .callout {
+            background-color: var(--callout-bg);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid var(--section-border);
+            transition: background-color 0.3s ease;
+        }
+
+        .callout h3 {
+            margin-top: 0;
+        }
+
+        /* Warning Callout (Red Tint) */
+        .callout-warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            transition: background-color 0.3s ease;
+        }
+        
+        .callout-warning h3 {
+            color: var(--warning-text);
+        }
+
+        /* Footer & Metadata */
+        .last-updated {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .intro-text {
+            font-size: 19px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--section-border);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="last-updated">Last Updated: 12 December 2025 </span>
+        
+        <h1>Privacy Policy</h1>
+        <p class="intro-text">
+            This Privacy Policy explains how we handle your information when you use our notes application (“the App”).
+            We designed our system so that your private notes stay private to you, and we cannot access them.
+        </p>
+        <p>If you do not agree with this policy, please do not use the App.</p>
+
+        <h2>1. Information We Collect</h2>
+        <p>We intentionally collect as little information as possible.</p>
+        
+        <div class="callout">
+            <h3>We Collect:</h3>
+            <ul>
+                <li><strong>Email address</strong> (for login, account creation, and password resets)</li>
+                <li><strong>Display name</strong> (optional)</li>
+                <li><strong>Encrypted note data</strong> (we cannot read it)</li>
+            </ul>
+
+            <h3 style="color: var(--text-secondary);">We Do Not Collect:</h3>
+            <ul style="color: var(--text-secondary);">
+                <li>Plain text notes</li>
+                <li>Your password</li>
+                <li>Your Master Encryption Key</li>
+                <li>Any content you write inside the app</li>
+            </ul>
+        </div>
+
+        <h2>2. End-to-End Encryption</h2>
+        <p>Your notes are encrypted locally on your device before being sent to our servers.</p>
+        <p>This means:</p>
+        <ul>
+            <li>We cannot read your notes.</li>
+            <li>We cannot decrypt your notes.</li>
+            <li>We cannot restore your notes if you lose your password.</li>
+            <li>Your Master Key stays on your device.</li>
+        </ul>
+        <p>Even if someone accessed the database, your data would appear as unreadable encrypted text.</p>
+
+        <h2>3. How Your Data Is Stored</h2>
+        <p><strong>We store:</strong></p>
+        <ul>
+            <li>Encrypted note content</li>
+            <li>Encrypted Master Key (locked with your password-derived key)</li>
+            <li>Basic account information (email, display name)</li>
+        </ul>
+        <p><strong>We do NOT store:</strong></p>
+        <ul>
+            <li>Plaintext note content</li>
+            <li>Decryption keys</li>
+            <li>Your password</li>
+        </ul>
+        <p>Your decrypted Master Key exists only in your browser storage (LocalStorage) while you are logged in.</p>
+
+        <h2>4. How We Use Your Data</h2>
+        <p>We use your information only to provide the service, such as:</p>
+        <ul>
+            <li>Authenticating your account</li>
+            <li>Syncing encrypted notes</li>
+            <li>Basic app features</li>
+        </ul>
+        <p>We do not sell, share, or analyze your notes.</p>
+
+        <div class="callout callout-warning">
+            <h3>5. Loss of Access</h3>
+            <p style="color: var(--text-primary);">Because of our encryption design:</p>
+            <ul style="color: var(--text-primary);">
+                <li>If you forget your password, <strong>we cannot recover your notes.</strong></li>
+                <li>If you delete your browser storage, we cannot restore your key.</li>
+                <li>If you delete your account, your encrypted data may become permanently inaccessible.</li>
+            </ul>
+            <p style="color: var(--text-primary);">You are solely responsible for maintaining access to your password and device.</p>
+        </div>
+
+        <h2>6. Third-Party Services</h2>
+        <p>We use trusted third-party providers such as:</p>
+        <ul>
+            <li><strong>Supabase</strong> (for authentication & encrypted data storage)</li>
+        </ul>
+        <p>This provider may process your email address and encrypted notes on our behalf. They cannot access your decrypted notes.</p>
+        <ul>
+            <li><strong>Netlify</strong> (for hosting our site) </li>
+        </ul>
+        <p>They doesn't have access to our Database, They got our app files</p>
+        <h2>7. Security</h2>
+        <p>We take reasonable measures to protect your data, but:</p>
+        <ul>
+            <li>No online service is completely immune from risks.</li>
+            <li>You use the App at your own risk.</li>
+            <li>We cannot guarantee absolute security.</li>
+        </ul>
+
+        <h2>8. Children</h2>
+        <p>This app is not intended for users under the age of 13.</p>
+
+        <h2>9. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy at any time. Continued use of the app means you accept the updated policy.</p>
+
+        <h2>10. Contact</h2>
+        <p>If you have questions, please contact us at:</p>
+        <p><a href="mailto:webgdev25@gmail.com">Email</a></p>
+
+        <div class="footer">
+            Copyright © 2026 Notoj Notes App. All rights reserved.
+        </div>
+    </div>
+
+<script>
+    const updateTheme = (t) => {
+        if (t) document.documentElement.setAttribute('data-theme', t);
+    };
+
+    // 1. Check local storage (for solo view)
+    updateTheme(localStorage.getItem('notesApp_theme') || 'dark');
+
+    // 2. Catch the message from account.html (for iframe view)
+    window.addEventListener('message', (e) => {
+        if (e.data?.type === 'INIT_THEME') {
+            updateTheme(e.data.theme);
+        }
+    });
+
+    // 3. Sync if user changes theme in another tab
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'notesApp_theme') updateTheme(e.newValue);
+    });
+</script>
+</body>
+</html>

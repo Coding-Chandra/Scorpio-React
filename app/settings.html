@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <title>- Settings</title>
+    <script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notesApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+    <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <link rel="stylesheet" href="./src/css/settings.css">
+    <link rel="stylesheet" href="./src/css/animations.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.min.js"></script>
+</head>
+
+<body>
+<div class="container animate-fade-in">
+    <div class="header-main animate-slide-in">
+        <h1>Settings</h1><br>
+        <button onclick="window.location.href='./index.html'" class="back-btn"><svg viewBox="0 0 24 24"><path d="M13.83 19a 1 1 0 0 1-.78-.37l-4.83-6a 1 1 0 0 1 0-1.27l5-6a 1 1 0 0 1 1.54 1.28L10.29 12l4.32 5.36a 1 1 0 0 1-.78 1.64"/></svg>Back</button>
+    </div>
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.1s">
+        <div class="row clickable" onclick="openPortal('./src/pages/profile.html')">
+            <span class="label">Profile</span>
+            <div style="display:flex; align-items:center;">
+                <span id="accountDisplayName" class="value">Loading...</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+    </div>
+</div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.2s">
+        <div class="row clickable" onclick="openPortal('./src/pages/theme.html')">
+            <span class="label">Theme</span>
+            <div style="display:flex; align-items:center;">
+                <span id="currentThemeDisplay" class="value">Dark</span>
+                <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+        </div>
+        <!--<div class="row clickable" id="updateCacheBtn" onclick="showUpdateCacheModal()">
+            <span class="label" style="color: var(--accent);">Update App</span>
+            <div id="updateCacheStatus" style="display:flex; align-items:center; gap: 8px;">
+                <span id="updateCacheText" class="value" style="font-size: 14px;">Check for updates</span>
+                <svg id="updateCacheIcon" class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+        </div>-->
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
+        <div class="row clickable" onclick="openPortal('./src/pages/about.html')">
+            <span class="label">About</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="row clickable" onclick="openPortal('./src/pages/privacy.html')">
+            <span class="label">Privacy Policy</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="row clickable" onclick="openPortal('./src/pages/tos.html')">
+            <span class="label">Terms of Service</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.4s">
+        <div class="row clickable" onclick="showSignOutModal()">
+            <span class="label">Log Out</span>
+        </div>
+        <div class="row" style="cursor: default;">
+            <span id="buildNumberDisplay" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">Build: v1.4.2</span>
+        </div>
+        <div class="row clickable" onclick="showDeleteModal()">
+            <span class="label" style="color: var(--accent1);">Delete Account</span>
+        </div>
+    </div>
+</div>
+
+<div id="portal-layer">
+    <div class="portal-nav animate-slide-in">
+        <button class="back-btn" onclick="closePortal()">
+            <svg viewBox="0 0 24 24"><path d="M13.83 19a 1 1 0 0 1-.78-.37l-4.83-6a 1 1 0 0 1 0-1.27l5-6a 1 1 0 0 1 1.54 1.28L10.29 12l4.32 5.36a 1 1 0 0 1-.78 1.64"/></svg> Settings
+        </button>
+    </div>
+    <iframe id="portal-frame"></iframe>
+</div>
+
+<div id="custom-modal-overlay">
+    <div class="modal-box animate-scale-in">
+        <h3 id="modal-title" style="margin: 0 0 8px 0; font-size: 20px;">Title</h3>
+        <p id="modal-message" style="color: var(--text-dim); font-size: 15px; margin: 0 0 24px 0;">Message</p>
+        <div id="modal-input-container"></div>
+        <div style="display: flex; flex-direction: row-reverse;">
+            <button onclick="closeCustomModal()" class="modal-btn btn-secondary">Cancel</button>
+            <button id="modal-confirm-btn" class="modal-btn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Settings-specific animation overrides */
+.container {
+    animation: pageFadeIn 0.4s ease-out forwards;
+}
+
+.header-main {
+    animation: pageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.settings-group {
+    animation: listItemSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+}
+
+.settings-group .row.clickable {
+    transition: all 0.2s ease-out;
+}
+
+.settings-group .row.clickable:active {
+    animation: buttonPressDown 0.15s ease-out forwards;
+}
+
+.settings-group .row.clickable:active {
+    transform: scale(0.98);
+}
+
+#custom-modal-overlay {
+    animation: modalBackdropFade 0.3s ease-out forwards;
+}
+
+#custom-modal-overlay.hidden {
+    animation: modalBackdropFade 0.3s ease-out reverse forwards;
+}
+
+.modal-box {
+    animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+#portal-layer.active .portal-nav {
+    animation: drawerSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+#portal-layer.active {
+    animation: modalBackdropFade 0.3s ease-out forwards;
+}
+
+/* Chevron rotation animation */
+.row.clickable .chevron {
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.row.clickable:active .chevron {
+    transform: rotate(90deg);
+}
+
+/* Row hover effect with animation */
+.row.clickable {
+    position: relative;
+    overflow: hidden;
+}
+
+.row.clickable::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+    pointer-events: none;
+}
+
+.row.clickable:active::before {
+    opacity: 0.05;
+}
+
+/* Text fade animation for dynamic content */
+.value {
+    transition: opacity 0.2s ease-out;
+}
+
+/* Modal button animations */
+.modal-btn {
+    transition: all 0.2s ease-out;
+}
+
+.modal-btn:active {
+    transform: scale(0.95);
+}
+
+.modal-btn:active {
+    animation: buttonPressDown 0.1s ease-out forwards;
+}
+</style>
+
+<!-- ✅ SERVICE WORKER REGISTRATION (after cleanup) -->
+<script>
+function getBasePath() {
+  const path = window.location.pathname;
+  if (!path.includes('/project-scorpio')) {
+    return '/';
+  }
+  return '/project-scorpio/';
+}
+
+const basePath = getBasePath();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register(`${basePath}sw.js`, { scope: basePath })
+    .then(reg => {
+      console.log('[SW] Registered at:', basePath);
+    })
+    .catch(err => {
+      console.error('[SW] Registration failed:', err);
+    });
+}
+</script>
+<!-- <script src="./src/js/cache-update.js"></script> -->
+<script src="./src/js/settings.js"></script>
+<script src="./src/js/md3e-enhance.js"></script>
+<script src="./src/js/animation-utils.js"></script>
+
+</body>
+</html>

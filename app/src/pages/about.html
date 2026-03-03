@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About This App - Notoj Notes</title>   
+    <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <style>
+        @import url(./src/assets/fonts/SFR.ttf);
+
+        :root {
+            --bg-color: #000000;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --link-color: #2997ff;
+            --section-border: #38383a;
+            --callout-bg: #1c1c1e;
+            --warning-bg: rgba(255, 69, 58, 0.15);
+            --warning-border: rgba(255, 69, 58, 0.3);
+            --warning-text: #ff453a;
+            --accent-green: #30d158;
+        }
+
+        /* --- Theme Data --- */
+        :root[data-theme="light"] {
+            --bg-color: #F2F2F7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --link-color: #007aff;
+            --section-border: #d2d2d7;
+            --callout-bg: #ffffff;
+            --warning-bg: rgba(255, 59, 48, 0.1);
+            --warning-border: rgba(255, 59, 48, 0.2);
+            --warning-text: #ff3b30;
+        }
+
+        body {
+            font-family: SF Pro Rounded, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Roboto";
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }        
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px 100px 24px;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--section-border);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        p {
+            font-size: 17px;
+            margin-bottom: 1.2em;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        li {
+            font-size: 17px;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Core Feature Callout */
+        .callout-core {
+            background-color: var(--callout-bg);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid var(--section-border);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Warning Callout (Red Tint) */
+        .callout-warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .callout-warning h3 {
+            color: var(--warning-text);
+            margin-top: 0;
+        }
+        .callout-warning p, .callout-warning li {
+            color: var(--text-primary);
+        }
+
+
+        /* Footer & Metadata */
+        .intro-text {
+            font-size: 19px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+        
+        .philosophy {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 50px;
+            border-top: 1px solid var(--section-border);
+            padding-top: 40px;
+            color: var(--accent-green);
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--section-border);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <h1>About This App</h1>
+        <div class="subtitle">A Modern, Private Note-Taking Space.</div>
+
+        <p class="intro-text">
+            This app is built for people who value **simplicity, speed, and privacy**.
+        </p>
+        <p class="intro-text">
+            We believe your notes are personal. That’s why this app is designed so **only you can read your notes** — not us, not the server, not anyone else.
+        </p>
+
+        <h2>Privacy by Design</h2>
+        
+        <p>Your notes are protected using **end-to-end encryption**.</p>
+        
+        <div class="callout-core">
+            <h3>What this means in simple terms:</h3>
+            <ul>
+                <li>Notes are **encrypted on your device**.</li>
+                <li>Only encrypted (scrambled) data is stored in the cloud.</li>
+                <li>Your password is used to unlock your private encryption key.</li>
+                <li>The server **never sees your notes in readable form**.</li>
+            </ul>
+            <p>Even if someone accessed the database, they would see only meaningless encrypted data.</p>
+        </div>
+
+        <h2>How It Works (Simple)</h2>
+        <ul>
+            <li>When you create an account, a private encryption key is generated just for you.</li>
+            <li>This key is protected by your password.</li>
+            <li>Every note you write is encrypted before it’s saved.</li>
+            <li>When you log in, your password unlocks the key and your notes are decrypted **locally on your device**.</li>
+        </ul>
+        <p>If you don’t have the password (or a recovery option), the notes cannot be read — by anyone.</p>
+
+        <h2>What We Can and Can’t See</h2>
+        <p>This is a **zero-knowledge system** — even the app creators don’t have access to your data.</p>
+        
+        <div class="callout-core">
+            <div style="display: flex; gap: 40px;">
+                <div>
+                    <h3 style="color: var(--accent-green); margin-top: 0;">We Can See:</h3>
+                    <ul>
+                        <li>Your email address (for login)</li>
+                        <li>Encrypted note data (unreadable)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: var(--warning-text); margin-top: 0;">We Cannot See:</h3>
+                    <ul>
+                        <li>Your notes or titles</li>
+                        <li>Your content</li>
+                        <li>Your encryption keys</li>
+                        <li>Your password</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h2>Designed for Focus</h2>
+        <p>Beyond security, the app is built to feel calm and intuitive:</p>
+        <ul>
+            <li>Clean, distraction-free interface.</li>
+            <li>Smooth animations inspired by modern OS design.</li>
+            <li>Works seamlessly across devices.</li>
+            <li>Fast and responsive, even with large notes.</li>
+        </ul>
+        <p>The goal is simple: **think clearly, write freely, and trust your data is safe.**</p>
+
+        <div class="callout-warning">
+            <h3>Important Note About Security</h3>
+            <p>Because of how encryption works:</p>
+            <ul>
+                <li>If you forget your password and have no recovery option, **your notes cannot be restored**.</li>
+                <li>This is intentional — it’s the trade-off for true privacy.</li>
+            </ul>
+            <p>We recommend keeping your password safe and enabling recovery options when available.</p>
+        </div>
+
+        <h2 class="philosophy">
+            Our Philosophy
+            <p style="font-size: 20px; font-weight: 500; color: var(--text-primary); margin-top: 10px;">
+                Privacy is not a feature. It’s a foundation.
+            </p>
+            <p style="font-size: 17px; font-weight: 400; color: var(--text-secondary); margin-top: 20px;">
+                This app is built with the idea that your data belongs to you — and only you.
+            </p>
+        </h2>
+
+        <div class="footer">
+            Copyright © 2026 Notoj Notes App. All rights reserved.
+             <span id="buildNumberDisplay" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">Build: Loading...</span>
+        </div>
+    </div>
+
+<script>
+    const updateTheme = (t) => {
+        if (t) document.documentElement.setAttribute('data-theme', t);
+    };
+
+    // 1. Check local storage (for solo view)
+    updateTheme(localStorage.getItem('notesApp_theme') || 'dark');
+
+    // 2. Catch the message from account.html (for iframe view)
+    window.addEventListener('message', (e) => {
+        if (e.data?.type === 'INIT_THEME') {
+            updateTheme(e.data.theme);
+        }
+    });
+
+    // 3. Sync if user changes theme in another tab
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'notesApp_theme') updateTheme(e.newValue);
+    });
+    
+</script>
+<script src="../js/cache-update.js"></script>
+</body>
+</html>

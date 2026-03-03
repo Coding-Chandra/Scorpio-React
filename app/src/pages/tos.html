@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions - Notoj</title>
+    <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <style>
+        @import url(./src/assets/fonts/SFR.ttf);
+
+        :root {
+            /* Apple Dark Mode Palette */
+            --bg-color: #000000;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --link-color: #2997ff;
+            --section-border: #38383a;
+            --callout-bg: #1c1c1e;
+            --warning-bg: rgba(255, 69, 58, 0.15); /* Low opacity red */
+            --warning-border: rgba(255, 69, 58, 0.3);
+            --warning-text: #ff453a;
+        }
+
+        /* --- Theme Data --- */
+        :root[data-theme="light"] {
+            --bg-color: #F2F2F7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --link-color: #007aff;
+            --section-border: #d2d2d7;
+            --callout-bg: #ffffff;
+            --warning-bg: rgba(255, 59, 48, 0.1);
+            --warning-border: rgba(255, 59, 48, 0.2);
+            --warning-text: #ff3b30;
+        }
+
+        body {
+            font-family: SF Pro Rounded, -apple-system, BlinkMacSystemFont, "SF Pro Text";
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px 100px 24px;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--section-border);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        p {
+            font-size: 17px;
+            margin-bottom: 1.2em;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        li {
+            font-size: 17px;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Dark Mode Callout Box - Default */
+        .callout {
+            background-color: var(--callout-bg);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid var(--section-border);
+            transition: background-color 0.3s ease;
+        }
+
+        .callout h3 {
+            margin-top: 0;
+        }
+        
+        /* Warning Callout (Red Tint) for Liability */
+        .callout-warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            transition: background-color 0.3s ease;
+        }
+        
+        .callout-warning h3 {
+            color: var(--warning-text);
+        }
+        .callout-warning p, .callout-warning li {
+            color: var(--text-primary);
+        }
+
+
+        /* Footer & Metadata */
+        .last-updated {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .intro-text {
+            font-size: 19px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--section-border);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="last-updated">Last Updated: 12 December 2025</span>
+        
+        <h1>Terms & Conditions</h1>
+
+        <p class="intro-text">
+            By using the App, you agree to the following Terms and Conditions.
+        </p>
+
+        <h2>1. Use of the App</h2>
+        <p>You may use the App for personal note-taking.</p>
+        <p>You must not use it for illegal or harmful purposes.</p>
+
+        <h2>2. User Responsibility</h2>
+        <p>You are responsible for:</p>
+        <ul>
+            <li>Keeping your password secure.</li>
+            <li>Backing up your device if needed.</li>
+            <li>Maintaining access to your account.</li>
+            <li>Ensuring your device is secure.</li>
+        </ul>
+        
+        <div class="callout callout-warning">
+            <h3>We are NOT Responsible for Loss:</h3>
+            <p>We are not responsible for lost or inaccessible notes due to:</p>
+            <ul>
+                <li>Forgotten password</li>
+                <li>Lost devices</li>
+                <li>LocalStorage clearing</li>
+                <li>Browser resets</li>
+                <li>User deletion of data</li>
+            </ul>
+        </div>
+
+        <h2>3. No Guarantee of Availability</h2>
+        <p>We aim to keep the App available, but:</p>
+        <ul>
+            <li>We do not guarantee uptime.</li>
+            <li>We may modify or discontinue features without notice.</li>
+            <li>We are not liable for downtime or data sync delays.</li>
+        </ul>
+
+        <h2>4. Zero Liability for Content</h2>
+        <p>You own your content.</p>
+        <p>We are not liable for:</p>
+        <ul>
+            <li>What you store in the app.</li>
+            <li>How you use the encrypted notes.</li>
+            <li>Any loss or damage resulting from your content.</li>
+        </ul>
+        <p>Because notes are encrypted, we cannot monitor or control what users store.</p>
+
+        <div class="callout">
+            <h3>5. Encryption Disclaimer</h3>
+            <p>End-to-end encryption protects your notes, but:</p>
+            <ul>
+                <li><strong>Losing your password means losing access to your notes.</strong></li>
+                <li>We cannot decrypt or restore your content.</li>
+            </ul>
+            <p>You accept full responsibility for managing your encryption key through your password login.</p>
+        </div>
+
+        <h2>6. Termination</h2>
+        <p>We may suspend or terminate access for violations of these Terms.</p>
+        <p>You may stop using the App at any time.</p>
+
+        <h2 style="color: var(--warning-text);">7. Limitation of Liability</h2>
+        <p>To the fullest extent permitted by law:</p>
+        <ul>
+            <li>We are not liable for any damages, including data loss, account loss, hacking attempts, or service interruption.</li>
+            <li>You use the App at your own risk.</li>
+        </ul>
+
+        <h2>8. Modifications</h2>
+        <p>We may change these Terms at any time.</p>
+        <p>Using the App after changes means you accept the new Terms.</p>
+
+        <h2>9. Governing Law</h2>
+        <p>These Terms are governed by the laws of India.</p>
+
+        <div class="footer">
+            Copyright © 2026 Notoj Notes App. All rights reserved.
+        </div>
+    </div>
+
+<script>
+    const updateTheme = (t) => {
+        if (t) document.documentElement.setAttribute('data-theme', t);
+    };
+    updateTheme(localStorage.getItem('notesApp_theme') || 'dark');
+    window.addEventListener('message', (e) => {
+        if (e.data?.type === 'INIT_THEME') updateTheme(e.data.theme);
+    });
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'notesApp_theme') updateTheme(e.newValue);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-title" content="Notoz">
+    <meta name="theme-color" content="#000000">
+    <title>Notoz - Login/SignUp</title>
+    <link rel="stylesheet" href="./src/css/login.css">
+    <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <link rel="preconnect" href="./app/src/assets/fonts/SFR.ttf"> 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<script>if ('serviceWorker' in navigator) {navigator.serviceWorker.getRegistrations().then(registrations => {registrations.forEach(reg => {console.log('[Index] Clearing old SW');reg.unregister();});});}
+</script>
+
+    <header class="top-nav">
+        <span> Notoz</span>
+    </header>
+
+    <main class="auth-container">
+        <section id="login-section" class="auth-card">
+            <div class="app-branding">
+                <img src="./app/src/assets/icons/logo.png" alt="Notoz Logo" class="app-logo">
+            </div>
+            <h2>Sign in with Notoz Account</h2>
+            <form id="login-form">
+                <div class="input-stack">
+                    <input type="email" id="login-email" placeholder="Email Address" required autocomplete="username">
+                    <div id="password-group" class="password-group">
+                        <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    </div>
+                </div>
+                <button type="submit" id="login-btn">Continue</button>
+            </form>
+            <div class="card-links">
+                <a href="#" id="show-signup">Create Your Notoz Account</a>
+            </div>
+        </section>
+
+        <section id="signup-section" class="auth-card" style="display: none;">
+            <h2>Create Your Notoz ID</h2>
+            <form id="signup-form">
+                <div class="input-stack">
+                    <input type="text" id="signup-display-name" placeholder="Name" required>
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                    <input type="password" id="signup-password" placeholder="Password (6+ chars)" required>
+                </div>
+                <button type="submit">Sign Up</button>
+            </form>
+            <div class="card-links">
+                <a href="#" id="show-login">Already have an Account? Sign In</a>
+            </div>
+        </section>
+
+        <div id="auth-message"></div>
+    </main>
+
+    <footer class="legal-footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="./app/src/pages/privacy">Privacy</a>
+                <a href="./app/src/pages/tos">Terms</a>
+                <a href="./app/src/pages/about">About</a>
+            </div>
+            <p>&copy; 2026 Notoz. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="./src/js/login.js"></script>
+</body>
+</html>
