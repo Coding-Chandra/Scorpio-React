@@ -295,7 +295,7 @@ const app = {
     pendingFolderId: null,
     ui: {
         isMobile: false,
-        mobileView: 'notes',
+        mobileView: 'folders',
         theme: 'light',
         multiSelect: false,
         selectedNoteIds: new Set(),
@@ -2049,6 +2049,7 @@ app.handleResize = function () {
     if (nowMobile !== this.ui.isMobile) {
         this.ui.isMobile = nowMobile;
         if (!nowMobile) this.ui.mobileView = 'notes';
+        else this.ui.mobileView = 'folders';
     }
     this.updateLayout();
 };
@@ -2268,178 +2269,178 @@ app.updateAccountUI = updateAccountUI;
 
 // Shared helper — call instead of Utils.stripHtml for sharing/export
 Utils.formatNoteAsText = function (content) {
-  const withBreaks = (content || '')
-    .replace(/<\/p>/gi,      '\n')
-    .replace(/<\/div>/gi,    '\n')
-    .replace(/<\/li>/gi,     '\n')
-    .replace(/<\/h[1-6]>/gi, '\n')
-    .replace(/<br\s*\/?>/gi, '\n');
+    const withBreaks = (content || '')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<\/li>/gi, '\n')
+        .replace(/<\/h[1-6]>/gi, '\n')
+        .replace(/<br\s*\/?>/gi, '\n');
 
-  const stripped = withBreaks.replace(/<[^>]+>/g, '');
+    const stripped = withBreaks.replace(/<[^>]+>/g, '');
 
-  // Decode HTML entities (&times;, &amp;, etc.)
-  const ta = document.createElement('textarea');
-  ta.innerHTML = stripped;
+    // Decode HTML entities (&times;, &amp;, etc.)
+    const ta = document.createElement('textarea');
+    ta.innerHTML = stripped;
 
-  return ta.value
-    .split('\n')
-    .map(l => l.trim())
-    .filter(l => l.length > 0)
-    .join('\n');
+    return ta.value
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0)
+        .join('\n');
 };
 
 app.shareCopy = function () {
-  const note = this.getActiveNote();
-  if (!note) return;
-  const text = (note.title || '') + '\n\n' + Utils.formatNoteAsText(note.content);
-  navigator.clipboard.writeText(text)
-    .then(() => { alert('Note copied to clipboard'); })
-    .catch(() => { alert('Copy failed'); });
-  this.closeDropdown('shareDropdown');
+    const note = this.getActiveNote();
+    if (!note) return;
+    const text = (note.title || '') + '\n\n' + Utils.formatNoteAsText(note.content);
+    navigator.clipboard.writeText(text)
+        .then(() => { alert('Note copied to clipboard'); })
+        .catch(() => { alert('Copy failed'); });
+    this.closeDropdown('shareDropdown');
 };
 
 app.systemShare = function () {
-  const note = this.getActiveNote();
-  if (!note) return;
-  const text = (note.title || '') + '\n\n' + Utils.formatNoteAsText(note.content);
-  if (navigator.share) {
-    navigator.share({ title: note.title || '', text }).catch(() => {});
-  } else {
-    this.shareCopy();
-  }
-  this.closeDropdown('shareDropdown');
+    const note = this.getActiveNote();
+    if (!note) return;
+    const text = (note.title || '') + '\n\n' + Utils.formatNoteAsText(note.content);
+    if (navigator.share) {
+        navigator.share({ title: note.title || '', text }).catch(() => { });
+    } else {
+        this.shareCopy();
+    }
+    this.closeDropdown('shareDropdown');
 };
 
 app.exportTXT = function () {
-  const note = this.getActiveNote();
-  if (!note) return;
-  const text = (note.title || '') + '\n\n' + Utils.formatNoteAsText(note.content);
-  const filename = Utils.sanitizeFilename(note.title || 'note') + '.txt';
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  this.closeDropdown('shareDropdown');
+    const note = this.getActiveNote();
+    if (!note) return;
+    const text = (note.title || '') + '\n\n' + Utils.formatNoteAsText(note.content);
+    const filename = Utils.sanitizeFilename(note.title || 'note') + '.txt';
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.closeDropdown('shareDropdown');
 };
 
 app.exportPDF = function () {
-  const note = this.getActiveNote();
-  if (!note) return;
+    const note = this.getActiveNote();
+    if (!note) return;
 
-  const title    = note.title || 'Note';
-  const filename = Utils.sanitizeFilename(title) + '.pdf';
+    const title = note.title || 'Note';
+    const filename = Utils.sanitizeFilename(title) + '.pdf';
 
-  // --- Parse HTML into clean lines ---
-  const rawHtml = note.content || '';
+    // --- Parse HTML into clean lines ---
+    const rawHtml = note.content || '';
 
-  // Insert newline markers before stripping tags
-  const withBreaks = rawHtml
-    .replace(/<\/p>/gi,     '\n')
-    .replace(/<\/div>/gi,   '\n')
-    .replace(/<\/li>/gi,    '\n')
-    .replace(/<\/h[1-6]>/gi,'\n')
-    .replace(/<br\s*\/?>/gi,'\n');
+    // Insert newline markers before stripping tags
+    const withBreaks = rawHtml
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<\/li>/gi, '\n')
+        .replace(/<\/h[1-6]>/gi, '\n')
+        .replace(/<br\s*\/?>/gi, '\n');
 
-  // Strip remaining tags
-  const stripped = withBreaks.replace(/<[^>]+>/g, '');
+    // Strip remaining tags
+    const stripped = withBreaks.replace(/<[^>]+>/g, '');
 
-  // Decode HTML entities (×, &amp;, etc.)
-  const ta = document.createElement('textarea');
-  ta.innerHTML = stripped;
-  const decoded = ta.value;
+    // Decode HTML entities (×, &amp;, etc.)
+    const ta = document.createElement('textarea');
+    ta.innerHTML = stripped;
+    const decoded = ta.value;
 
-  // Split into non-empty lines
-  const lines = decoded
-    .split('\n')
-    .map(l => l.trim())
-    .filter(l => l.length > 0);
+    // Split into non-empty lines
+    const lines = decoded
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
 
-  // Classify each line
-  const DAY_HEADER = /^(MON|TUE|WED|THU|FRI|SAT|SUN)\b/i;
-  const LIST_ITEM  = /^(\d+\.|[\u2022\u2713\u2714\u2610\u2611\-])\s/;
+    // Classify each line
+    const DAY_HEADER = /^(MON|TUE|WED|THU|FRI|SAT|SUN)\b/i;
+    const LIST_ITEM = /^(\d+\.|[\u2022\u2713\u2714\u2610\u2611\-])\s/;
 
-  const blocks = lines.map(text => {
-    if (DAY_HEADER.test(text))  return { type: 'heading',  text };
-    if (LIST_ITEM.test(text))   return { type: 'listitem', text };
-    return                             { type: 'body',      text };
-  });
+    const blocks = lines.map(text => {
+        if (DAY_HEADER.test(text)) return { type: 'heading', text };
+        if (LIST_ITEM.test(text)) return { type: 'listitem', text };
+        return { type: 'body', text };
+    });
 
-  // --- jsPDF setup ---
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    // --- jsPDF setup ---
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-  const pageWidth  = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin     = 60;
-  const maxWidth   = pageWidth - margin * 2;
-  const bottomEdge = pageHeight - margin;
-  let y = margin;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 60;
+    const maxWidth = pageWidth - margin * 2;
+    const bottomEdge = pageHeight - margin;
+    let y = margin;
 
-  const checkPage = (lineHeight) => {
-    if (y + lineHeight > bottomEdge) {
-      doc.addPage();
-      y = margin;
-    }
-  };
+    const checkPage = (lineHeight) => {
+        if (y + lineHeight > bottomEdge) {
+            doc.addPage();
+            y = margin;
+        }
+    };
 
-  // --- Title ---
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.splitTextToSize(title, maxWidth).forEach(l => {
-    checkPage(28);
-    doc.text(l, margin, y);
-    y += 28;
-  });
+    // --- Title ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.splitTextToSize(title, maxWidth).forEach(l => {
+        checkPage(28);
+        doc.text(l, margin, y);
+        y += 28;
+    });
 
-  y += 8;
-  doc.setDrawColor(180);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 20;
+    y += 8;
+    doc.setDrawColor(180);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 20;
 
-  // --- Body blocks ---
-  blocks.forEach(block => {
-    switch (block.type) {
-      case 'heading': {
-        y += 8;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.splitTextToSize(block.text, maxWidth).forEach(l => {
-          checkPage(18);
-          doc.text(l, margin, y);
-          y += 18;
-        });
-        y += 4;
-        break;
-      }
-      case 'listitem': {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(11);
-        doc.splitTextToSize(block.text, maxWidth - 12).forEach((l, i) => {
-          checkPage(16);
-          doc.text(i === 0 ? l : '  ' + l, margin + 8, y);
-          y += 16;
-        });
-        break;
-      }
-      default: {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(11);
-        doc.splitTextToSize(block.text, maxWidth).forEach(l => {
-          checkPage(16);
-          doc.text(l, margin, y);
-          y += 16;
-        });
-      }
-    }
-  });
+    // --- Body blocks ---
+    blocks.forEach(block => {
+        switch (block.type) {
+            case 'heading': {
+                y += 8;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.splitTextToSize(block.text, maxWidth).forEach(l => {
+                    checkPage(18);
+                    doc.text(l, margin, y);
+                    y += 18;
+                });
+                y += 4;
+                break;
+            }
+            case 'listitem': {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
+                doc.splitTextToSize(block.text, maxWidth - 12).forEach((l, i) => {
+                    checkPage(16);
+                    doc.text(i === 0 ? l : '  ' + l, margin + 8, y);
+                    y += 16;
+                });
+                break;
+            }
+            default: {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(11);
+                doc.splitTextToSize(block.text, maxWidth).forEach(l => {
+                    checkPage(16);
+                    doc.text(l, margin, y);
+                    y += 16;
+                });
+            }
+        }
+    });
 
-  doc.save(filename);
-  this.closeDropdown('shareDropdown');
+    doc.save(filename);
+    this.closeDropdown('shareDropdown');
 };
 
 // ============================================================================
@@ -2717,14 +2718,14 @@ const BackHandler = {
         // ── Priority 5: Mobile view navigation ───────────────────────────
         if (app.ui.isMobile) {
             if (app.ui.mobileView === 'editor') {
-                app.goToMobileView('notes');
+                app.goToMobileView('notes');   // editor → notes list
                 return true;
             }
             if (app.ui.mobileView === 'notes') {
-                app.goToMobileView('folders');
+                app.goToMobileView('folders'); // notes list → folders
                 return true;
             }
-            // mobileView === 'folders' → fall through → exit app
+            // folders → exit app (falls through, OS handles)
             return false;
         }
 

@@ -113,17 +113,14 @@ window.openModal = (title, message, btnText, btnColor, actionFn) => {
 // --- Actions ---
 window.showSignOutModal = () => {
     openModal("Sign Out?", "End your current session?", "Sign Out", "var(--accent)", async () => {
-        await supabase.auth.signOut();
+        const { error } = await supabase.auth.signOut();
         
-        // Animate exit
-        const container = document.querySelector('.container');
-        if (container) {
-            animate(container, 'pageFadeIn', 300, () => {
-                window.location.href = './index.html';
-            }, true); // reverse animation
-        } else {
-            window.location.href = './index.html';
+        if (error) {
+            console.error('Logout failed:', error);
+            alert('Logout failed. Check console for details.');
+            return;
         }
+        window.location.href = '../index.html';
     });
 };
 

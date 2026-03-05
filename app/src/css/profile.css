@@ -405,7 +405,6 @@ html[data-ui="nothing"] .stat-card {
 
 @media (max-width: 600px) {
     .stats-grid {
-        grid-template-columns: 1fr;
         gap: 8px;
     }
 }

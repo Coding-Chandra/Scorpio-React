@@ -1,10 +1,11 @@
-/**
- * PWA Cache Update Manager - FIXED VERSION
+/*
+ * PWA Cache Update Manager
  * 
  * Priority: DATE first, then beta/stable numbering
  * - Detects when new cache is available
  * - Shows "Update available" button
  * - Handles user-triggered updates
+ * - Build number read from version.json (fast, no SW timing dependency)
  */
 
 let BUILD_NUMBER = 'Loading...';
@@ -14,44 +15,44 @@ let LATEST_CACHE_NAME = null;
 
 // ✅ On page load: extract build number and wait for SW to be ready
 window.addEventListener('load', async () => {
-  await extractBuildNumber();
-  displayBuildNumber();
-  await getActiveCacheName();
-  
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then(() => {
-      console.log('[Cache Update] SW ready - checking for updates...');
-      setTimeout(() => {
-        checkForUpdatesSimple();
-      }, 1500);
-    });
-  }
+    await getActiveCacheName();
+    await extractBuildNumber();
+    displayBuildNumber();
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(() => {
+            console.log('[Cache Update] SW ready - checking for updates...');
+            setTimeout(() => {
+                checkForUpdatesSimple();
+            }, 1500);
+        });
+    }
 });
 
 /**
  * Get the currently active cache from localStorage
  */
 async function getActiveCacheName() {
-  try {
-    ACTIVE_CACHE_NAME = localStorage.getItem('activeCacheName');
-    
-    if (!ACTIVE_CACHE_NAME) {
-      const cacheNames = await caches.keys();
-      const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
-      
-      if (appCaches.length > 0) {
-        // Get latest cache to set as initial active
-        LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-        ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
-        localStorage.setItem('activeCacheName', ACTIVE_CACHE_NAME);
-        console.log('[Cache Update] Set initial active cache:', ACTIVE_CACHE_NAME);
-      }
-    } else {
-      console.log('[Cache Update] Active cache from storage:', ACTIVE_CACHE_NAME);
+    try {
+        ACTIVE_CACHE_NAME = localStorage.getItem('activeCacheName');
+
+        if (!ACTIVE_CACHE_NAME) {
+            const cacheNames = await caches.keys();
+            const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
+
+            if (appCaches.length > 0) {
+                // Get latest cache to set as initial active
+                LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
+                ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
+                localStorage.setItem('activeCacheName', ACTIVE_CACHE_NAME);
+                console.log('[Version] Set initial active cache:', ACTIVE_CACHE_NAME);
+            }
+        } else {
+            console.log('[Version] Active cache from storage:', ACTIVE_CACHE_NAME);
+        }
+    } catch (error) {
+        console.error('[Version] Error getting active cache:', error);
     }
-  } catch (error) {
-    console.error('[Cache Update] Error getting active cache:', error);
-  }
 }
 
 /**
@@ -63,7 +64,7 @@ async function getLatestCacheName(appCaches) {
     const parseVersion = (cacheName) => {
         // Matches v2.27.31 or similar
         const match = cacheName.match(/v(\d+)\.(\d+)\.(\d+)/);
-        
+
         if (!match) {
             console.warn('[Cache Update] Unrecognized format:', cacheName);
             return { major: 0, minor: 0, patch: 0 };
@@ -88,45 +89,52 @@ async function getLatestCacheName(appCaches) {
     });
 
     const latest = sorted[0];
-    console.log('[Cache Update] 🏆 Latest detected:', latest);
+    console.log('[Version] Latest cache detected:', latest);
     return latest;
 }
 
 /**
- * Extract build number from the latest cache name
+ * Extract build number from version.json
+ * Fast, reliable — no SW or cache timing dependency
+ * Falls back to cache name parsing if version.json is unavailable
  */
 async function extractBuildNumber() {
-  try {
-    const cacheNames = await caches.keys();
-    const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
-    
-    LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-    
-    if (!LATEST_CACHE_NAME) {
-      BUILD_NUMBER = 'Unknown';
-      return;
-    }
+    try {
+        const res = await fetch('../version.json?t=' + Date.now()); // cache-bust
 
-    const versionMatch = LATEST_CACHE_NAME.match(/notoj-app-cache-v(.+)/);
-    
-    if (versionMatch && versionMatch[1]) {
-      BUILD_NUMBER = versionMatch[1];
-      console.log('[Cache Update] Build number extracted:', BUILD_NUMBER);
+        if (!res.ok) throw new Error(`version.json fetch failed: ${res.status}`);
+
+        const data = await res.json();
+        BUILD_NUMBER = data.version || data.build || 'Unknown';
+        console.log('[Version] Build number from version.json:', BUILD_NUMBER);
+
+    } catch (error) {
+        console.error('[Version] Failed to read version.json, falling back to cache name:', error);
+
+        // Fallback: parse version from cache name
+        try {
+            const cacheNames = await caches.keys();
+            const appCaches = cacheNames.filter(n => n.startsWith('notoj-app-cache-v'));
+
+            LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
+            const match = LATEST_CACHE_NAME?.match(/notoj-app-cache-v(.+)/);
+            BUILD_NUMBER = match?.[1] || 'Unknown';
+            console.log('[Version] Build number from cache fallback:', BUILD_NUMBER);
+        } catch (e) {
+            console.error('[Version] Cache fallback also failed:', e);
+            BUILD_NUMBER = 'Unknown';
+        }
     }
-  } catch (error) {
-    console.error('[Cache Update] Error extracting build number:', error);
-    BUILD_NUMBER = 'Unknown';
-  }
 }
 
 /**
  * Display build number on the page
  */
 function displayBuildNumber() {
-  const buildElement = document.getElementById('buildNumberDisplay');
-  if (buildElement) {
-    buildElement.textContent = `Build: ${BUILD_NUMBER}`;
-  }
+    const buildElement = document.getElementById('buildNumberDisplay');
+    if (buildElement) {
+        buildElement.textContent = `Build: ${BUILD_NUMBER}`;
+    }
 }
 
 /**
@@ -134,7 +142,7 @@ function displayBuildNumber() {
  * Checks if latest cache !== active cache
  * Cleans up middle caches if 3+ exist
  */
-async function checkForUpdatesSimple() {
+/* async function checkForUpdatesSimple() {
   try {
     const cacheNames = await caches.keys();
     const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
@@ -182,7 +190,8 @@ async function checkForUpdatesSimple() {
 /**
  * Update UI button to show current status
  */
-function updateButtonUI(hasUpdate = false) {
+
+/* function updateButtonUI(hasUpdate = false) {
   console.log('[Cache Update] updateButtonUI:', hasUpdate ? '🔴 UPDATE AVAILABLE' : '✅ Up to date');
   const updateCacheText = document.getElementById('updateCacheText');
 
@@ -203,7 +212,7 @@ function updateButtonUI(hasUpdate = false) {
 /**
  * Show update modal - called when user clicks button
  */
-window.showUpdateCacheModal = () => {
+/* window.showUpdateCacheModal = () => {
   console.log('[Cache Update] showUpdateCacheModal - updateAvailable:', updateAvailable);
   
   if (typeof window.openModal !== 'function') {
@@ -237,7 +246,7 @@ window.showUpdateCacheModal = () => {
 /**
  * Manual check for updates
  */
-async function manualCheckForUpdates() {
+/*async function manualCheckForUpdates() {
   try {
     console.log('[Cache Update] Manual check started');
     const confirmBtn = document.getElementById('modal-confirm-btn');
@@ -294,7 +303,7 @@ async function manualCheckForUpdates() {
 /**
  * Perform the actual update
  */
-async function performUpdate() {
+/*async function performUpdate() {
   try {
     const confirmBtn = document.getElementById('modal-confirm-btn');
     const modalTitle = document.getElementById('modal-title');
@@ -415,7 +424,7 @@ async function performUpdate() {
 /**
  * Create confetti animation on update
  */
-function createUpdateAnimation() {
+/*function createUpdateAnimation() {
   const container = document.createElement('div');
   container.style.cssText = `
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -454,7 +463,7 @@ function createUpdateAnimation() {
 /**
  * Show notification toast
  */
-function showNotification(title, message, type = 'info') {
+/*function showNotification(title, message, type = 'info') {
   let container = document.getElementById('notification-container');
   if (!container) {
     container = document.createElement('div');
@@ -523,4 +532,4 @@ function showNotification(title, message, type = 'info') {
   });
 }
 
-console.log('[Cache Update] Manager initialized - DATE priority enabled');
+console.log('[Cache Update] Manager initialized');*/
