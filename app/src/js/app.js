@@ -349,6 +349,7 @@ const app = {
         this.updateUndoRedoButtons();
 
         this._setupEventListeners();
+        BackHandler.init();
     },
 
     async handleLogout() {
@@ -1517,31 +1518,233 @@ app.cyclePaperStyle = cyclePaperStyle;
 // 7.2 IMAGE UPLOAD
 // ========================================================================
 
-app.triggerImageUpload = function () {
+// ========================================================================
+// 7.2 IMAGE UPLOAD — OPTIMIZED
+// Supabase Storage + EXIF strip + WebP conversion + dimension cap
+// ========================================================================
+
+app.triggerImageUpload = async function () {
+    if (window.median?.permissions?.request) {
+        const granted = await requestCameraPermission();
+        if (!granted) {
+            alert('Camera permission was denied. Please enable it in your device settings to upload images.');
+            return;
+        }
+    }
     document.getElementById('imgUpload').click();
 };
 
-app.handleImageFile = function (input) {
+// ── Permission (Median.co bridge) ────────────────────────────────────────
+function requestCameraPermission() {
+    return new Promise((resolve) => {
+        if (window.median?.permissions?.request) {
+            median.permissions.request({
+                permissions: ['camera'],
+                callback: (result) => {
+                    resolve(result?.camera === 'authorized' || result?.camera === 'granted');
+                }
+            });
+        } else {
+            resolve(true); // not in Median wrapper — allow
+        }
+    });
+}
+
+// ── Step 1: Strip EXIF metadata from JPEG ───────────────────────────────
+// Works by finding and removing the APP1 EXIF marker from raw bytes.
+// No external library needed — pure ArrayBuffer manipulation.
+function stripExif(arrayBuffer) {
+    const data = new DataView(arrayBuffer);
+
+    // Must start with JPEG SOI marker FF D8
+    if (data.getUint16(0) !== 0xFFD8) return arrayBuffer;
+
+    const result = [new Uint8Array([0xFF, 0xD8])];
+    let offset = 2;
+
+    while (offset < data.byteLength - 1) {
+        if (data.getUint8(offset) !== 0xFF) break;
+
+        const marker = data.getUint16(offset);
+        const segmentLength = data.getUint16(offset + 2) + 2;
+
+        // APP1 (0xFFE1) is where EXIF lives — skip it entirely
+        if (marker === 0xFFE1) {
+            offset += segmentLength;
+            continue;
+        }
+
+        result.push(new Uint8Array(arrayBuffer, offset, segmentLength));
+        offset += segmentLength;
+
+        // SOS marker means image data starts — copy the rest raw
+        if (marker === 0xFFDA) {
+            result.push(new Uint8Array(arrayBuffer, offset));
+            break;
+        }
+    }
+
+    const totalLength = result.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+    const merged = new Uint8Array(totalLength);
+    let pos = 0;
+    for (const chunk of result) {
+        merged.set(chunk, pos);
+        pos += chunk.byteLength;
+    }
+    return merged.buffer;
+}
+
+// ── Steps 2 & 3: Resize (if > 2400px) + convert to WebP ────────────────
+// quality: 1.0 = lossless-equivalent for WebP, visually identical to source
+function processImageToWebP(blob, maxDimension = 2400, quality = 1.0) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('Image load failed'));
+        };
+
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+
+            let { width, height } = img;
+
+            // Only resize if either dimension exceeds the cap
+            if (width > maxDimension || height > maxDimension) {
+                if (width >= height) {
+                    height = Math.round((height * maxDimension) / width);
+                    width = maxDimension;
+                } else {
+                    width = Math.round((width * maxDimension) / height);
+                    height = maxDimension;
+                }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Check WebP support — fall back to PNG if not supported
+            const supportsWebP = canvas.toDataURL('image/webp').startsWith('data:image/webp');
+            const mimeType = supportsWebP ? 'image/webp' : 'image/png';
+
+            canvas.toBlob(
+                (resultBlob) => {
+                    if (!resultBlob) {
+                        reject(new Error('Canvas toBlob failed'));
+                        return;
+                    }
+                    resolve({ blob: resultBlob, mimeType });
+                },
+                mimeType,
+                quality
+            );
+        };
+
+        img.src = url;
+    });
+}
+
+// ── Step 4: Upload to Supabase Storage ──────────────────────────────────
+async function uploadImageToSupabase(blob, mimeType) {
+    const ext = mimeType === 'image/webp' ? 'webp' : mimeType === 'image/png' ? 'png' : 'jpg';
+    const filename = `${CURRENT_USER_ID}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const { data, error } = await supabaseClient.storage
+        .from('note-images')                        // 🔁 change 'note-images' to your bucket name
+        .upload(filename, blob, {
+            contentType: mimeType,
+            cacheControl: '31536000',               // cache for 1 year
+            upsert: false
+        });
+
+    if (error) throw new Error(`Storage upload failed: ${error.message}`);
+
+    const { data: urlData } = supabaseClient.storage
+        .from('note-images')
+        .getPublicUrl(data.path);
+
+    return urlData.publicUrl;
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────
+app.handleImageFile = async function (input) {
     if (!input.files || !input.files[0]) return;
 
     const file = input.files[0];
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    const MAX_RAW_SIZE = 20 * 1024 * 1024; // 20MB raw cap before any processing
 
-    if (file.size > MAX_FILE_SIZE) {
-        alert(`File is too large! Maximum size allowed is 5MB. This file is ${(file.size / (1024 * 1024)).toFixed(2)} MB.`);
+    if (file.size > MAX_RAW_SIZE) {
+        alert(`File is too large. Maximum allowed is 20MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
         input.value = '';
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const imgHtml = '<img src="' + e.target.result + '" /><div><br></div>';
-        const contentEl = document.getElementById('noteContentInput');
-        contentEl.focus();
-        document.execCommand('insertHTML', false, imgHtml);
+    const contentEl = document.getElementById('noteContentInput');
+
+    // Insert placeholder while processing
+    contentEl.focus();
+    const placeholderId = 'img-placeholder-' + Date.now();
+    document.execCommand('insertHTML', false,
+        `<span id="${placeholderId}" style="opacity:0.45;font-style:italic;font-size:13px;">⏳ Processing image…</span>`
+    );
+
+    try {
+        // ── 1. Strip EXIF (JPEG only) ──
+        let processedBlob = file;
+        if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+            const buffer = await file.arrayBuffer();
+            const stripped = stripExif(buffer);
+            processedBlob = new Blob([stripped], { type: 'image/jpeg' });
+        }
+
+        // ── 2 & 3. Resize if huge + convert to WebP ──
+        const { blob: finalBlob, mimeType } = await processImageToWebP(processedBlob);
+
+        // ── 4. Upload to Supabase Storage and get URL ──
+        let imageUrl;
+        if (isOnline()) {
+            imageUrl = await uploadImageToSupabase(finalBlob, mimeType);
+        } else {
+            // Offline fallback: base64 into note (will be large but functional)
+            // Replaces itself with a URL when the note syncs — you can improve this later
+            console.warn('[ImageUpload] Offline — falling back to base64');
+            imageUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(finalBlob);
+            });
+        }
+
+        // ── Insert image into note ──
+        const placeholder = document.getElementById(placeholderId);
+        const imgHtml = `<img src="${imageUrl}" style="max-width:100%;border-radius:6px;" /><div><br></div>`;
+
+        if (placeholder) {
+            placeholder.outerHTML = imgHtml;
+        } else {
+            contentEl.focus();
+            document.execCommand('insertHTML', false, imgHtml);
+        }
+
         this.updateCurrentNote();
-    };
-    reader.readAsDataURL(file);
+
+    } catch (err) {
+        console.error('[ImageUpload] Failed:', err);
+
+        // Clean up placeholder
+        const placeholder = document.getElementById(placeholderId);
+        if (placeholder) placeholder.remove();
+
+        alert(`Image upload failed: ${err.message}`);
+    }
+
     input.value = '';
 };
 
@@ -2464,6 +2667,113 @@ function navigateToSettings() {
     });
     document.addEventListener('focusout', scrollUnlock);
 })();
+
+// ============================================================================
+// 13. ANDROID BACK BUTTON HANDLER
+// ============================================================================
+
+const BackHandler = {
+
+    // Priority-ordered list of "can we intercept this back press?"
+    // First one that returns true wins — back is consumed, app stays put
+    intercept() {
+
+        // ── Priority 1: Close any open dialog first ──────────────────────
+        const dialog = document.getElementById('appDialogOverlay');
+        if (dialog?.classList.contains('show')) {
+            AppDialog.close();
+            return true;
+        }
+
+        // ── Priority 2: Close any open dropdown or context menu ──────────
+        const openMenus = [
+            'shareDropdown',
+            'textStyleDropdown',
+            'noteActionsMenu',
+            'folderActionsMenu',
+            'accountDropdown'
+        ];
+        for (const menuId of openMenus) {
+            const el = document.getElementById(menuId);
+            if (el?.classList.contains('open')) {
+                app.closeDropdown(menuId);
+                return true;
+            }
+        }
+
+        // ── Priority 3: Hide selection toolbar if visible ────────────────
+        const selToolbar = document.getElementById('selectionToolbar');
+        if (selToolbar?.style.display === 'flex') {
+            hideSelectionToolbar();
+            return true;
+        }
+
+        // ── Priority 4: Exit multi-select mode ───────────────────────────
+        if (app.ui.multiSelect) {
+            app.toggleMultiSelect();
+            return true;
+        }
+
+        // ── Priority 5: Mobile view navigation ───────────────────────────
+        if (app.ui.isMobile) {
+            if (app.ui.mobileView === 'editor') {
+                app.goToMobileView('notes');
+                return true;
+            }
+            if (app.ui.mobileView === 'notes') {
+                app.goToMobileView('folders');
+                return true;
+            }
+            // mobileView === 'folders' → fall through → exit app
+            return false;
+        }
+
+        // ── Desktop: nothing to intercept ────────────────────────────────
+        return false;
+    },
+
+    init() {
+        // ── Method 1: Median.co gonative bridge ──────────────────────────
+        // Median calls window.gonative_back_pressed() when back is pressed
+        window.gonative_back_pressed = () => {
+            const intercepted = this.intercept();
+            if (!intercepted && window.median?.nativebridge) {
+                // Tell Median to proceed with default back (exit app)
+                median.nativebridge.exitApp?.();
+            }
+            // returning false tells Median we handled it
+            return !intercepted;
+        };
+
+        // ── Method 2: Median newer API ───────────────────────────────────
+        if (window.median?.onBackPressed !== undefined) {
+            median.onBackPressed = () => {
+                return this.intercept(); // true = we handled it, false = let OS handle
+            };
+        }
+
+        // ── Method 3: History API fallback (popstate) ────────────────────
+        // Push a dummy state so we have something to catch
+        history.pushState({ notesApp: true }, '');
+
+        window.addEventListener('popstate', (e) => {
+            const intercepted = this.intercept();
+            if (intercepted) {
+                // Re-push the dummy state so next back press is also caught
+                history.pushState({ notesApp: true }, '');
+            }
+            // If not intercepted, popstate fires naturally → browser/OS handles exit
+        });
+
+        // ── Method 4: Physical keyboard back key (some Android keyboards) ─
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'BrowserBack' || e.keyCode === 166) {
+                const intercepted = this.intercept();
+                if (intercepted) e.preventDefault();
+            }
+        });
+    }
+};
 
 // Initialize app
 app.init();
