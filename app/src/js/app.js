@@ -1955,7 +1955,7 @@ async function uploadImageToSupabase(blob, mimeType) {
     if (error) throw new Error(`Storage upload failed: ${error.message}`);
 
     const { data: urlData } = supabaseClient.storage
-        .from('note-images')
+        .from('notoz-images')
         .getPublicUrl(data.path);
 
     return urlData.publicUrl;

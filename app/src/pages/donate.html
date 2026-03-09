@@ -65,7 +65,7 @@
   --accent1: #FF453A;
   --accent-green: #30D158;
   --overlay-bg: rgba(0,0,0,0.6);
-  --glass-bg: rgba(30,30,30,0.88);
+  --glass-bg: rgba(30, 30, 30, 0.11);
   --glass-border: rgba(255,255,255,0.15);
 }
 
@@ -74,9 +74,9 @@
   --bg-secondary: #FFFFFF;
   --bg-active: #E5E5EA;
   --text-main: #000000;
-  --text-dim: #8A8A8E;
+  --text-dim: #29292a;
   --sep: rgba(60,60,67,0.29);
-  --glass-bg: rgba(255,255,255,0.88);
+  --glass-bg: rgba(255,255,255,0.11);
   --glass-border: rgba(0,0,0,0.10);
 }
 
@@ -86,7 +86,7 @@ html[data-ui="nothing"] {
   --bg-main: #000000;
   --bg-secondary: #1B1B1B;
   --bg-card: #1B1B1B;
-  --accent-green: rgb(215,25,33);
+  --accent-pink: #e9c6c7;
 }
 html[data-ui="nothing"][data-theme="light"] {
   --bg-main: #F3F3F3;
@@ -108,7 +108,7 @@ html[data-ui="nothing"] .row:only-child  { border-radius: 26px; }
 html[data-ui="nothing"][data-theme="dark"]  .row.clickable:active { background: rgba(255,255,255,0.15); }
 html[data-ui="nothing"][data-theme="light"] .row.clickable:active { background: rgba(0,0,0,0.13); }
 
-/* MD3E — color tokens (exact match from settings.css) */
+/* MD3E — color tokens */
 html[data-ui="md3e"][data-theme="light"] {
   --base: color-mix(in srgb, #ffffff, rgb(var(--md-seed)) 5%);
   --bg-main: color-mix(in srgb, var(--base) 96%, rgb(var(--md-seed)) 4%);
@@ -131,7 +131,6 @@ html[data-ui="md3e"][data-theme="dark"] {
   --clickable: color-mix(in srgb, rgba(0,0,0,0.10) 90%, rgb(var(--md-seed)) 10%);
 }
 
-/* MD3E — no explicit theme set (fallback: treat as dark) */
 html[data-ui="md3e"]:not([data-theme]) {
   --base: color-mix(in srgb, #1c1b1f, rgb(var(--md-seed)) 5%);
   --bg-main: color-mix(in srgb, var(--base) 98%, rgb(var(--md-seed)) 2%);
@@ -145,7 +144,6 @@ html[data-ui="md3e"]:not([data-theme]) {
   --clickable: color-mix(in srgb, rgba(0,0,0,0.10) 90%, rgb(var(--md-seed)) 10%);
 }
 
-/* MD3E — body & layout */
 html[data-ui="md3e"] body {
   font-family: "Google Sans", sans-serif;
   background: var(--bg-main);
@@ -244,7 +242,7 @@ body {
 }
 
 /* ============================================================
-   SETTINGS GROUP / ROW (exact match)
+   SETTINGS GROUP / ROW
    ============================================================ */
 .settings-group {
   margin-bottom: 25px;
@@ -314,7 +312,7 @@ body {
 .row.clickable:active .chevron { transform: rotate(15deg); }
 
 /* ============================================================
-   TIER SELECTOR (radio-style rows)
+   TIER SELECTOR
    ============================================================ */
 .tier-amount {
   font-size: 17px;
@@ -433,13 +431,13 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
 #payment-sheet-overlay {
   position: fixed; inset: 0;
   background: var(--overlay-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 9000;
   display: none;
   align-items: flex-end;
   justify-content: center;
-  animation: fadeIn 0.25s ease-out;
+  animation: fadeIn 0.5s ease-out;
 }
 #payment-sheet-overlay.active { display: flex; }
 
@@ -492,6 +490,8 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
 }
 .sheet-amount-label { font-size: 14px; color: var(--text-dim); }
 .sheet-amount-val { font-size: 22px; font-weight: 700; color: var(--accent); }
+html[data-ui="nothing"] .sheet-amount-pill {background-color: color-mix(in srgb, var(--bg-active) 60%, var(--accent-pink) 40%);}
+html[data-ui="nothing"] .sheet-amount-val { color: #ff0080; }
 
 /* QR */
 .qr-section {
@@ -541,13 +541,13 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
 
 .upi-app-icon {
   width: 40px; height: 40px;
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   font-size: 22px;
   background: #fff;
   overflow: hidden;
 }
-.upi-app-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.upi-app-icon img { width: 100%; height: 100%; object-fit: cover; }
 .upi-app-name { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.2; }
 
 /* Fallback UPI deep-link btn */
@@ -591,6 +591,10 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
 }
+@keyframes sheetSlideDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(110%); }
+}
 
 /* ============================================================
    HEART DECORATION
@@ -598,7 +602,7 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
 .hero-icon {
   font-size: 42px;
   margin-bottom: 4px;
-  margin-left: 14px;
+  margin-left: 26px;
   display: block;
   animation: heartBeat 2.4s ease-in-out infinite;
 }
@@ -625,7 +629,7 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
   bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
   background: var(--glass-bg);
   border: 0.5px solid var(--glass-border);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
   color: var(--text-main);
   padding: 10px 20px;
   border-radius: 100px;
@@ -655,10 +659,12 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
     <span class="hero-icon">❤️</span>
     <p class="hero-sub">Support the project and help keep it alive. Every contribution, big or small, means the world to me.</p>
   </div>
-<div class="group-label">Choose a tier</div>
+
+  <div class="group-label">Choose a tier</div>
+
   <!-- Tiers -->
   <div class="settings-group" style="animation-delay:0.18s">
-  
+
     <!-- Tier 1 -->
     <div class="row tier-row clickable" onclick="selectTier(this, 50, 'Coffee ☕', 'A small thank-you')">
       <div class="tier-left">
@@ -719,19 +725,17 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
 
   <!-- UPI note -->
   <div class="settings-group" style="animation-delay:0.28s">
-    <div class="row" style="cursor:default; gap:12px;">
+    <div class="row clickable" onclick="copyAndShowQR()" style="gap:12px;">
       <div style="display:flex; align-items:center; gap:12px;">
         <span style="font-size:22px;">📱</span>
         <div>
           <div class="label" style="font-size:15px;">Pay via UPI</div>
-          <div style="font-size:13px; color:var(--text-dim); margin-top:2px;">Scan QR or open your preferred app</div>
+          <div style="font-size:13px; color:var(--text-dim); margin-top:2px; font-family:monospace; letter-spacing:0.3px;">nishant.97@superyes</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:4px;">
-        <span style="font-size:11px; color:var(--text-dim); font-family:monospace; letter-spacing:0.3px;">nishant.97@superyes</span>
-        <button onclick="copyUPI()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--accent);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        </button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <svg class="chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </div>
   </div>
@@ -794,17 +798,11 @@ html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57
    STATE
    ============================================================ */
 const UPI_ID   = "nishant.97@superyes";
-const UPI_NAME = "Nishant";
+const UPI_NAME = "Nishant Nishant";
 
 let selectedAmount = 0;
 let selectedTierEl = null;
 let isCustom = false;
-
-const tiers = [
-  { el: null, amount: 49  },
-  { el: null, amount: 149 },
-  { el: null, amount: 299 },
-];
 
 /* ============================================================
    TIER SELECTION
@@ -822,7 +820,6 @@ function selectTier(rowEl, amount, name, desc) {
 }
 
 function selectCustomTier() {
-  // Don't clearAll if custom tier is already active — just re-mark it
   if (!document.getElementById('custom-tier-row').classList.contains('active-tier')) {
     clearAll();
   }
@@ -837,7 +834,6 @@ function selectCustomTier() {
 }
 
 function onCustomInput() {
-  // Always activate custom tier when user types
   const row = document.getElementById('custom-tier-row');
   if (!row.classList.contains('active-tier')) {
     document.querySelectorAll('.tier-row').forEach(r => r.classList.remove('active-tier'));
@@ -886,99 +882,185 @@ function updateProceed() {
 }
 
 /* ============================================================
-   UPI DEEP LINKS
+   UPI URI BUILDER
    ============================================================ */
 function buildUpiUri(amount) {
-  const note = encodeURIComponent("Donation");
-  return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amount}&cu=INR&tn=${note}`;
+  // Standard UPI URI — recognised by all UPI apps
+  const pa  = encodeURIComponent(UPI_ID);
+  const pn  = encodeURIComponent(UPI_NAME);
+  const tn  = encodeURIComponent("Donation");
+  return `upi://pay?pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${tn}`;
 }
 
+/* ============================================================
+   UPI APPS
+   Each entry has:
+     name    – display name
+     icon    – image URL
+     pkg     – Android package name  (for intent:// URL)
+     iosScheme – iOS custom scheme prefix (optional; falls back to upi://)
+   ============================================================ */
 const UPI_APPS = [
   {
     name: "Paytm",
     icon: "https://play-lh.googleusercontent.com/WDGsMRuVENnZPEpV4DEaXw12qtMY3em85xpmZqcXzeh0iT_eXFtAU9VUj-Z7xNQQd5DMqrkKSs9D0qbI1rlt=s96-rw",
-    scheme: (amt) => `paytmmp://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
-    fallback: (amt) => `https://paytm.com/pay?pa=${UPI_ID}&am=${amt}`
+    pkg: "net.one97.paytm",
+    iosScheme: "paytmmp"
   },
   {
     name: "PhonePe",
     icon: "https://play-lh.googleusercontent.com/6iyA2zVz5PyyMjK5SIxdUhrb7oh9cYVXJ93q6DZkmx07Er1o90PXYeo6mzL4VC2Gj9s=w480-h960-rw",
-    scheme: (amt) => `phonepe://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
-    fallback: (amt) => `https://phon.pe/ru_${encodeURIComponent(UPI_ID)}`
+    pkg: "com.phonepe.app",
+    iosScheme: "phonepe"
+  },
+  {
+    name: "GPay",
+    icon: "https://play-lh.googleusercontent.com/Fm5PDRimTL_KsWyIRcTv9h0JLrTkDOMwh18SE819OXjEZhlwMYBHJXxUZ8eOBudxCsHC=w480-h960-rw",
+    pkg: "com.google.android.apps.nbu.paisa.user",
+    iosScheme: "gpay"
   },
   {
     name: "BHIM",
     icon: "https://play-lh.googleusercontent.com/B5cNBA15IxjCT-8UTXEWgiPcGkJ1C07iHKwm2Hbs8xR3PnJvZ0swTag3abdC_Fj5OfnP=s96-rw",
-    scheme: (amt) => `bhim://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
-    fallback: (amt) => `https://www.bhimupi.org.in/`
-  },
-  {
-    name: "super.money",
-    icon: "https://play-lh.googleusercontent.com/xb5kyKVpbNeeJlx3bKlUPcF_vJH6sel0c3FlyZ_KNx2cZtjEj-1pGGYOLHa-39LlXnY=w480-h960-rw",
-    scheme: (amt) => `supermoney://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
-    fallback: (amt) => `https://supermoney.app/`
+    pkg: "in.org.npci.upiapp",
+    iosScheme: "bhim"
   },
 ];
 
+/* ============================================================
+   LAUNCH UPI APP
+   Android: intent:// URL → routes directly to target app with
+            payment pre-filled via standard UPI params.
+   iOS:     custom scheme deep link if app supports it,
+            otherwise fallback to standard upi:// URI.
+   ============================================================ */
+function launchApp(app, amount) {
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  const pa  = encodeURIComponent(UPI_ID);
+  const pn  = encodeURIComponent(UPI_NAME);
+  const tn  = encodeURIComponent("Donation");
+  const upiParams = `pa=${pa}&pn=${pn}&am=${amount}&cu=INR&tn=${tn}`;
+
+  if (isAndroid) {
+    /*
+     * Android Intent URL format:
+     * intent://pay?<upi-params>#Intent;scheme=upi;package=<pkg>;end
+     *
+     * This tells the OS to open exactly the target app with the
+     * full UPI payment details already filled in.
+     * If the app is not installed the OS shows a "not found" dialog
+     * instead of silently failing.
+     */
+    const intentUrl =
+      `intent://pay?${upiParams}` +
+      `#Intent;scheme=upi;package=${app.pkg};end`;
+    window.location.href = intentUrl;
+
+  } else if (isIOS && app.iosScheme) {
+    /*
+     * iOS: try the app's registered URL scheme.
+     * Most UPI apps on iOS register <scheme>://upi/pay?...
+     * We set a short timer; if the app isn't installed the
+     * browser will do nothing, so we don't force a fallback.
+     */
+    window.location.href =
+      `${app.iosScheme}://upi/pay?${upiParams}`;
+
+  } else {
+    // Desktop / unknown – open standard UPI URI (will prompt
+    // the user's default UPI handler if one is registered)
+    window.location.href = `upi://pay?${upiParams}`;
+  }
+}
+
+/* ============================================================
+   BUILD APPS GRID
+   ============================================================ */
 function buildAppsGrid(amount) {
   const grid = document.getElementById('upi-apps-grid');
   grid.innerHTML = '';
+
   UPI_APPS.forEach(app => {
-    const a = document.createElement('a');
-    a.className = 'upi-app-btn';
-    a.href = '#';
-    a.onclick = (e) => { e.preventDefault(); launchApp(app, amount); };
+    const btn = document.createElement('button');
+    btn.className = 'upi-app-btn';
+    btn.type = 'button';
+    btn.onclick = () => launchApp(app, amount);
 
     const iconEl = document.createElement('div');
     iconEl.className = 'upi-app-icon';
-    if (app.icon.startsWith('http')) {
-      const img = document.createElement('img');
-      img.src = app.icon;
-      img.alt = app.name;
-      img.onerror = () => { iconEl.textContent = app.name[0]; };
-      iconEl.appendChild(img);
-    } else {
-      iconEl.style.fontSize = '24px';
-      iconEl.style.background = 'linear-gradient(135deg,#1a1a2e,#16213e)';
-      iconEl.textContent = app.icon;
-    }
+
+    const img = document.createElement('img');
+    img.src = app.icon;
+    img.alt = app.name;
+    img.onerror = () => {
+      iconEl.textContent = app.name[0];
+      iconEl.style.background = 'var(--bg-active)';
+      iconEl.style.color = 'var(--text-main)';
+      iconEl.style.fontSize = '18px';
+      iconEl.style.fontWeight = '700';
+    };
+    iconEl.appendChild(img);
 
     const nameEl = document.createElement('span');
     nameEl.className = 'upi-app-name';
     nameEl.textContent = app.name;
 
-    a.appendChild(iconEl);
-    a.appendChild(nameEl);
-    grid.appendChild(a);
+    btn.appendChild(iconEl);
+    btn.appendChild(nameEl);
+    grid.appendChild(btn);
   });
 }
 
-function launchApp(app, amount) {
-  // Try scheme, fall back to web
-  const scheme = app.scheme(amount);
-  const fallback = app.fallback(amount);
-
-  // Use iframe trick to attempt deep link
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-
-  let launched = false;
-  const start = Date.now();
-
-  window.addEventListener('blur', () => { launched = true; }, { once: true });
-
-  iframe.src = scheme;
-  setTimeout(() => {
-    document.body.removeChild(iframe);
-    if (!launched && (Date.now() - start) < 1500) {
-      window.open(fallback, '_blank');
-    }
-  }, 800);
+/* ============================================================
+   GENERIC "Open in any UPI App"
+   ============================================================ */
+function openGenericUPI() {
+  const amt = selectedAmount >= 10 ? selectedAmount : '';
+  const pa  = encodeURIComponent(UPI_ID);
+  const pn  = encodeURIComponent(UPI_NAME);
+  const tn  = encodeURIComponent("Donation");
+  let uri = `upi://pay?pa=${pa}&pn=${pn}&cu=INR&tn=${tn}`;
+  if (amt) uri += `&am=${amt}`;
+  window.location.href = uri;
 }
 
-function openGenericUPI() {
-  window.location.href = buildUpiUri(selectedAmount);
+/* ============================================================
+   COPY VPA + OPEN QR SHEET (tapping the UPI row)
+   Copies the UPI ID and opens the payment sheet.
+   If a tier is selected the sheet shows the amount;
+   otherwise it shows a plain VPA QR (user enters amount in app).
+   ============================================================ */
+function copyAndShowQR() {
+  copyUPI();
+
+  const amt = selectedAmount >= 10 ? selectedAmount : 0;
+  const pill = document.querySelector('.sheet-amount-pill');
+
+  if (amt > 0) {
+    pill.style.display = 'flex';
+    document.getElementById('sheet-amount-display').textContent = '\u20b9' + amt;
+    generateQR(amt);
+    buildAppsGrid(amt);
+  } else {
+    pill.style.display = 'none';
+    const pa = encodeURIComponent(UPI_ID);
+    const pn = encodeURIComponent(UPI_NAME);
+    const container = document.getElementById('qr-canvas');
+    container.innerHTML = '';
+    new QRCode(container, {
+      text: `upi://pay?pa=${pa}&pn=${pn}&cu=INR`,
+      width: 200, height: 200,
+      colorDark: "#000000", colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    buildAppsGrid(1);
+  }
+
+  const overlay = document.getElementById('payment-sheet-overlay');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.classList.add('active'));
 }
 
 /* ============================================================
@@ -988,9 +1070,6 @@ function generateQR(amount) {
   const upiUri = buildUpiUri(amount);
   const container = document.getElementById('qr-canvas');
   container.innerHTML = '';
-
-  // Detect dark/light for QR color
-  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
 
   new QRCode(container, {
     text: upiUri,
@@ -1019,16 +1098,16 @@ function openPaymentSheet() {
 
 function closePaymentSheet() {
   const overlay = document.getElementById('payment-sheet-overlay');
-  const sheet = document.getElementById('payment-sheet');
+  const sheet   = document.getElementById('payment-sheet');
   sheet.style.animation = 'sheetSlideDown 0.3s cubic-bezier(0.5,0,1,0.5) forwards';
-  overlay.style.opacity = '0';
+  overlay.style.opacity    = '0';
   overlay.style.transition = 'opacity 0.3s';
   setTimeout(() => {
     overlay.classList.remove('active');
-    overlay.style.display = 'none';
-    overlay.style.opacity = '';
+    overlay.style.display    = 'none';
+    overlay.style.opacity    = '';
     overlay.style.transition = '';
-    sheet.style.animation = '';
+    sheet.style.animation    = '';
   }, 300);
 }
 
@@ -1042,16 +1121,25 @@ function handleOverlayClick(e) {
    COPY UPI ID
    ============================================================ */
 function copyUPI() {
-  navigator.clipboard.writeText(UPI_ID).then(() => showToast('UPI ID copied!')).catch(() => {
-    // fallback
-    const el = document.createElement('textarea');
-    el.value = UPI_ID;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    showToast('UPI ID copied!');
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(UPI_ID)
+      .then(() => showToast('UPI ID copied!'))
+      .catch(() => fallbackCopy());
+  } else {
+    fallbackCopy();
+  }
+}
+
+function fallbackCopy() {
+  const el = document.createElement('textarea');
+  el.value = UPI_ID;
+  el.style.position = 'fixed';
+  el.style.opacity  = '0';
+  document.body.appendChild(el);
+  el.select();
+  try { document.execCommand('copy'); showToast('UPI ID copied!'); }
+  catch (e) { showToast('Copy failed'); }
+  document.body.removeChild(el);
 }
 
 function showToast(msg) {
@@ -1060,18 +1148,6 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
 }
-
-/* ============================================================
-   SLIDE DOWN KEYFRAME (injected)
-   ============================================================ */
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes sheetSlideDown {
-    from { transform: translateY(0); }
-    to   { transform: translateY(110%); }
-  }
-`;
-document.head.appendChild(style);
 </script>
 </body>
 </html>
