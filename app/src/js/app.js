@@ -1945,7 +1945,7 @@ async function uploadImageToSupabase(blob, mimeType) {
     const filename = `${CURRENT_USER_ID}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
     const { data, error } = await supabaseClient.storage
-        .from('note-images')                        // 🔁 change 'note-images' to your bucket name
+        .from('notoz-images')
         .upload(filename, blob, {
             contentType: mimeType,
             cacheControl: '31536000',               // cache for 1 year
