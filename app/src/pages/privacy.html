@@ -3,10 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - Notoj Notes</title>
-        <link rel="manifest" href="./manifest.json">    
-    <link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
-    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <title>Privacy Policy - Notoz Notes</title>
+    <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="../assets/icons/logo.png">
+    <script>
+    (function () {
+      const root = document.documentElement;
+      const ui = localStorage.getItem("ui-theme") || "ios";
+      root.setAttribute("data-ui", ui);
+      const mode = localStorage.getItem("notesApp_theme");
+      if (mode) root.setAttribute("data-theme", mode);
+      if (ui === "md3e") {
+        const hex = localStorage.getItem("md3e-seed");
+        if (hex) {
+          const v = hex.replace("#", "");
+          root.style.setProperty(
+            "--md-seed",
+            `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`
+          );
+        }
+      }
+    })();
+  </script>
     <style>
         @import url(./src/assets/fonts/SFR.ttf);
 
@@ -284,7 +303,7 @@
         <p><a href="mailto:webgdev25@gmail.com">Email</a></p>
 
         <div class="footer">
-            Copyright © 2026 Notoj Notes App. All rights reserved.
+            Copyright © 2026 Notoz Notes App. All rights reserved.
         </div>
     </div>
 

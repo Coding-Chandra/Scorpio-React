@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, interactive-widget=resizes-content">
   <title>Notoz</title>
   <script>(function () { const root = document.documentElement; const ui = localStorage.getItem("ui-theme") || "ios"; root.setAttribute("data-ui", ui); const mode = localStorage.getItem("notesApp_theme"); if (mode) { root.setAttribute("data-theme", mode); } if (ui === "md3e") { const hex = localStorage.getItem("md3e-seed"); if (hex) { const v = hex.replace("#", ""); root.style.setProperty("--md-seed", `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`); } } })();</script>
-  <link rel="icon" type="image/png" href="../src/assets/icons/logo.png">
-  <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+  <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
+  <link rel="apple-touch-icon" href="./src/assets/icons/logo.png">
   <link rel="stylesheet" href="./src/css/animations.css">
   <link rel="stylesheet" href="./src/css/ui-enhancements.css">
   <link rel="stylesheet" href="./src/css/app.css">
@@ -251,7 +250,7 @@
       <button class="btn" onclick="app.applyTextStyle('title')">Title</button>
       <button class="btn" onclick="app.applyTextStyle('heading')">Heading</button>
       <button class="btn" onclick="app.applyTextStyle('subheading')">Subheading</button>
-      <button class="btn" onclick="app.applyTextStyle('body')">Body</button>
+      <button class="btn" onclick="app.applyTextStyle('body')">Paragraph</button>
     </div>
   </div>
 

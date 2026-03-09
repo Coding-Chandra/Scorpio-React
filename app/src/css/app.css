@@ -189,7 +189,7 @@
             border: none;
             background: none;
             font-size: 17px;
-            color: var(--blue);
+            color: var(--accent);
             padding: 0;
             cursor: pointer;
         }
@@ -456,7 +456,7 @@
         .search-bar {
             width: 100%;
             padding: 8px 12px;
-            border-radius: 22px;
+            border-radius: 12px;
             padding-left: 15px;
             align-items: center;
             border: 1px solid rgba(0,0,0,0.05);
@@ -491,7 +491,7 @@
         .edit-notes-btn {
             border: none;
             background: none;
-            color: var(--blue);
+            color: var(--accent);
             font-size: 15px;
             padding: 4px 6px;
             cursor: pointer;
@@ -699,8 +699,8 @@
             background: rgba(0,0,0,0.6);
         }
         .note-select-indicator.selected {
-            background: #ffe79a;
-            border-color: #ffe79a;
+            background: var(--accent-color);
+            border-color: var(--accent-color);
             position: relative;
         }
         .note-select-indicator.selected::after {
@@ -865,19 +865,19 @@
         .note-content-editable ol { padding-left: 20px; }
 
         .note-content-editable h1 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             margin: 14px 0 4px;
             line-height: 1.8;
         }
         .note-content-editable h2 {
-            font-size: 19px;
+            font-size: 20px;
             font-weight: 600;
             margin: 12px 0 3px;
             line-height: 1.7;
         }
         .note-content-editable h3 {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 500;
             margin: 10px 0 2px;
             line-height: 1.6;
@@ -940,7 +940,6 @@
             text-align: center;
             color: #333;
             box-shadow: none;
-            transition: 0.1s;
         }
         .dropdown-menu .btn:hover {
             background: rgba(0,0,0,0.05);
@@ -1047,7 +1046,7 @@
         .account-ac-btn {
             border: none;
             background: none;
-            color: var(--blue);
+            color: var(--accent);
             font-size: 14px;
             font-weight: 500;
             padding: 6px 10px;
@@ -1064,8 +1063,8 @@
         }
 
         .note-content-editable img {
-            max-width: 100%;
-            border-radius: 8px;
+            max-width: 95%;
+            border-radius: 12px;
             margin: 10px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }

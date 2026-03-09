@@ -134,6 +134,290 @@ async function decryptWithMasterKey(stored) {
 }
 
 // ============================================================================
+// A. SESSION CRYPTO CACHE
+// Import the master CryptoKey once. Every decrypt call reuses it.
+// ============================================================================
+
+let _cachedDecryptKey = null;   // CryptoKey object, lives for the session
+let _cachedEncryptKey = null;
+
+/**
+ * Get (or import) the session decrypt key.
+ * Falls back gracefully if master key bytes aren't in localStorage yet.
+ */
+async function _getDecryptKey() {
+    if (_cachedDecryptKey) return _cachedDecryptKey;
+    const mk = getLocalMasterKeyBytes();
+    if (!mk) return null;
+    _cachedDecryptKey = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['decrypt']);
+    return _cachedDecryptKey;
+}
+
+async function _getEncryptKey() {
+    if (_cachedEncryptKey) return _cachedEncryptKey;
+    const mk = getLocalMasterKeyBytes();
+    if (!mk) return null;
+    _cachedEncryptKey = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['encrypt']);
+    return _cachedEncryptKey;
+}
+
+/**
+ * Fast decrypt — reuses cached CryptoKey, no localStorage read per call.
+ * Drop-in replacement for decryptWithMasterKey() for internal queue use.
+ */
+async function _fastDecrypt(stored) {
+    if (!stored || !stored.startsWith('enc:')) return stored || '';
+    const key = await _getDecryptKey();
+    if (!key) return stored; // master key not available yet
+    const [, ivB64, ctB64] = stored.split(':');
+    const iv = _b64Decode(ivB64);
+    const ct = _b64Decode(ctB64);
+    try {
+        const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+        return new TextDecoder().decode(dec);
+    } catch (e) {
+        return stored; // return raw if decrypt fails (wrong key, corrupted)
+    }
+}
+
+/**
+ * Fast encrypt — reuses cached CryptoKey.
+ */
+async function _fastEncrypt(plaintext) {
+    if (!plaintext) return '';
+    const key = await _getEncryptKey();
+    if (!key) throw new Error('Master key not available');
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext)
+    );
+    return `enc:${_b64Encode(iv)}:${_b64Encode(ct)}`;
+}
+
+/** Call this on logout to clear the session key cache */
+function clearCryptoKeyCache() {
+    _cachedDecryptKey = null;
+    _cachedEncryptKey = null;
+}
+
+
+// ============================================================================
+// B. SESSION DECRYPT CACHE
+// Once a note is fully decrypted, store title+content here.
+// Reopening the same note = instant, zero re-decrypt.
+// ============================================================================
+
+const _decryptCache = new Map(); // noteId → { title, content, preview }
+
+
+// ============================================================================
+// C. PRIORITY DECRYPT QUEUE
+// Two-lane queue:
+//   lane 0 = urgent   (note the user just opened)
+//   lane 1 = normal   (full content, background, newest→oldest)
+// Max 2 concurrent AES-GCM ops. Runs in requestIdleCallback when idle.
+// ============================================================================
+
+const DecryptQueue = (() => {
+    const _urgent  = [];   // { noteId, resolve, reject, type: 'full' }
+    const _normal  = [];   // same shape
+    let _running   = 0;
+    const MAX_CONCURRENT = 2;
+    let _idleHandle = null;
+    let _aborted = false;
+
+    function _enqueue(lane, noteId, type) {
+        // Deduplicate — don't add same note twice to same lane
+        const list = lane === 0 ? _urgent : _normal;
+        if (list.some(i => i.noteId === noteId && i.type === type)) return Promise.resolve(null);
+        return new Promise((resolve, reject) => {
+            list.push({ noteId, resolve, reject, type });
+            _scheduleRun();
+        });
+    }
+
+    function _scheduleRun() {
+        if (_idleHandle) return;
+        if (typeof requestIdleCallback !== 'undefined') {
+            _idleHandle = requestIdleCallback(_run, { timeout: 800 });
+        } else {
+            _idleHandle = setTimeout(_run, 0);
+        }
+    }
+
+    async function _run(deadline) {
+        _idleHandle = null;
+        if (_aborted) return;
+
+        // Drain as many as we can within the idle window (or just run if setTimeout)
+        const hasTime = () => deadline?.timeRemaining
+            ? deadline.timeRemaining() > 5
+            : true;
+
+        while (_running < MAX_CONCURRENT && (_urgent.length || _normal.length) && hasTime()) {
+            const item = _urgent.shift() || _normal.shift();
+            if (!item) break;
+            _running++;
+            _processItem(item).finally(() => {
+                _running--;
+                _scheduleRun();
+            });
+        }
+
+        // If there's still work and we're over the time budget, reschedule
+        if (_urgent.length || _normal.length) {
+            _scheduleRun();
+        }
+    }
+
+    async function _processItem(item) {
+        if (_aborted) { item.resolve(null); return; }
+
+        // Check session cache first
+        const cached = _decryptCache.get(item.noteId);
+        if (cached && (item.type === 'preview' ? cached.preview !== undefined : cached.content !== undefined)) {
+            item.resolve(cached);
+            return;
+        }
+
+        // Find note in app.notes
+        const note = app.notes.find(n => n.id === item.noteId);
+        if (!note) { item.resolve(null); return; }
+
+        try {
+            let changed = false;
+
+            if (item.type === 'preview') {
+                // Decrypt title + first ~120 chars of content only
+                let title = note.title;
+                let preview = '';
+
+                if (title?.startsWith('enc:')) {
+                    title = await _fastDecrypt(title);
+                    changed = true;
+                }
+
+                if (note.content?.startsWith('enc:')) {
+                    // Decrypt just enough for a preview — we only need the first chunk.
+                    // Full AES-GCM decrypts the whole ciphertext anyway, but we truncate
+                    // the result so we're not holding the entire note in memory twice.
+                    const full = await _fastDecrypt(note.content);
+                    preview = full.substring(0, 120);
+                    changed = true;
+                } else {
+                    preview = (note.content || '').substring(0, 120);
+                }
+
+                // Store preview separately, don't touch note.content yet
+                note._preview = { title, preview };
+                note._previewDecrypted = true;
+
+                const entry = _decryptCache.get(item.noteId) || {};
+                entry.title = title;
+                entry.preview = preview;
+                _decryptCache.set(item.noteId, entry);
+
+                // Update the title on the note object (titles are always shown)
+                if (changed) note.title = title;
+
+                // Patch just the list item — no full re-render
+                app.updateNoteItemInList(note.id);
+                item.resolve({ title, preview });
+
+            } else {
+                // Full decrypt
+                let title = note.title;
+                let content = note.content;
+
+                if (title?.startsWith('enc:'))   title   = await _fastDecrypt(title);
+                if (content?.startsWith('enc:')) content = await _fastDecrypt(content);
+
+                note.title   = title;
+                note.content = content;
+                note._decrypted = true;
+                note._previewDecrypted = true;
+
+                _decryptCache.set(item.noteId, {
+                    title,
+                    content,
+                    preview: (content || '').substring(0, 120)
+                });
+
+                app.updateNoteItemInList(note.id);
+
+                // If this note is currently open, refresh the editor content
+                if (app.activeNoteId === note.id) {
+                    const contentEl = document.getElementById('noteContentInput');
+                    const titleEl   = document.getElementById('noteTitleInput');
+                    if (contentEl && document.activeElement !== contentEl) {
+                        contentEl.innerHTML = content;
+                    }
+                    if (titleEl && document.activeElement !== titleEl) {
+                        titleEl.value = title;
+                    }
+                }
+
+                item.resolve({ title, content });
+            }
+        } catch (e) {
+            console.error('[DecryptQueue] Failed for note:', item.noteId, e);
+            item.resolve(null);
+        }
+    }
+
+    return {
+        /**
+         * Enqueue URGENT full decrypt (user opened the note).
+         * Jumps to front of queue, awaitable.
+         */
+        priorityFull(noteId) {
+            // Remove from normal queue if it's already there
+            const idx = _normal.findIndex(i => i.noteId === noteId && i.type === 'full');
+            if (idx !== -1) _normal.splice(idx, 1);
+            return _enqueue(0, noteId, 'full');
+        },
+
+        /**
+         * Enqueue background preview decrypt for list view.
+         */
+        queuePreview(noteId) {
+            return _enqueue(1, noteId, 'preview');
+        },
+
+        /**
+         * Enqueue background full decrypt (low priority).
+         */
+        queueFull(noteId) {
+            return _enqueue(1, noteId, 'full');
+        },
+
+        /** Cancel all pending work (e.g. on logout) */
+        abort() {
+            _aborted = true;
+            _urgent.length = 0;
+            _normal.length = 0;
+            if (_idleHandle) {
+                if (typeof cancelIdleCallback !== 'undefined') cancelIdleCallback(_idleHandle);
+                else clearTimeout(_idleHandle);
+                _idleHandle = null;
+            }
+        },
+
+        /** Reset after abort (e.g. re-login) */
+        reset() {
+            _aborted = false;
+        },
+
+        /** Check if a note is fully decrypted in cache */
+        isCached(noteId) {
+            const c = _decryptCache.get(noteId);
+            return !!(c && c.content !== undefined);
+        }
+    };
+})();
+
+
+// ============================================================================
 // 3.1 UNDO/REDO HISTORY MANAGER
 // ============================================================================
 
@@ -310,6 +594,10 @@ const app = {
     // ========================================================================
 
     async init() {
+        // Reset decrypt queue on init (handles re-login in same tab)
+        DecryptQueue.reset();
+        _decryptCache.clear();
+
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session || !session.user) {
             console.warn('No active session found. Redirecting to login.');
@@ -353,6 +641,11 @@ const app = {
     },
 
     async handleLogout() {
+        // Abort pending decrypt operations and clear session caches
+        DecryptQueue.abort();
+        _decryptCache.clear();
+        clearCryptoKeyCache();
+
         const { error } = await supabaseClient.auth.signOut();
         if (error) {
             console.error('Logout failed:', error);
@@ -1673,10 +1966,10 @@ app.handleImageFile = async function (input) {
     if (!input.files || !input.files[0]) return;
 
     const file = input.files[0];
-    const MAX_RAW_SIZE = 20 * 1024 * 1024; // 20MB raw cap before any processing
+    const MAX_RAW_SIZE = 5 * 1024 * 1024; // 5MB raw cap before any processing
 
     if (file.size > MAX_RAW_SIZE) {
-        alert(`File is too large. Maximum allowed is 20MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
+        alert(`File is too large. Maximum allowed is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
         input.value = '';
         return;
     }
@@ -1720,7 +2013,7 @@ app.handleImageFile = async function (input) {
 
         // ── Insert image into note ──
         const placeholder = document.getElementById(placeholderId);
-        const imgHtml = `<img src="${imageUrl}" style="max-width:100%;border-radius:6px;" /><div><br></div>`;
+        const imgHtml = `<img src="${imageUrl}" style="max-width:95%;border-radius:12px;" /><div><br></div>`;
 
         if (placeholder) {
             placeholder.outerHTML = imgHtml;

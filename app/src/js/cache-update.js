@@ -5,7 +5,7 @@
  * - Detects when new cache is available
  * - Shows "Update available" button
  * - Handles user-triggered updates
- * - Build number read from version.json (fast, no SW timing dependency)
+ * - Build number read from version.json (fast, no SW timing dependency) only on Scorpio Native
  */
 
 let BUILD_NUMBER = 'Loading...';

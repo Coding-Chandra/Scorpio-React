@@ -207,8 +207,8 @@ body::before {
 
 /* --- Custom Modal --- */
 /* =====================================================
-           MODAL SYSTEM - WORKS WITH ALL THEMES
-           ===================================================== */
+  MODAL SYSTEM - WORKS WITH ALL THEMES
+===================================================== */
 
 /* --- Custom Modal Base --- */
 #custom-modal-overlay {
@@ -350,7 +350,7 @@ body::before {
 
 /* =====================================================
            NOTHING OS 4 - MODAL OVERRIDES
-           ===================================================== */
+===================================================== */
 
 html[data-ui="nothing"] #custom-modal-overlay {
   background: rgba(0, 0, 0, 0.7);
@@ -403,7 +403,7 @@ html[data-ui="nothing"] .btn-secondary {
 
 /* =====================================================
            MD3E (MATERIAL YOU) - MODAL OVERRIDES
-           ===================================================== */
+===================================================== */
 
 html[data-ui="md3e"] #custom-modal-overlay {
   background: rgba(0, 0, 0, 0.32);
@@ -470,8 +470,8 @@ html[data-ui="md3e"][data-theme="dark"] .btn-secondary:active {
 }
 
 /* =====================================================
-           iOS (DEFAULT) - MODAL OVERRIDES
-           ===================================================== */
+           iOS like (DEFAULT) - MODAL OVERRIDES
+===================================================== */
 
 html[data-ui="ios"] #custom-modal-overlay {
   background: var(--overlay-bg);
@@ -525,8 +525,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
 }
 
 /* =====================================================
-           UTILITY ANIMATIONS
-           ===================================================== */
+          OTHER & UTILITY ANIMATIONS
+===================================================== */
 
 @keyframes modalSlide {
   from {
@@ -559,8 +559,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
 }
 
 /* =====================================================
-           RESPONSIVE - Mobile Adjustments
-           ===================================================== */
+           RESPONSIVENESS - Mobile Adjustments
+===================================================== */
 
 @media (max-width: 480px) {
   .modal-box {
@@ -595,8 +595,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
 }
 
 /* =====================================================
-           ACCESSIBILITY
-           ===================================================== */
+           ACCESSIBILITY VIEW - FOCUS STATES
+===================================================== */
 
 .modal-btn:focus-visible {
   outline: 2px solid var(--accent);
@@ -627,7 +627,7 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
 
 /* =====================================================
         NOTHING OS 4 – SAFE OVERRIDES (REAL STRUCTURE)
-        ===================================================== */
+===================================================== */
 html[data-ui="nothing"] {
   --accent: rgb(215, 25, 33);
   --bg-main: #F3F3F3;
@@ -696,8 +696,8 @@ html[data-ui="nothing"] .label {
 }
 
 /* =====================================================
-        MD3E – SAFE PATCH (NO COLOR-MIX, NO NEW TOKENS)
-        ===================================================== */
+        MD3E – SAFE PATCH (NO COLOR-MIX, JUST BASE COLORS)
+===================================================== */
 html[data-ui="md3e"][data-theme="light"] {
 
   --base: color-mix(in srgb,

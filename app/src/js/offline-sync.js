@@ -3,6 +3,7 @@
  * Handles offline note creation/editing and syncs with Supabase when online
  * 
  * Features:
+ * - Some of them are not working in native app because of the way it handles local storage and background processes.
  * - Notes work completely offline
  * - Auto-sync when connection restored
  * - Conflict resolution (local vs server)

@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en" data-ui="ios">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <title>Donate</title>
+  <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+  <link rel="apple-touch-icon" href="../assets/icons/logo.png">
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const ui = localStorage.getItem("ui-theme") || "ios";
+      root.setAttribute("data-ui", ui);
+      const mode = localStorage.getItem("notesApp_theme");
+      if (mode) root.setAttribute("data-theme", mode);
+      if (ui === "md3e") {
+        const hex = localStorage.getItem("md3e-seed");
+        if (hex) {
+          const v = hex.replace("#", "");
+          root.style.setProperty(
+            "--md-seed",
+            `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`
+          );
+        }
+      }
+    })();
+  </script>
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+/* ============================================================
+   FONT FACES
+   ============================================================ */
+@font-face {
+  font-family: 'SF Pro Rounded';
+  src: url('../assets/fonts/SFR.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ndot 57 Aligned';
+  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
+/* ============================================================
+   THEME TOKENS
+   ============================================================ */
+:root {
+  --bg-main: #000000;
+  --bg-secondary: #1C1C1E;
+  --bg-active: #2C2C2E;
+  --text-main: #FFFFFF;
+  --text-dim: #8E8E93;
+  --sep: rgba(84, 84, 88, 0.65);
+  --accent: #0A84FF;
+  --accent1: #FF453A;
+  --accent-green: #30D158;
+  --overlay-bg: rgba(0,0,0,0.6);
+  --glass-bg: rgba(30,30,30,0.88);
+  --glass-border: rgba(255,255,255,0.15);
+}
+
+:root[data-theme="light"] {
+  --bg-main: #F2F2F7;
+  --bg-secondary: #FFFFFF;
+  --bg-active: #E5E5EA;
+  --text-main: #000000;
+  --text-dim: #8A8A8E;
+  --sep: rgba(60,60,67,0.29);
+  --glass-bg: rgba(255,255,255,0.88);
+  --glass-border: rgba(0,0,0,0.10);
+}
+
+/* Nothing OS */
+html[data-ui="nothing"] {
+  --accent: rgb(215,25,33);
+  --bg-main: #000000;
+  --bg-secondary: #1B1B1B;
+  --bg-card: #1B1B1B;
+  --accent-green: rgb(215,25,33);
+}
+html[data-ui="nothing"][data-theme="light"] {
+  --bg-main: #F3F3F3;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+}
+html[data-ui="nothing"] body { font-family: 'NType 82 Regular', monospace, sans-serif; }
+html[data-ui="nothing"] .label,
+html[data-ui="nothing"] .page-title { font-family: 'Ndot 57 Aligned', monospace; }
+html[data-ui="nothing"] .row {
+  background: var(--bg-secondary);
+  border: none;
+  border-bottom: 3px solid var(--bg-main);
+  border-radius: 5px;
+}
+html[data-ui="nothing"] .row:first-child { border-radius: 26px 26px 5px 5px; }
+html[data-ui="nothing"] .row:last-child  { border-bottom: none; border-radius: 5px 5px 26px 26px; }
+html[data-ui="nothing"] .row:only-child  { border-radius: 26px; }
+html[data-ui="nothing"][data-theme="dark"]  .row.clickable:active { background: rgba(255,255,255,0.15); }
+html[data-ui="nothing"][data-theme="light"] .row.clickable:active { background: rgba(0,0,0,0.13); }
+
+/* MD3E — color tokens (exact match from settings.css) */
+html[data-ui="md3e"][data-theme="light"] {
+  --base: color-mix(in srgb, #ffffff, rgb(var(--md-seed)) 5%);
+  --bg-main: color-mix(in srgb, var(--base) 96%, rgb(var(--md-seed)) 4%);
+  --bg-secondary: color-mix(in srgb, var(--base) 85%, rgb(var(--md-seed)) 15%);
+  --accent: rgb(var(--md-seed));
+  --border: rgba(0,0,0,0.12);
+  --clickable: color-mix(in srgb, rgba(255,255,255,0.13) 70%, rgb(var(--md-seed)) 30%);
+}
+
+html[data-ui="md3e"][data-theme="dark"] {
+  --base: color-mix(in srgb, #1c1b1f, rgb(var(--md-seed)) 5%);
+  --bg-main: color-mix(in srgb, var(--base) 98%, rgb(var(--md-seed)) 2%);
+  --bg-secondary: color-mix(in srgb, var(--base) 80%, rgb(var(--md-seed)) 20%);
+  --bg-active: #2B2930;
+  --text-main: #E6E1E5;
+  --text-dim: #CAC4D0;
+  --sep: rgba(255,255,255,0.12);
+  --accent: rgb(var(--md-seed));
+  --border: rgba(255,255,255,0.12);
+  --clickable: color-mix(in srgb, rgba(0,0,0,0.10) 90%, rgb(var(--md-seed)) 10%);
+}
+
+/* MD3E — no explicit theme set (fallback: treat as dark) */
+html[data-ui="md3e"]:not([data-theme]) {
+  --base: color-mix(in srgb, #1c1b1f, rgb(var(--md-seed)) 5%);
+  --bg-main: color-mix(in srgb, var(--base) 98%, rgb(var(--md-seed)) 2%);
+  --bg-secondary: color-mix(in srgb, var(--base) 80%, rgb(var(--md-seed)) 20%);
+  --bg-active: #2B2930;
+  --text-main: #E6E1E5;
+  --text-dim: #CAC4D0;
+  --sep: rgba(255,255,255,0.12);
+  --accent: rgb(var(--md-seed));
+  --border: rgba(255,255,255,0.12);
+  --clickable: color-mix(in srgb, rgba(0,0,0,0.10) 90%, rgb(var(--md-seed)) 10%);
+}
+
+/* MD3E — body & layout */
+html[data-ui="md3e"] body {
+  font-family: "Google Sans", sans-serif;
+  background: var(--bg-main);
+}
+
+html[data-ui="md3e"] .row {
+  background: var(--bg-secondary);
+  border: none;
+}
+html[data-ui="md3e"] .row:first-child { border-radius: 26px 26px 7px 7px; border-bottom: 2px solid var(--bg-main); }
+html[data-ui="md3e"] .row:nth-child(n+1):not(:first-child,:last-child) { border-top: 2.5px solid var(--bg-main); border-bottom: 1px solid var(--bg-main); border-radius: 7px; }
+html[data-ui="md3e"] .row:last-child { border-top: 2.5px solid var(--bg-main); border-radius: 7px 7px 26px 26px; }
+html[data-ui="md3e"] .row:only-child { border-radius: 26px; }
+html[data-ui="md3e"] .back-btn { font-family: "Google Sans", sans-serif; }
+html[data-ui="md3e"] .portal-nav { background: var(--bg-secondary); }
+html[data-ui="md3e"] .payment-sheet {
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--border, rgba(255,255,255,0.12));
+}
+html[data-ui="md3e"] .upi-app-btn {
+  background: var(--bg-main);
+  border-color: var(--border, rgba(255,255,255,0.12));
+}
+html[data-ui="md3e"] .sheet-close { background: var(--bg-main); }
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  height: 100vh; width: 100vw;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  user-select: none; -webkit-user-select: none;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================================
+   CONTAINER / SCROLL
+   ============================================================ */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+  height: 100vh;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  opacity: 0;
+  animation: pageFadeIn 0.4s ease-out 0.05s forwards;
+}
+.container::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header-main {
+  padding: 48px 0 20px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  opacity: 0;
+  animation: pageSlideIn 0.35s cubic-bezier(0.25,0.46,0.45,0.94) 0.1s forwards;
+}
+
+.page-title {
+  font-size: 34px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+.back-btn svg {
+  width: 22px; height: 22px;
+  stroke: currentColor;
+  fill: currentColor;
+}
+
+/* ============================================================
+   SETTINGS GROUP / ROW (exact match)
+   ============================================================ */
+.settings-group {
+  margin-bottom: 25px;
+  overflow: hidden;
+  opacity: 0;
+  animation: listItemSlideIn 0.3s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+}
+
+.group-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 16px 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-secondary);
+  border-radius: 0;
+  border: 0.5px solid var(--sep);
+  padding: 12px 20px;
+  min-height: 52px;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.row:first-child { border-top-left-radius: 20px; border-top-right-radius: 20px; }
+.row:last-child  { border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+
+.row.clickable { cursor: pointer; }
+.row.clickable:active { background: var(--bg-active); transform: scale(0.99); }
+
+.row.clickable::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.row.clickable:active::before { opacity: 0.04; }
+
+.label {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.value {
+  color: var(--text-dim);
+  font-size: 17px;
+  text-align: right;
+  transition: opacity 0.2s;
+}
+
+.chevron {
+  width: 14px; height: 14px;
+  stroke: var(--text-dim);
+  fill: none;
+  stroke-width: 2.5;
+  margin-left: 8px;
+  transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.row.clickable:active .chevron { transform: rotate(15deg); }
+
+/* ============================================================
+   TIER SELECTOR (radio-style rows)
+   ============================================================ */
+.tier-amount {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.tier-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.tier-left { display: flex; flex-direction: column; }
+
+.tier-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--sep);
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  flex-shrink: 0;
+}
+.tier-check.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.12);
+}
+.tier-check svg {
+  width: 13px; height: 13px;
+  stroke: white;
+  fill: none;
+  stroke-width: 2.5;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tier-check.selected svg { opacity: 1; }
+
+.row.tier-row { cursor: pointer; }
+.row.tier-row.active-tier {
+  background: color-mix(in srgb, var(--bg-secondary) 85%, var(--accent) 15%);
+}
+
+/* ============================================================
+   CUSTOM AMOUNT INPUT
+   ============================================================ */
+.custom-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.rupee-sym {
+  font-size: 20px;
+  color: var(--text-dim);
+  font-weight: 300;
+}
+.custom-input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 500;
+  width: 100%;
+  caret-color: var(--accent);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.custom-input::placeholder { color: var(--text-dim); font-weight: 400; font-size: 17px; }
+.min-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.error-hint {
+  font-size: 12px;
+  color: var(--accent1);
+  margin-top: 2px;
+  display: none;
+}
+
+/* ============================================================
+   PROCEED BUTTON
+   ============================================================ */
+.proceed-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25,0.46,0.45,0.94);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  animation: listItemSlideIn 0.3s cubic-bezier(0.25,0.46,0.45,0.94) 0.5s forwards;
+}
+.proceed-btn:active { transform: scale(0.97); opacity: 0.85; }
+.proceed-btn:disabled { opacity: 0.38; cursor: not-allowed; transform: none; }
+
+html[data-ui="md3e"] .proceed-btn { border-radius: 100px; font-size: 15px; text-transform: uppercase; letter-spacing: 0.8px; }
+html[data-ui="nothing"] .proceed-btn { border-radius: 8px; font-family: 'Ndot 57 Aligned', monospace; }
+
+/* ============================================================
+   QR / PAYMENT SHEET (bottom drawer)
+   ============================================================ */
+#payment-sheet-overlay {
+  position: fixed; inset: 0;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 9000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.25s ease-out;
+}
+#payment-sheet-overlay.active { display: flex; }
+
+.payment-sheet {
+  background: var(--glass-bg);
+  border: 0.5px solid var(--glass-border);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 0 env(safe-area-inset-bottom, 24px);
+  animation: sheetSlideUp 0.38s cubic-bezier(0.25,1,0.5,1) forwards;
+  max-height: 92vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.payment-sheet::-webkit-scrollbar { display: none; }
+
+.sheet-handle {
+  width: 36px; height: 5px;
+  background: var(--sep);
+  border-radius: 3px;
+  margin: 12px auto 0;
+}
+
+.sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 8px;
+}
+.sheet-title {
+  font-size: 20px; font-weight: 700;
+}
+.sheet-close {
+  background: var(--bg-active);
+  border: none;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sheet-close:active { transform: scale(0.9); }
+.sheet-close svg { width: 16px; height: 16px; stroke: var(--text-dim); fill: none; stroke-width: 2.5; }
+
+.sheet-amount-pill {
+  margin: 0 20px 16px;
+  background: color-mix(in srgb, var(--bg-active) 60%, var(--accent) 40%);
+  border-radius: 12px;
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sheet-amount-label { font-size: 14px; color: var(--text-dim); }
+.sheet-amount-val { font-size: 22px; font-weight: 700; color: var(--accent); }
+
+/* QR */
+.qr-section {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 20px 12px;
+  gap: 10px;
+}
+.qr-wrap {
+  background: #fff;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+#qr-canvas { display: block; }
+.qr-upi-id {
+  font-size: 13px; color: var(--text-dim);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+/* UPI apps grid */
+.apps-label {
+  font-size: 13px; font-weight: 400; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 4px 20px 8px;
+}
+
+.upi-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 0 20px 24px;
+}
+
+.upi-app-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: var(--bg-active);
+  border: 0.5px solid var(--sep);
+  border-radius: 16px;
+  padding: 14px 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25,0.46,0.45,0.94);
+  text-decoration: none;
+  color: var(--text-main);
+}
+.upi-app-btn:active { transform: scale(0.94); background: var(--bg-secondary); }
+
+.upi-app-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  background: #fff;
+  overflow: hidden;
+}
+.upi-app-icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.upi-app-name { font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.2; }
+
+/* Fallback UPI deep-link btn */
+.open-upi-btn {
+  margin: 0 20px 20px;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: calc(100% - 40px);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.open-upi-btn:active { opacity: 0.8; transform: scale(0.98); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes listItemSlideIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* ============================================================
+   HEART DECORATION
+   ============================================================ */
+.hero-icon {
+  font-size: 42px;
+  margin-bottom: 4px;
+  margin-left: 14px;
+  display: block;
+  animation: heartBeat 2.4s ease-in-out infinite;
+}
+@keyframes heartBeat {
+  0%,100% { transform: scale(1); }
+  14%      { transform: scale(1.15); }
+  28%      { transform: scale(1); }
+  42%      { transform: scale(1.08); }
+  56%      { transform: scale(1); }
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   COPY TOAST
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--glass-bg);
+  border: 0.5px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  color: var(--text-main);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 99999;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header-main">
+    <h1 class="page-title">Support</h1>
+  </div>
+
+  <!-- Hero -->
+  <div class="settings-group" style="animation-delay:0.1s; background:none; border:none; padding: 0 4px;">
+    <span class="hero-icon">❤️</span>
+    <p class="hero-sub">Support the project and help keep it alive. Every contribution, big or small, means the world to me.</p>
+  </div>
+<div class="group-label">Choose a tier</div>
+  <!-- Tiers -->
+  <div class="settings-group" style="animation-delay:0.18s">
+  
+    <!-- Tier 1 -->
+    <div class="row tier-row clickable" onclick="selectTier(this, 50, 'Coffee ☕', 'A small thank-you')">
+      <div class="tier-left">
+        <span class="tier-amount">₹50 &nbsp;<span style="font-size:13px;color:var(--text-dim);font-weight:400;">Coffee ☕</span></span>
+        <span class="tier-desc">A small thank-you</span>
+      </div>
+      <div class="tier-check" id="check-0">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Tier 2 -->
+    <div class="row tier-row clickable" onclick="selectTier(this, 150, 'Supporter 🌟', 'Keep the lights on')">
+      <div class="tier-left">
+        <span class="tier-amount">₹150 &nbsp;<span style="font-size:13px;color:var(--text-dim);font-weight:400;">Supporter 🌟</span></span>
+        <span class="tier-desc">Keep the lights on</span>
+      </div>
+      <div class="tier-check" id="check-1">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Tier 3 -->
+    <div class="row tier-row clickable" onclick="selectTier(this, 300, 'Champion 🏆', 'You\'re amazing!')">
+      <div class="tier-left">
+        <span class="tier-amount">₹300 &nbsp;<span style="font-size:13px;color:var(--text-dim);font-weight:400;">Champion 🏆</span></span>
+        <span class="tier-desc">You're amazing!</span>
+      </div>
+      <div class="tier-check" id="check-2">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+
+    <!-- Custom tier -->
+    <div class="row tier-row clickable" id="custom-tier-row" onclick="selectCustomTier()">
+      <div class="tier-left" style="flex:1; width:100%;">
+        <div class="custom-input-wrap">
+          <span class="rupee-sym">₹</span>
+          <input
+            class="custom-input"
+            id="custom-amount-input"
+            type="number"
+            inputmode="numeric"
+            min="10"
+            placeholder="Enter amount"
+            onclick="event.stopPropagation(); selectCustomTier();"
+            oninput="onCustomInput()"
+          />
+        </div>
+        <span class="min-hint" id="min-hint">Minimum ₹10</span>
+        <span class="error-hint" id="error-hint">Please enter at least ₹10</span>
+      </div>
+      <div class="tier-check" id="check-3">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPI note -->
+  <div class="settings-group" style="animation-delay:0.28s">
+    <div class="row" style="cursor:default; gap:12px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:22px;">📱</span>
+        <div>
+          <div class="label" style="font-size:15px;">Pay via UPI</div>
+          <div style="font-size:13px; color:var(--text-dim); margin-top:2px;">Scan QR or open your preferred app</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span style="font-size:11px; color:var(--text-dim); font-family:monospace; letter-spacing:0.3px;">nishant.97@superyes</span>
+        <button onclick="copyUPI()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--accent);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Proceed button -->
+  <button class="proceed-btn" id="proceed-btn" onclick="openPaymentSheet()" disabled>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+    Proceed to Pay
+  </button>
+
+</div><!-- /container -->
+
+
+<!-- ============================================================
+     PAYMENT SHEET
+     ============================================================ -->
+<div id="payment-sheet-overlay" onclick="handleOverlayClick(event)">
+  <div class="payment-sheet" id="payment-sheet">
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-header">
+      <span class="sheet-title">Pay with UPI</span>
+      <button class="sheet-close" onclick="closePaymentSheet()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="sheet-amount-pill">
+      <span class="sheet-amount-label">Donating</span>
+      <span class="sheet-amount-val" id="sheet-amount-display">₹0</span>
+    </div>
+
+    <!-- QR Code -->
+    <div class="qr-section">
+      <div class="qr-wrap">
+        <div id="qr-canvas"></div>
+      </div>
+      <span class="qr-upi-id">Scan with any UPI app · nishant.97@superyes</span>
+    </div>
+
+    <!-- Apps -->
+    <div class="apps-label">Or open with</div>
+    <div class="upi-apps-grid" id="upi-apps-grid">
+      <!-- populated by JS -->
+    </div>
+
+    <button class="open-upi-btn" id="generic-upi-btn" onclick="openGenericUPI()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Open in any UPI App
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+const UPI_ID   = "nishant.97@superyes";
+const UPI_NAME = "Nishant";
+
+let selectedAmount = 0;
+let selectedTierEl = null;
+let isCustom = false;
+
+const tiers = [
+  { el: null, amount: 49  },
+  { el: null, amount: 149 },
+  { el: null, amount: 299 },
+];
+
+/* ============================================================
+   TIER SELECTION
+   ============================================================ */
+function selectTier(rowEl, amount, name, desc) {
+  clearAll();
+  selectedAmount = amount;
+  isCustom = false;
+  selectedTierEl = rowEl;
+
+  const idx = [...document.querySelectorAll('.tier-row')].indexOf(rowEl);
+  markCheck(idx);
+  rowEl.classList.add('active-tier');
+  updateProceed();
+}
+
+function selectCustomTier() {
+  // Don't clearAll if custom tier is already active — just re-mark it
+  if (!document.getElementById('custom-tier-row').classList.contains('active-tier')) {
+    clearAll();
+  }
+  isCustom = true;
+  selectedTierEl = document.getElementById('custom-tier-row');
+  selectedTierEl.classList.add('active-tier');
+  markCheck(3);
+
+  const inp = document.getElementById('custom-amount-input');
+  inp.focus();
+  onCustomInput();
+}
+
+function onCustomInput() {
+  // Always activate custom tier when user types
+  const row = document.getElementById('custom-tier-row');
+  if (!row.classList.contains('active-tier')) {
+    document.querySelectorAll('.tier-row').forEach(r => r.classList.remove('active-tier'));
+    document.querySelectorAll('.tier-check').forEach(c => c.classList.remove('selected'));
+    row.classList.add('active-tier');
+    markCheck(3);
+    isCustom = true;
+  }
+
+  const inp = document.getElementById('custom-amount-input');
+  const val = parseInt(inp.value, 10);
+  const err = document.getElementById('error-hint');
+  const hint = document.getElementById('min-hint');
+
+  if (inp.value === '' || isNaN(val)) {
+    selectedAmount = 0;
+    err.style.display = 'none';
+    hint.style.display = 'block';
+  } else if (val < 10) {
+    selectedAmount = 0;
+    err.style.display = 'block';
+    hint.style.display = 'none';
+  } else {
+    selectedAmount = val;
+    err.style.display = 'none';
+    hint.style.display = 'block';
+  }
+  updateProceed();
+}
+
+function clearAll() {
+  document.querySelectorAll('.tier-row').forEach(r => r.classList.remove('active-tier'));
+  document.querySelectorAll('.tier-check').forEach(c => c.classList.remove('selected'));
+  selectedAmount = 0;
+  isCustom = false;
+}
+
+function markCheck(idx) {
+  const check = document.getElementById('check-' + idx);
+  if (check) check.classList.add('selected');
+}
+
+function updateProceed() {
+  const btn = document.getElementById('proceed-btn');
+  btn.disabled = selectedAmount < 10;
+}
+
+/* ============================================================
+   UPI DEEP LINKS
+   ============================================================ */
+function buildUpiUri(amount) {
+  const note = encodeURIComponent("Donation");
+  return `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amount}&cu=INR&tn=${note}`;
+}
+
+const UPI_APPS = [
+  {
+    name: "Paytm",
+    icon: "https://play-lh.googleusercontent.com/WDGsMRuVENnZPEpV4DEaXw12qtMY3em85xpmZqcXzeh0iT_eXFtAU9VUj-Z7xNQQd5DMqrkKSs9D0qbI1rlt=s96-rw",
+    scheme: (amt) => `paytmmp://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
+    fallback: (amt) => `https://paytm.com/pay?pa=${UPI_ID}&am=${amt}`
+  },
+  {
+    name: "PhonePe",
+    icon: "https://play-lh.googleusercontent.com/6iyA2zVz5PyyMjK5SIxdUhrb7oh9cYVXJ93q6DZkmx07Er1o90PXYeo6mzL4VC2Gj9s=w480-h960-rw",
+    scheme: (amt) => `phonepe://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
+    fallback: (amt) => `https://phon.pe/ru_${encodeURIComponent(UPI_ID)}`
+  },
+  {
+    name: "BHIM",
+    icon: "https://play-lh.googleusercontent.com/B5cNBA15IxjCT-8UTXEWgiPcGkJ1C07iHKwm2Hbs8xR3PnJvZ0swTag3abdC_Fj5OfnP=s96-rw",
+    scheme: (amt) => `bhim://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
+    fallback: (amt) => `https://www.bhimupi.org.in/`
+  },
+  {
+    name: "super.money",
+    icon: "https://play-lh.googleusercontent.com/xb5kyKVpbNeeJlx3bKlUPcF_vJH6sel0c3FlyZ_KNx2cZtjEj-1pGGYOLHa-39LlXnY=w480-h960-rw",
+    scheme: (amt) => `supermoney://upi/pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${amt}&cu=INR&tn=Donation`,
+    fallback: (amt) => `https://supermoney.app/`
+  },
+];
+
+function buildAppsGrid(amount) {
+  const grid = document.getElementById('upi-apps-grid');
+  grid.innerHTML = '';
+  UPI_APPS.forEach(app => {
+    const a = document.createElement('a');
+    a.className = 'upi-app-btn';
+    a.href = '#';
+    a.onclick = (e) => { e.preventDefault(); launchApp(app, amount); };
+
+    const iconEl = document.createElement('div');
+    iconEl.className = 'upi-app-icon';
+    if (app.icon.startsWith('http')) {
+      const img = document.createElement('img');
+      img.src = app.icon;
+      img.alt = app.name;
+      img.onerror = () => { iconEl.textContent = app.name[0]; };
+      iconEl.appendChild(img);
+    } else {
+      iconEl.style.fontSize = '24px';
+      iconEl.style.background = 'linear-gradient(135deg,#1a1a2e,#16213e)';
+      iconEl.textContent = app.icon;
+    }
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'upi-app-name';
+    nameEl.textContent = app.name;
+
+    a.appendChild(iconEl);
+    a.appendChild(nameEl);
+    grid.appendChild(a);
+  });
+}
+
+function launchApp(app, amount) {
+  // Try scheme, fall back to web
+  const scheme = app.scheme(amount);
+  const fallback = app.fallback(amount);
+
+  // Use iframe trick to attempt deep link
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  let launched = false;
+  const start = Date.now();
+
+  window.addEventListener('blur', () => { launched = true; }, { once: true });
+
+  iframe.src = scheme;
+  setTimeout(() => {
+    document.body.removeChild(iframe);
+    if (!launched && (Date.now() - start) < 1500) {
+      window.open(fallback, '_blank');
+    }
+  }, 800);
+}
+
+function openGenericUPI() {
+  window.location.href = buildUpiUri(selectedAmount);
+}
+
+/* ============================================================
+   QR CODE GENERATION
+   ============================================================ */
+function generateQR(amount) {
+  const upiUri = buildUpiUri(amount);
+  const container = document.getElementById('qr-canvas');
+  container.innerHTML = '';
+
+  // Detect dark/light for QR color
+  const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+
+  new QRCode(container, {
+    text: upiUri,
+    width: 200,
+    height: 200,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+/* ============================================================
+   SHEET OPEN / CLOSE
+   ============================================================ */
+function openPaymentSheet() {
+  if (selectedAmount < 10) return;
+
+  document.getElementById('sheet-amount-display').textContent = '₹' + selectedAmount;
+  generateQR(selectedAmount);
+  buildAppsGrid(selectedAmount);
+
+  const overlay = document.getElementById('payment-sheet-overlay');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => overlay.classList.add('active'));
+}
+
+function closePaymentSheet() {
+  const overlay = document.getElementById('payment-sheet-overlay');
+  const sheet = document.getElementById('payment-sheet');
+  sheet.style.animation = 'sheetSlideDown 0.3s cubic-bezier(0.5,0,1,0.5) forwards';
+  overlay.style.opacity = '0';
+  overlay.style.transition = 'opacity 0.3s';
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+    overlay.style.opacity = '';
+    overlay.style.transition = '';
+    sheet.style.animation = '';
+  }, 300);
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('payment-sheet-overlay')) {
+    closePaymentSheet();
+  }
+}
+
+/* ============================================================
+   COPY UPI ID
+   ============================================================ */
+function copyUPI() {
+  navigator.clipboard.writeText(UPI_ID).then(() => showToast('UPI ID copied!')).catch(() => {
+    // fallback
+    const el = document.createElement('textarea');
+    el.value = UPI_ID;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('UPI ID copied!');
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ============================================================
+   SLIDE DOWN KEYFRAME (injected)
+   ============================================================ */
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes sheetSlideDown {
+    from { transform: translateY(0); }
+    to   { transform: translateY(110%); }
+  }
+`;
+document.head.appendChild(style);
+</script>
+</body>
+</html>

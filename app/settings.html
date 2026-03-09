@@ -45,6 +45,15 @@
         </div>-->
     </div>
 
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.2s">
+        <div class="row clickable" onclick="openPortal('./src/pages/donate.html')">
+            <span class="label">Support</span>
+            <div style="display:flex; align-items:center;">
+                <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+        </div>
+    </div>
+
     <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
         <div class="row clickable" onclick="openPortal('./src/pages/about.html')">
             <span class="label">About</span>
@@ -61,14 +70,18 @@
     </div>
 
     <div class="settings-group animate-list-item-in" style="animation-delay: 0.4s">
-        <div class="row clickable" onclick="showSignOutModal()">
-            <span class="label">Log Out</span>
-        </div>
         <div class="row" style="cursor: default;">
             <span id="buildNumberDisplay" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">Build: vX.XX.XXX</span>
         </div>
+        <div class="row clickable" onclick="showSignOutModal()">
+            <span class="label">Log Out</span>
+        </div>
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.5s">
         <div class="row clickable" onclick="showDeleteModal()">
             <span class="label" style="color: var(--accent1);">Delete Account</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
         </div>
     </div>
 </div>

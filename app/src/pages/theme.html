@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Appearance</title>
+<title>App Appearance</title>
 
-<link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
-<link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
-<link rel="font-family" href="../assets/fonts/SFR.ttf">
+<link rel="icon" type="image/png" href="../assets/icons/logo.png">
+<link rel="apple-touch-icon" href="../assets/icons/logo.png">
 
 <style>
 /* =====================================================
@@ -97,9 +96,23 @@
    BASE (iOS-like default)
    ===================================================== */
 
-@import url(../assets/fonts/SFR.ttf);
-@import url(../assets/fonts/Ndot-57-Aligned.otf);
-@import url(../assets/fonts/NType82-Headline.otf);
+@font-face {
+  font-family: 'SF Pro Rounded';
+  src: url('../assets/fonts/SFR.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ndot 57 Aligned';
+  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
 @import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
 
 :root {
@@ -140,8 +153,8 @@
   --bg-card:
     color-mix(
       in srgb,
-      var(--md-neutral-base) 92%,
-      rgb(var(--md-seed)) 8%
+      var(--md-neutral-base) 85%,
+      rgb(var(--md-seed)) 15%
     );
 
   --text-main: #1C1B1F;
@@ -441,7 +454,7 @@ h2:nth-of-type(2) { animation-delay: 0.15s; }
 }
 
 .preset.blue   { background: #4285F4; }
-.preset.green  { background: #34A853; }
+.preset.green  { background: #46707c; }
 .preset.purple { background: #6750A4; }
 .preset.sand   { background: #C2B280; }
 .preset.mono   { background: #555555; }
@@ -496,7 +509,7 @@ h2:nth-of-type(2) { animation-delay: 0.15s; }
     <div class="preset-row">
       <span class="label-preset">Presets:</span>
       <div class="preset blue"   onclick="setPreset('#4285F4')"></div>
-      <div class="preset green"  onclick="setPreset('#34A853')"></div>
+      <div class="preset green"  onclick="setPreset('#46707c')"></div>
       <div class="preset purple" onclick="setPreset('#6750A4')"></div>
       <div class="preset sand"   onclick="setPreset('#C2B280')"></div>
       <div class="preset mono"   onclick="setPreset('#555555')"></div>
