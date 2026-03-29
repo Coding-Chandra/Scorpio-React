@@ -1,6 +1,10 @@
 /**
  * ANIMATION UTILITIES LIBRARY
  * Reusable animation helpers for smooth, professional interactions
+ * Designed for Notoz but can be used in any project as a standalone animation library
+ * Provides a wide range of common animations (fade, slide, pop, bounce, etc.)
+ * with easy-to-use functions and customizable parameters
+ * Also includes advanced features like staggered animations, sequential/parallel execution, and user preference handling
  */
 
 const AnimationUtils = {

@@ -1179,30 +1179,6 @@
             line-height: 30px;
         }
 
-        /* =====================================================
-           NOTHING OS THEME - LINED & GRID PAPER OVERRIDES
-           ===================================================== */
-
-        html[data-ui="nothing"] .editor-inputs.style-lined .note-content-editable {
-            background-image: linear-gradient(transparent 29px, rgba(215, 25, 33, 0.25) 30px);
-        }
-
-        html[data-ui="nothing"][data-theme="dark"] .editor-inputs.style-lined .note-content-editable {
-            background-image: linear-gradient(transparent 29px, rgba(215, 25, 33, 0.35) 30px);
-        }
-
-        html[data-ui="nothing"] .editor-inputs.style-grid .note-content-editable {
-            background-image:
-                linear-gradient(rgba(215, 25, 33, 0.2) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(215, 25, 33, 0.2) 1px, transparent 1px);
-        }
-
-        html[data-ui="nothing"][data-theme="dark"] .editor-inputs.style-grid .note-content-editable {
-            background-image:
-                linear-gradient(rgba(215, 25, 33, 0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(215, 25, 33, 0.3) 1px, transparent 1px);
-        }
-
         .empty-state {
             display: flex;
             flex-direction: column;

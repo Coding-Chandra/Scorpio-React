@@ -63,8 +63,8 @@
 :root[data-ui="nothing"][data-theme="dark"] {
   color-scheme: dark;
 
-  --bg-main: #000000;
-  --bg-card: #1B1B1B;
+  --bg-main: #0c0c0c;
+  --bg-card: #000000;
   --bg-elevated: #141414;
 
   --text-main: #FFFFFF;
@@ -260,24 +260,6 @@
 }
 
 /* Focus — animated dot underline */
-
-:root[data-ui="nothing"] .note-content-editable:focus::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 6px;
-
-  background-image:
-    radial-gradient(
-      var(--accent-color) 1.4px,
-      transparent 1.4px
-    );
-  background-size: 6px 6px;
-
-  animation: nothing-sync 1.2s linear infinite;
-}
 
 :root[data-ui="nothing"] .editor-meta-info.editor-meta-info{
   background: var(--bg-card); 

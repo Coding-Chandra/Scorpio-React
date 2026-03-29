@@ -317,7 +317,8 @@ async function load() {
 load();
 
 /* =====================================================
-   LIVE THEME + UI + MD3E ACCENT SYNC
+   LIVE THEME + UI + MD3E ACCENT SYNC (WITH PORTAL) 
+   (Added in 9.5 Utilities, but applies globally across the app and portal for seamless theme syncing)
 ===================================================== */
 
 function applyUI(ui) {
@@ -383,7 +384,7 @@ window.addEventListener("message", (event) => {
 });
 
 // ========================================
-// EXPORT FUNCTIONS GLOBALLY FOR PWA SYSTEM
+// EXPORT FUNCTIONS GLOBALLY FOR PWA SYSTEM ACCESS (LIKE PORTAL & SETTINGS)
 // ========================================
 window.openModal = openModal;
 window.closeCustomModal = closeCustomModal;

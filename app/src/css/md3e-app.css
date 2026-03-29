@@ -16,7 +16,7 @@
   --md-slow: 280ms;
   --md-ease: cubic-bezier(0.2, 0, 0, 1);
 
-  /* 🔑 SEED-DERIVED COLORS (NO HARDCODED VALUES) */
+  /* SEED-DERIVED COLORS (NO HARDCODED VALUES) */
   --accent-color: rgb(var(--md-seed));
   --accent: rgb(var(--md-seed));
   --blue: rgb(var(--md-seed));
@@ -72,7 +72,7 @@
 }
 
 /* -----------------------------------------------------
-   2. Dark mode – seed driven (FIXED)
+   2. Dark mode – seed driven (uses same seed, just darker surfaces)
 ----------------------------------------------------- */
 
 :root[data-ui="md3e"][data-theme="dark"] {
@@ -208,7 +208,7 @@
   caret-color: var(--accent-color);
 }
 
-/* Remove focus glow for editor */
+/* Removed focus glow for editor */
 :root[data-ui="md3e"] .note-content-editable:focus,
 :root[data-ui="md3e"] #noteContentInput:focus,
 :root[data-ui="md3e"] #noteTitleInput:focus {
@@ -244,7 +244,7 @@
 }
 
 /* -----------------------------------------------------
-   10. Popups & toolbars (FIXED)
+   10. Popups & toolbars (FIXED) V2
 ----------------------------------------------------- */
 
 :root[data-ui="md3e"]
@@ -322,6 +322,11 @@
 /* =====================================================
    MD3E HARD RESET: Kill iOS glass at app root
    (This stops purple bleed permanently)
+   (At the time of development, iOS 17's backdrop-filter implementation 
+   causes severe purple bleed/glow across the entire app, 
+   even on elements that don't use glass. This is a hard reset to stop that bleed at the root level, 
+   without affecting any of our custom MD3E glass surfaces 
+   which are defined further down and use more specific selectors)
    ===================================================== */
 
 /* App root / global containers */
@@ -350,7 +355,7 @@
 
 
 /* =====================================================
-  MD3E/Material You Scrollbar (Bold, colorful, dynamic)
+  MD3E/Material You Scrollbar (Bold, colorful, dynamic) (Added Later)
  ===================================================== */
 
 html[data-ui="md3e"] ::-webkit-scrollbar {
@@ -389,7 +394,9 @@ html[data-ui="md3e"][data-theme="dark"] {
 }
 
 /* =====================================================
- 2. YELLOW BORDER FIX - Theme Aware
+ 2. YELLOW BORDER FIX - Theme Aware (A Smaller Fix)
+    (In some cases, iOS 17's backdrop-filter implementation causes a persistent yellow border around elements that use glass. 
+    This CSS rule targets those elements and applies a transparent border to neutralize the yellow border without affecting the design.)
  ===================================================== */
 
 html[data-ui="md3e"] input.note-title-input:focus,

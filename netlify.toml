@@ -1,0 +1,24 @@
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Cache-Control = "no-cache"
+
+[build]
+  functions = ".netlify/functions"
+  publish = "."
+
+[dev]
+  functions = "functions"
+  publish = "."
+
+[[redirects]]
+  from = "/*"
+  to = "/app/index.html"
+  status = 200
+  force = false
+  conditions = { "Path" = [ "!/app/js/*" ] }  # Exclude functions
+
+[[plugins]]
+package = "@netlify/plugin-functions-install-core"
+

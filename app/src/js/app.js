@@ -1,5 +1,5 @@
 // ============================================================================
-// PROJECT SCORPIO - NOTES APP
+// PROJECT SCORPIO - NOTOZ (NOTES APP)
 // ============================================================================
 
 // ============================================================================
@@ -28,7 +28,7 @@ const supabaseClient = (() => {
 })();
 
 // ============================================================================
-// 2. UTILITY FUNCTIONS
+// 2. UTILITY FUNCTIONS (general helpers, formatting, sanitization, etc.)
 // ============================================================================
 
 const Utils = {
@@ -60,7 +60,7 @@ const Utils = {
 };
 
 // ============================================================================
-// 3. CRYPTOGRAPHY & ENCRYPTION HELPERS
+// 3. CRYPTOGRAPHY & ENCRYPTION HELPERS (AES-GCM with password-derived key, plus session caching for performance)
 // ============================================================================
 
 function _b64Encode(buf) {
@@ -418,7 +418,7 @@ const DecryptQueue = (() => {
 
 
 // ============================================================================
-// 3.1 UNDO/REDO HISTORY MANAGER
+// 3.1 UNDO/REDO HISTORY MANAGER (Per Note, In-Memory, Session-Only)
 // ============================================================================
 
 class UndoRedoManager {
@@ -479,7 +479,7 @@ class UndoRedoManager {
 }
 
 // ============================================================================
-// 4. DIALOG CONTROLLER
+// 4. DIALOG CONTROLLER (Reusable, Promise-Based, Supports Input & Custom Callbacks)
 // ============================================================================
 
 const AppDialog = {
@@ -565,7 +565,7 @@ const AppDialog = {
 AppDialog.init();
 
 // ============================================================================
-// 5. MAIN APP OBJECT - STATE & CORE
+// 5. MAIN APP OBJECT - STATE & CORE (Initialization, Data Loading, CRUD Operations, UI Updates)
 // ============================================================================
 
 const app = {
@@ -590,7 +590,7 @@ const app = {
     },
 
     // ========================================================================
-    // 5.1 INITIALIZATION & AUTHENTICATION
+    // 5.1 INITIALIZATION & AUTHENTICATION (Session Check, Load User Data, Set Theme, Setup Event Listeners)
     // ========================================================================
 
     async init() {
@@ -700,7 +700,8 @@ const app = {
     },
 
     // ========================================================================
-    // 5.2 DATA LOADING
+    // 5.2 DATA LOADING (Folders & Notes with Offline Support, Caching, and Background Decryption)
+    // (Offline Support: Only when app was previously opened online and data cached locally)
     // ========================================================================
 
     async loadFolders() {
@@ -843,7 +844,7 @@ const app = {
     },
 
     // ========================================================================
-    // 5.3 NOTES CRUD OPERATIONS
+    // 5.3 NOTES CRUD OPERATIONS (With Optimistic UI Updates, Background Sync, and Error Handling)
     // ========================================================================
 
     getActiveNote() {
@@ -1251,7 +1252,7 @@ const app = {
     },
 
     // ========================================================================
-    // 5.4 FOLDER CRUD OPERATIONS
+    // 5.4 FOLDER CRUD OPERATIONS (With Optimistic UI Updates, Background Sync, and Error Handling)
     // ========================================================================
 
     createNewFolder() {
@@ -1417,11 +1418,11 @@ const app = {
 };
 
 // ============================================================================
-// 6. RENDERING FUNCTIONS
+// 6. RENDERING FUNCTIONS (Notes List, Folders, Editor, Mobile Navigation, and UI State)
 // ============================================================================
 
 // ========================================================================
-// 6.1 RENDER NOTES & FOLDERS
+// 6.1 RENDER NOTES & FOLDERS (With Placeholders for Encrypted Content, Decryption Status Indicators, and Optimized Updates)
 // ========================================================================
 
 app.renderNotesList = function (animate = true) {
@@ -1590,7 +1591,7 @@ app.renderFolders = function () {
 };
 
 // ========================================================================
-// 6.2 RENDER EDITOR & MOBILE NAV
+// 6.2 RENDER EDITOR & MOBILE NAV (With Decryption on Demand, Dynamic Mobile Navigation Titles, and UI State Management)
 // ========================================================================
 
 app.renderEditor = function () {
@@ -1693,11 +1694,13 @@ app.renderMobileNav = function () {
 };
 
 // ============================================================================
-// 7. EDITOR & FORMATTING FUNCTIONS
+// 7. EDITOR & FORMATTING FUNCTIONS 
+// (With Custom Checkbox Insertion, Text Style Application, Paper Style Cycling, and Optimized Image Uploads with EXIF Stripping and WebP Conversion)
 // ============================================================================
 
 // ========================================================================
-// 7.1 TEXT FORMATTING & CHECKBOXES
+// 7.1 TEXT FORMATTING & CHECKBOXES 
+// (With Custom Checkbox Insertion, Text Style Application, and Paper Style Cycling)
 // ========================================================================
 
 app.insertCheckbox = function () {
@@ -1810,6 +1813,7 @@ app.cyclePaperStyle = cyclePaperStyle;
 // ========================================================================
 // 7.2 IMAGE UPLOAD — OPTIMIZED
 // Supabase Storage + EXIF strip + WebP conversion + dimension cap
+// (With Camera Permission Handling for Median.co Wrapper)
 // ========================================================================
 
 app.triggerImageUpload = async function () {
@@ -2038,7 +2042,8 @@ app.handleImageFile = async function (input) {
 };
 
 // ========================================================================
-// 7.3 UNDO/REDO FUNCTIONALITY
+// 7.3 UNDO/REDO FUNCTIONALITY 
+// (With Debounced History Recording, State Comparison to Prevent Redundant Entries, and Dynamic Button State Management)
 // ========================================================================
 
 app.initializeHistoryForNote = function () {
@@ -2142,7 +2147,7 @@ app.updateUndoRedoButtons = function () {
 };
 
 // ============================================================================
-// 8. DROPDOWN & MENU FUNCTIONS
+// 8. DROPDOWN & MENU FUNCTIONS (With Click Outside Handling, Dynamic Positioning, and Mobile Compatibility)
 // ============================================================================
 
 app.toggleDropdown = function (e, dropdownId, triggerId) {
@@ -2196,7 +2201,7 @@ app.toggleShareDropdownFromMobile = function (e) {
 };
 
 // ========================================================================
-// 8.1 NOTE ACTIONS MENU
+// 8.1 NOTE ACTIONS MENU (With Dynamic Pin/Unpin Text and Icon, and Context Menu Support)
 // ========================================================================
 
 app.openNoteActionsMenu = function (ev, noteId) {
@@ -2238,7 +2243,7 @@ app.requestDeleteActiveNoteFromMenu = function () {
 };
 
 // ========================================================================
-// 8.2 FOLDER ACTIONS MENU
+// 8.2 FOLDER ACTIONS MENU (With Context Menu Support and Dynamic Option Availability Based on Folder State)
 // ========================================================================
 
 app.openFolderActionsMenu = function (ev, folderId) {
@@ -2273,11 +2278,13 @@ app.requestDeletePendingFolder = function () {
 };
 
 // ============================================================================
-// 9. UI STATE & LAYOUT FUNCTIONS
+// 9. UI STATE & LAYOUT FUNCTIONS 
+// (With Theme Persistence, Responsive Layout Handling, and Mobile View Navigation)
 // ============================================================================
 
 // ========================================================================
-// 9.1 THEME & APPEARANCE
+// 9.1 THEME & APPEARANCE 
+// (With Theme Persistence, Dynamic Toggle Icon, and Smooth Transition Effects)
 // ========================================================================
 
 app.applyTheme = function (theme) {
@@ -2330,7 +2337,8 @@ app.updateThemeToggleIcon = function () {
 };
 
 // ========================================================================
-// 9.2 LAYOUT & RESPONSIVE
+// 9.2 LAYOUT & RESPONSIVE 
+// (With Responsive Layout Handling, Mobile View State Management, and Smooth Pane Transition Animations)
 // ========================================================================
 
 app.handleResize = function () {
@@ -2383,7 +2391,8 @@ app.animateEl = function (el) {
 };
 
 // ========================================================================
-// 9.3 MOBILE & VIEW NAVIGATION
+// 9.3 MOBILE & VIEW NAVIGATION 
+// (With Mobile View State Management, Dynamic Mobile Navigation Rendering, and Smooth Transition Animations)
 // ========================================================================
 
 app.goToMobileView = function (view) {
@@ -2415,7 +2424,8 @@ function setActiveFolder(id) {
 app.setActiveFolder = setActiveFolder;
 
 // ========================================================================
-// 9.4 MULTI-SELECT
+// 9.4 MULTI-SELECT 
+// (With Dynamic UI Updates, Selection Count Display, and Batch Action Support)
 // ========================================================================
 
 app.toggleMultiSelect = function () {
@@ -2458,7 +2468,8 @@ app.updateMultiSelectUI = function () {
 };
 
 // ========================================================================
-// 9.5 UTILITIES
+// 9.5 UTILITIES 
+// (With Notes Count Display, Search Handling, and Account UI Updates)
 // ========================================================================
 
 app.updateNotesCount = function () {
@@ -2553,7 +2564,8 @@ async function updateAccountUI() {
 app.updateAccountUI = updateAccountUI;
 
 // ============================================================================
-// 10. SHARE & EXPORT FUNCTIONS
+// 10. SHARE & EXPORT FUNCTIONS 
+// (With HTML to Text Conversion, Clipboard Copying, System Sharing Integration, and PDF Generation with jsPDF)
 // ============================================================================
 
 // Shared helper — call instead of Utils.stripHtml for sharing/export
@@ -2733,7 +2745,8 @@ app.exportPDF = function () {
 };
 
 // ============================================================================
-// 11. SELECTION TOOLBAR & TEXT FORMATTING
+// 11. SELECTION TOOLBAR & TEXT FORMATTING 
+// (With Dynamic Toolbar Positioning, Text Formatting Commands, and Custom Highlighting Functionality)
 // ============================================================================
 
 const selectionToolbar = document.getElementById('selectionToolbar');
@@ -2924,7 +2937,8 @@ document.addEventListener('mousedown', (e) => {
 });
 
 // ============================================================================
-// 12. NAVIGATION & INITIALIZATION
+// 12. NAVIGATION & INITIALIZATION 
+// (With Android Back Button Handling, Mobile View State Management, and Responsive Layout Handling)
 // ============================================================================
 
 function navigateToSettings() {
@@ -2959,7 +2973,8 @@ function navigateToSettings() {
 })();
 
 // ============================================================================
-// 13. ANDROID BACK BUTTON HANDLER
+// 13. ANDROID BACK BUTTON HANDLER 
+// (With Priority-Ordered Interception of Back Presses, Mobile View Navigation Handling, and Fallbacks for Different Environments)
 // ============================================================================
 
 const BackHandler = {

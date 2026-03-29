@@ -10,10 +10,13 @@
  * - Queue management for offline actions
  * - Persistent storage with IndexedDB
  * - Works with encrypted content
+ * - Only Works when App was opened at least once with internet connection to initialize the database and get user info. After that, it can work offline until the user logs out or clears data.
+ * 
+ * Note: This module assumes that the main app (app.js) handles encryption/decryption of note content before saving or syncing. This module focuses on offline storage and sync logic.
  */
 
 // =====================================================
-// 1. INDEXEDDB SETUP
+// 1. INDEXEDDB SETUP (With Stores for Notes, Sync Queue, and Metadata)
 // =====================================================
 
 const DB_NAME = 'notesApp';
@@ -70,7 +73,7 @@ async function initializeDatabase() {
 }
 
 // =====================================================
-// 2. OFFLINE NOTE OPERATIONS
+// 2. OFFLINE NOTE OPERATIONS (With Local Saving, Deletion, and Retrieval)
 // =====================================================
 
 /**
@@ -195,7 +198,7 @@ async function getNoteOffline(noteId) {
 }
 
 // =====================================================
-// 3. SYNC MANAGEMENT
+// 3. SYNC MANAGEMENT (With Online/Offline Detection, Sync Logic, and Conflict Resolution)
 // =====================================================
 
 let isSyncing = false;
@@ -381,7 +384,7 @@ async function updateNoteSync(noteId, synced) {
 }
 
 // =====================================================
-// 4. SYNC QUEUE MANAGEMENT
+// 4. SYNC QUEUE MANAGEMENT (With Functions to Get, Remove, and Update Queue Items)
 // =====================================================
 
 /**
@@ -427,7 +430,7 @@ function updateQueueItem(queueItem) {
 }
 
 // =====================================================
-// 5. METADATA MANAGEMENT
+// 5. METADATA MANAGEMENT (With Functions to Set and Get Metadata Values, Like Last Sync Time)
 // =====================================================
 
 /**
@@ -467,7 +470,7 @@ async function getLastSyncTime() {
 }
 
 // =====================================================
-// 6. HELPER FUNCTIONS
+// 6. HELPER FUNCTIONS (With UUID Generation and User Retrieval Using Supabase Client)
 // =====================================================
 
 /**
@@ -497,7 +500,7 @@ async function getCurrentUser() {
 }
 
 // =====================================================
-// 7. INITIALIZATION
+// 7. INITIALIZATION (With Database Initialization and Auto-Sync on Page Load if Online)
 // =====================================================
 
 /**
@@ -529,7 +532,7 @@ if (document.readyState === 'loading') {
 }
 
 // =====================================================
-// 8. PERIODIC SYNC (EVERY 30 SECONDS)
+// 8. PERIODIC SYNC (EVERY 30 SECONDS) (With Check to Avoid Overlapping Syncs and Only Sync When Online)
 // =====================================================
 
 /**

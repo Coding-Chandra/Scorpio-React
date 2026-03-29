@@ -1,5 +1,9 @@
 /* =====================================================
-   MD3E Enhance – Pixel Visual Layer (SAFE)
+   MD3E Enhance – Pixel Visual Layer (SAFE) (NO INTERFERENCE)
+    - Adds ripple effect to interactive elements
+    - Uses MD3 seed color for ripple
+    - No interference with existing functionality or styles
+    - Only active when MD3E theme is selected
    File: md3e-enhance.js
    ===================================================== */
 
