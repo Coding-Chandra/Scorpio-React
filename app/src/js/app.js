@@ -2636,49 +2636,13 @@ app.exportPDF = function () {
     const title = note.title || 'Note';
     const filename = Utils.sanitizeFilename(title) + '.pdf';
 
-    // --- Parse HTML into clean lines ---
-    const rawHtml = note.content || '';
-
-    // Insert newline markers before stripping tags
-    const withBreaks = rawHtml
-        .replace(/<\/p>/gi, '\n')
-        .replace(/<\/div>/gi, '\n')
-        .replace(/<\/li>/gi, '\n')
-        .replace(/<\/h[1-6]>/gi, '\n')
-        .replace(/<br\s*\/?>/gi, '\n');
-
-    // Strip remaining tags
-    const stripped = withBreaks.replace(/<[^>]+>/g, '');
-
-    // Decode HTML entities (×, &amp;, etc.)
-    const ta = document.createElement('textarea');
-    ta.innerHTML = stripped;
-    const decoded = ta.value;
-
-    // Split into non-empty lines
-    const lines = decoded
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0);
-
-    // Classify each line
-    const DAY_HEADER = /^(MON|TUE|WED|THU|FRI|SAT|SUN)\b/i;
-    const LIST_ITEM = /^(\d+\.|[\u2022\u2713\u2714\u2610\u2611\-])\s/;
-
-    const blocks = lines.map(text => {
-        if (DAY_HEADER.test(text)) return { type: 'heading', text };
-        if (LIST_ITEM.test(text)) return { type: 'listitem', text };
-        return { type: 'body', text };
-    });
-
-    // --- jsPDF setup ---
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageWidth  = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 60;
-    const maxWidth = pageWidth - margin * 2;
+    const margin     = 60;
+    const maxWidth   = pageWidth - margin * 2;
     const bottomEdge = pageHeight - margin;
     let y = margin;
 
@@ -2686,6 +2650,69 @@ app.exportPDF = function () {
         if (y + lineHeight > bottomEdge) {
             doc.addPage();
             y = margin;
+        }
+    };
+
+    // Helper: render a text run with given style, returns new y
+    const renderText = (text, { fontSize, bold, italic, indent = 0 }) => {
+        const style = bold && italic ? 'bolditalic' : bold ? 'bold' : italic ? 'italic' : 'normal';
+        doc.setFont('helvetica', style);
+        doc.setFontSize(fontSize);
+        const lineHeight = fontSize * 1.4;
+        const lines = doc.splitTextToSize(text.trim(), maxWidth - indent);
+        lines.forEach(line => {
+            checkPage(lineHeight);
+            doc.text(line, margin + indent, y);
+            y += lineHeight;
+        });
+    };
+
+    // --- Walk DOM nodes recursively ---
+    const walkNode = (node, ctx) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent.replace(/\s+/g, ' ');
+            if (text.trim()) renderText(text, ctx);
+            return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        const tag = node.tagName.toLowerCase();
+        let newCtx = { ...ctx };
+
+        switch (tag) {
+            case 'h1': newCtx = { ...ctx, fontSize: 18, bold: true };  break;
+            case 'h2': newCtx = { ...ctx, fontSize: 16, bold: true };  break;
+            case 'h3': newCtx = { ...ctx, fontSize: 14, bold: true };  break;
+            case 'h4':
+            case 'h5':
+            case 'h6': newCtx = { ...ctx, fontSize: 12, bold: true };  break;
+            case 'strong':
+            case 'b':   newCtx = { ...ctx, bold: true };               break;
+            case 'em':
+            case 'i':   newCtx = { ...ctx, italic: true };             break;
+            case 'li':  newCtx = { ...ctx, indent: (ctx.indent||0) + 16 }; break;
+        }
+
+        // Add spacing before block elements
+        const blockTags = new Set(['p','div','h1','h2','h3','h4','h5','h6','li','ul','ol','blockquote','pre']);
+        if (blockTags.has(tag)) y += 4;
+
+        // Bullet prefix for list items
+        if (tag === 'li') {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(newCtx.fontSize);
+            checkPage(newCtx.fontSize * 1.4);
+            doc.text('•', margin + (ctx.indent || 0), y);
+        }
+
+        node.childNodes.forEach(child => walkNode(child, newCtx));
+
+        // Add spacing after block elements
+        if (blockTags.has(tag)) y += 4;
+
+        // Force line break after block elements
+        if (['p','div','h1','h2','h3','h4','h5','h6','br','li'].includes(tag)) {
+            // y already advanced by renderText — just add a small gap
         }
     };
 
@@ -2697,48 +2724,17 @@ app.exportPDF = function () {
         doc.text(l, margin, y);
         y += 28;
     });
-
     y += 8;
     doc.setDrawColor(180);
     doc.line(margin, y, pageWidth - margin, y);
     y += 20;
 
-    // --- Body blocks ---
-    blocks.forEach(block => {
-        switch (block.type) {
-            case 'heading': {
-                y += 8;
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(12);
-                doc.splitTextToSize(block.text, maxWidth).forEach(l => {
-                    checkPage(18);
-                    doc.text(l, margin, y);
-                    y += 18;
-                });
-                y += 4;
-                break;
-            }
-            case 'listitem': {
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(11);
-                doc.splitTextToSize(block.text, maxWidth - 12).forEach((l, i) => {
-                    checkPage(16);
-                    doc.text(i === 0 ? l : '  ' + l, margin + 8, y);
-                    y += 16;
-                });
-                break;
-            }
-            default: {
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(11);
-                doc.splitTextToSize(block.text, maxWidth).forEach(l => {
-                    checkPage(16);
-                    doc.text(l, margin, y);
-                    y += 16;
-                });
-            }
-        }
-    });
+    // --- Parse and walk note HTML ---
+    const container = document.createElement('div');
+    container.innerHTML = note.content || '';
+
+    const baseCtx = { fontSize: 11, bold: false, italic: false, indent: 0 };
+    container.childNodes.forEach(node => walkNode(node, baseCtx));
 
     doc.save(filename);
     this.closeDropdown('shareDropdown');
