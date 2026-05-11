@@ -1,5 +1,5 @@
 const CACHE_NAME = 'notoj-app-cache-v1.7';
-/* const urlsToCache = [
+const urlsToCache = [
   '/',
   '/index.html',
   '/app/index.html',
@@ -38,6 +38,7 @@ const CACHE_NAME = 'notoj-app-cache-v1.7';
   '/src/assets/icons/logo.png',
   '/src/assets/icons/logo.svg',
 ];
+
 
 // ============================================================================
 // INSTALL: Pre-cache all assets
@@ -196,4 +197,4 @@ self.addEventListener('message', event => {
       });
       break;
   }
-}); */
+});

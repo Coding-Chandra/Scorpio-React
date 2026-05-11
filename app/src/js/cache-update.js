@@ -1,535 +1,513 @@
-/*
- * PWA Cache Update Manager
- * 
- * Priority: DATE first, then beta/stable numbering
- * - Detects when new cache is available
- * - Shows "Update available" button
- * - Handles user-triggered updates
- * - Build number read from version.json (fast, no SW timing dependency) only on Scorpio Native
+/**
+ * PWA Cache Update Manager - SW ONLY VERSION
+ *
+ * ✅ Uses ONLY sw.js + cache names
+ * ✅ No version.json
+ * ✅ No localStorage dependency
+ * ✅ No auto updates
+ * ✅ User-triggered updates only
+ * ✅ Cleans old caches safely
  */
 
-let BUILD_NUMBER = 'Loading...';
+let BUILD_NUMBER = 'Unknown';
 let updateAvailable = false;
 let ACTIVE_CACHE_NAME = null;
 let LATEST_CACHE_NAME = null;
+let userTriggeredUpdate = false;
 
-// ✅ On page load: extract build number and wait for SW to be ready
+/**
+ * Init
+ */
 window.addEventListener('load', async () => {
-    await getActiveCacheName();
-    await extractBuildNumber();
+  if (!('serviceWorker' in navigator)) {
+    console.warn('[Cache Update] Service Workers not supported');
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.ready;
+
+    console.log('[Cache Update] SW ready');
+
+    await syncCacheState();
     displayBuildNumber();
 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(() => {
-            console.log('[Cache Update] SW ready - checking for updates...');
-            setTimeout(() => {
-                checkForUpdatesSimple();
-            }, 1500);
-        });
-    }
+    setTimeout(() => {
+      checkForUpdates();
+    }, 1500);
+
+  } catch (err) {
+    console.error('[Cache Update] Init failed:', err);
+  }
 });
 
 /**
- * Get the currently active cache from localStorage
+ * Get all app caches
  */
-async function getActiveCacheName() {
-    try {
-        ACTIVE_CACHE_NAME = localStorage.getItem('activeCacheName');
+async function getAppCaches() {
+  const cacheNames = await caches.keys();
 
-        if (!ACTIVE_CACHE_NAME) {
-            const cacheNames = await caches.keys();
-            const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
-
-            if (appCaches.length > 0) {
-                // Get latest cache to set as initial active
-                LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-                ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
-                localStorage.setItem('activeCacheName', ACTIVE_CACHE_NAME);
-                console.log('[Version] Set initial active cache:', ACTIVE_CACHE_NAME);
-            }
-        } else {
-            console.log('[Version] Active cache from storage:', ACTIVE_CACHE_NAME);
-        }
-    } catch (error) {
-        console.error('[Version] Error getting active cache:', error);
-    }
+  return cacheNames.filter(name =>
+    name.startsWith('notoj-app-cache-v')
+  );
 }
 
 /**
- * Extract the latest available cache name based on versioning scheme
+ * Parse version from cache name
+ * Example:
+ * notoj-app-cache-v2.7.15
+ */
+function parseVersion(cacheName) {
+  const match = cacheName.match(/v(\d+)\.(\d+)\.(\d+)/);
+
+  if (!match) {
+    return {
+      major: 0,
+      minor: 0,
+      patch: 0
+    };
+  }
+
+  return {
+    major: parseInt(match[1], 10),
+    minor: parseInt(match[2], 10),
+    patch: parseInt(match[3], 10)
+  };
+}
+
+/**
+ * Sort and get latest cache
  */
 async function getLatestCacheName(appCaches) {
-    if (!appCaches || appCaches.length === 0) return null;
+  if (!appCaches.length) return null;
 
-    const parseVersion = (cacheName) => {
-        // Matches v2.27.31 or similar
-        const match = cacheName.match(/v(\d+)\.(\d+)\.(\d+)/);
+  const sorted = [...appCaches].sort((a, b) => {
+    const A = parseVersion(a);
+    const B = parseVersion(b);
 
-        if (!match) {
-            console.warn('[Cache Update] Unrecognized format:', cacheName);
-            return { major: 0, minor: 0, patch: 0 };
-        }
-
-        return {
-            major: parseInt(match[1], 10),
-            minor: parseInt(match[2], 10),
-            patch: parseInt(match[3], 10),
-            raw: cacheName
-        };
-    };
-
-    const sorted = [...appCaches].sort((a, b) => {
-        const vA = parseVersion(a);
-        const vB = parseVersion(b);
-
-        // Sort by Major -> Minor -> Patch
-        if (vA.major !== vB.major) return vB.major - vA.major;
-        if (vA.minor !== vB.minor) return vB.minor - vA.minor;
-        return vB.patch - vA.patch;
-    });
-
-    const latest = sorted[0];
-    console.log('[Version] Latest cache detected:', latest);
-    return latest;
-}
-
-/**
- * Extract build number from version.json
- * Fast, reliable — no SW or cache timing dependency
- * Falls back to cache name parsing if version.json is unavailable
- */
-async function extractBuildNumber() {
-    try {
-        const res = await fetch('../version.json?t=' + Date.now()); // cache-bust
-
-        if (!res.ok) throw new Error(`version.json fetch failed: ${res.status}`);
-
-        const data = await res.json();
-        BUILD_NUMBER = data.version || data.build || 'Unknown';
-        console.log('[Version] Build number from version.json:', BUILD_NUMBER);
-
-    } catch (error) {
-        console.error('[Version] Failed to read version.json, falling back to cache name:', error);
-
-        // Fallback: parse version from cache name
-        try {
-            const cacheNames = await caches.keys();
-            const appCaches = cacheNames.filter(n => n.startsWith('notoj-app-cache-v'));
-
-            LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-            const match = LATEST_CACHE_NAME?.match(/notoj-app-cache-v(.+)/);
-            BUILD_NUMBER = match?.[1] || 'Unknown';
-            console.log('[Version] Build number from cache fallback:', BUILD_NUMBER);
-        } catch (e) {
-            console.error('[Version] Cache fallback also failed:', e);
-            BUILD_NUMBER = 'Unknown';
-        }
+    if (A.major !== B.major) {
+      return B.major - A.major;
     }
+
+    if (A.minor !== B.minor) {
+      return B.minor - A.minor;
+    }
+
+    return B.patch - A.patch;
+  });
+
+  return sorted[0];
 }
 
 /**
- * Display build number on the page
+ * Sync cache state
+ */
+async function syncCacheState() {
+  const appCaches = await getAppCaches();
+
+  if (!appCaches.length) {
+    console.warn('[Cache Update] No app caches found');
+    return;
+  }
+
+  LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
+
+  ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
+
+  const versionMatch = ACTIVE_CACHE_NAME.match(/v(.+)/);
+
+  BUILD_NUMBER = versionMatch?.[1] || 'Unknown';
+
+  console.log('[Cache Update]');
+  console.log('Active:', ACTIVE_CACHE_NAME);
+  console.log('Build:', BUILD_NUMBER);
+}
+
+/**
+ * Show build number
  */
 function displayBuildNumber() {
-    const buildElement = document.getElementById('buildNumberDisplay');
-    if (buildElement) {
-        buildElement.textContent = `Build: ${BUILD_NUMBER}`;
-    }
+  const buildElement = document.getElementById('buildNumberDisplay');
+
+  if (buildElement) {
+    buildElement.textContent = `Build: ${BUILD_NUMBER}`;
+  }
 }
 
 /**
- * Main update detection logic
- * Checks if latest cache !== active cache
- * Cleans up middle caches if 3+ exist
+ * Check for updates
  */
-/* async function checkForUpdatesSimple() {
+async function checkForUpdates() {
   try {
-    const cacheNames = await caches.keys();
-    const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
-    
-    console.log('[Cache Update] Found app caches:', appCaches.length, '→', appCaches.map(c => c.split('-').pop()));
-    console.log('[Cache Update] Active cache:', ACTIVE_CACHE_NAME?.split('-').pop());
-    
-    // Get the latest cache
-    LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-    console.log('[Cache Update] Latest cache:', LATEST_CACHE_NAME?.split('-').pop());
+    const registration = await navigator.serviceWorker.getRegistration();
 
-    // Cleanup middle caches if 3+ exist
-    if (appCaches.length > 2) {
-      console.log('[Cache Update] Cleaning up middle caches (have 3+)...');
-      
-      const cachesToKeep = new Set();
-      if (ACTIVE_CACHE_NAME) cachesToKeep.add(ACTIVE_CACHE_NAME);
-      if (LATEST_CACHE_NAME) cachesToKeep.add(LATEST_CACHE_NAME);
-      
-      const cachesToDelete = appCaches.filter(name => !cachesToKeep.has(name));
-      
-      await Promise.all(
-        cachesToDelete.map(name => {
-          console.log('[Cache Update] Deleting middle cache:', name.split('-').pop());
-          return caches.delete(name);
-        })
-      );
+    if (!registration) {
+      console.warn('[Cache Update] No SW registration');
+      return;
     }
 
-    // Check for update: if latest !== active
-    if (LATEST_CACHE_NAME && LATEST_CACHE_NAME !== ACTIVE_CACHE_NAME) {
-      console.log('[Cache Update] ✅ UPDATE DETECTED! Latest is different from active');
+    console.log('[Cache Update] Checking for updates...');
+
+    await registration.update();
+
+    await wait(2000);
+
+    const appCaches = await getAppCaches();
+
+    const newestCache = await getLatestCacheName(appCaches);
+
+    console.log('[Cache Update]');
+    console.log('Current:', ACTIVE_CACHE_NAME);
+    console.log('Latest:', newestCache);
+
+    // Cleanup middle caches
+    await cleanupMiddleCaches(appCaches, newestCache);
+
+    if (
+      newestCache &&
+      ACTIVE_CACHE_NAME &&
+      newestCache !== ACTIVE_CACHE_NAME
+    ) {
+      console.log('[Cache Update] UPDATE AVAILABLE');
+
+      LATEST_CACHE_NAME = newestCache;
+
       updateAvailable = true;
+
       updateButtonUI(true);
+
     } else {
-      console.log('[Cache Update] ✅ Up to date (latest = active)');
+      console.log('[Cache Update] Already latest');
+
       updateAvailable = false;
+
       updateButtonUI(false);
     }
-  } catch (error) {
-    console.error('[Cache Update] Error checking caches:', error);
+
+  } catch (err) {
+    console.error('[Cache Update] Check failed:', err);
   }
 }
 
 /**
- * Update UI button to show current status
+ * Cleanup caches safely
  */
+async function cleanupMiddleCaches(appCaches, newestCache) {
+  if (appCaches.length <= 2) return;
 
-/* function updateButtonUI(hasUpdate = false) {
-  console.log('[Cache Update] updateButtonUI:', hasUpdate ? '🔴 UPDATE AVAILABLE' : '✅ Up to date');
-  const updateCacheText = document.getElementById('updateCacheText');
+  const keep = new Set([
+    ACTIVE_CACHE_NAME,
+    newestCache
+  ]);
 
-  if (updateCacheText) {
-    updateCacheText.textContent = hasUpdate ? 'Update available' : 'Check for updates';
-    
-    // ✅ Highlight with accent color when update is available
-    if (hasUpdate) {
-      updateCacheText.style.color = 'var(--accent)';
-      updateCacheText.style.fontWeight = '600';
-    } else {
-      updateCacheText.style.color = '';
-      updateCacheText.style.fontWeight = '';
-    }
+  const deletions = appCaches
+    .filter(name => !keep.has(name))
+    .map(name => {
+      console.log('[Cache Update] Deleting old cache:', name);
+      return caches.delete(name);
+    });
+
+  await Promise.all(deletions);
+}
+
+/**
+ * Update button state
+ */
+function updateButtonUI(hasUpdate = false) {
+  const updateText = document.getElementById('updateCacheText');
+
+  if (!updateText) return;
+
+  if (hasUpdate) {
+    updateText.textContent = 'Update available';
+    updateText.style.color = 'var(--accent)';
+    updateText.style.fontWeight = '600';
+  } else {
+    updateText.textContent = 'Check for updates';
+    updateText.style.color = '';
+    updateText.style.fontWeight = '';
   }
 }
 
 /**
- * Show update modal - called when user clicks button
+ * Open update modal
  */
-/* window.showUpdateCacheModal = () => {
-  console.log('[Cache Update] showUpdateCacheModal - updateAvailable:', updateAvailable);
-  
+window.showUpdateCacheModal = () => {
+
   if (typeof window.openModal !== 'function') {
-    alert('Update feature not ready. Please refresh the page.');
+    alert('Modal system not ready');
     return;
   }
 
   if (updateAvailable) {
+
     window.openModal(
       'App Update Available',
-      'A new version of the app is ready. Update now to get the latest features and improvements.',
+      'A new version is ready.',
       'Update Now',
       'var(--accent)',
       async () => {
         await performUpdate();
       }
     );
+
   } else {
+
     window.openModal(
       'Check for Updates',
-      'Checking for new app versions...',
+      'Check for latest version?',
       'Check Now',
       'var(--accent)',
       async () => {
-        await manualCheckForUpdates();
+        await manualUpdateCheck();
       }
     );
+
   }
 };
 
 /**
- * Manual check for updates
+ * Manual check
  */
-/*async function manualCheckForUpdates() {
+async function manualUpdateCheck() {
   try {
-    console.log('[Cache Update] Manual check started');
-    const confirmBtn = document.getElementById('modal-confirm-btn');
+
+    const confirmBtn =
+      document.getElementById('modal-confirm-btn');
+
     confirmBtn.disabled = true;
     confirmBtn.innerText = 'Checking...';
 
-    if (!('serviceWorker' in navigator)) {
-      throw new Error('Service Workers not supported');
-    }
+    await checkForUpdates();
 
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      throw new Error('No active service worker found');
-    }
+    if (updateAvailable) {
 
-    console.log('[Cache Update] Calling registration.update()...');
-    await registration.update();
-
-    // Wait for pre-cache to complete
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Re-fetch latest cache
-    const cacheNames = await caches.keys();
-    const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
-    LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-    
-    console.log('[Cache Update] After update check, caches:', appCaches.length);
-    console.log('[Cache Update] Latest:', LATEST_CACHE_NAME?.split('-').pop(), 'Active:', ACTIVE_CACHE_NAME?.split('-').pop());
-
-    if (LATEST_CACHE_NAME && LATEST_CACHE_NAME !== ACTIVE_CACHE_NAME) {
-      console.log('[Cache Update] ✅ UPDATE FOUND!');
-      updateAvailable = true;
-      
       confirmBtn.disabled = false;
       confirmBtn.innerText = 'Update Now';
+
       confirmBtn.onclick = async () => {
         await performUpdate();
       };
-      document.getElementById('modal-title').innerText = 'Update Ready!';
+
+      document.getElementById('modal-title').innerText =
+        'Update Ready';
+
       document.getElementById('modal-message').innerText =
-        'A new version is available. Tap "Update Now" to install it.';
+        'A new version is available.';
+
     } else {
-      console.log('[Cache Update] No update available');
+
       window.closeCustomModal();
-      showNotification('Up to Date', "You're running the latest version", 'success');
+
+      showNotification(
+        'Up to Date',
+        'You already have latest version',
+        'success'
+      );
     }
-  } catch (error) {
-    console.error('[Cache Update] Manual check failed:', error);
+
+  } catch (err) {
+
+    console.error(err);
+
     window.closeCustomModal();
-    showNotification('Update Check Failed', error.message, 'error');
+
+    showNotification(
+      'Update Failed',
+      err.message,
+      'error'
+    );
   }
 }
 
 /**
- * Perform the actual update
+ * Perform update
  */
-/*async function performUpdate() {
+async function performUpdate() {
   try {
-    const confirmBtn = document.getElementById('modal-confirm-btn');
-    const modalTitle = document.getElementById('modal-title');
-    const modalMessage = document.getElementById('modal-message');
+
+    userTriggeredUpdate = true;
+
+    const registration =
+      await navigator.serviceWorker.getRegistration();
+
+    if (!registration) {
+      throw new Error('No SW registration');
+    }
+
+    const sw =
+      registration.waiting || registration.active;
+
+    if (!sw) {
+      throw new Error('No SW found');
+    }
+
+    const confirmBtn =
+      document.getElementById('modal-confirm-btn');
 
     confirmBtn.disabled = true;
+
     confirmBtn.innerText = 'Installing...';
 
-    if (!('serviceWorker' in navigator)) {
-      throw new Error('Service Workers not supported');
-    }
+    console.log('[Cache Update] Sending SKIP_WAITING');
 
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      throw new Error('No service worker found');
-    }
-
-    const sw = registration.waiting || registration.active;
-    
-    if (!sw) {
-      throw new Error('No service worker available');
-    }
-
-    console.log('[Cache Update] Sending SKIP_WAITING to SW');
-    sw.postMessage({ type: 'SKIP_WAITING' });
-
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (registration.active) {
-      console.log('[Cache Update] Sending CLAIM_CLIENTS to SW');
-      registration.active.postMessage({ type: 'CLAIM_CLIENTS' });
-    }
-
-    // Progress animation
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += Math.random() * 25;
-      if (progress > 90) progress = 90;
-      confirmBtn.innerText = `Installing... ${Math.floor(progress)}%`;
-    }, 200);
-
-    // Wait for controller change
-    let hasUpdated = false;
-    const listener = () => {
-      hasUpdated = true;
-      clearInterval(progressInterval);
-      navigator.serviceWorker.removeEventListener('controllerchange', listener);
-    };
-
-    navigator.serviceWorker.addEventListener('controllerchange', listener);
-
-    await new Promise(resolve => {
-      setTimeout(() => {
-        if (!hasUpdated) {
-          clearInterval(progressInterval);
-          navigator.serviceWorker.removeEventListener('controllerchange', listener);
-          console.log('[Cache Update] Proceeding with update');
-          resolve();
-        }
-      }, 3000);
-
-      const checkInterval = setInterval(() => {
-        if (hasUpdated) {
-          clearInterval(checkInterval);
-          clearInterval(progressInterval);
-          resolve();
-        }
-      }, 100);
+    sw.postMessage({
+      type: 'SKIP_WAITING'
     });
 
-    // Success!
-    confirmBtn.innerText = '✓ Update Complete!';
-    confirmBtn.style.background = 'var(--accent)';
+    await wait(500);
 
-    modalTitle.innerText = '🎉 App Updated!';
-    modalMessage.innerText = 'The latest version is now active. Reloading...';
-    modalMessage.style.color = 'var(--accent)';
-
-    createUpdateAnimation();
-
-    // Update active cache in storage
-    console.log('[Cache Update] Updating active cache to:', LATEST_CACHE_NAME?.split('-').pop());
-    if (LATEST_CACHE_NAME) {
-      localStorage.setItem('activeCacheName', LATEST_CACHE_NAME);
-      ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
+    if (registration.active) {
+      registration.active.postMessage({
+        type: 'CLAIM_CLIENTS'
+      });
     }
 
-    // Clean up old caches
-    const cacheNames = await caches.keys();
-    const appCaches = cacheNames.filter(name => name.startsWith('notoj-app-cache-v'));
-    
-    console.log('[Cache Update] Cleaning up old caches...');
-    
-    await Promise.all(
-      appCaches
-        .filter(name => name !== ACTIVE_CACHE_NAME)
-        .map(name => {
-          console.log('[Cache Update] Deleting old cache:', name.split('-').pop());
-          return caches.delete(name);
-        })
+    let updated = false;
+
+    const listener = () => {
+
+      if (!userTriggeredUpdate) return;
+
+      updated = true;
+
+      navigator.serviceWorker.removeEventListener(
+        'controllerchange',
+        listener
+      );
+    };
+
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      listener
     );
 
-    console.log('[Cache Update] Update complete!');
+    await new Promise(resolve => {
+
+      const timeout = setTimeout(() => {
+        resolve();
+      }, 3000);
+
+      const interval = setInterval(() => {
+
+        if (updated) {
+
+          clearTimeout(timeout);
+          clearInterval(interval);
+
+          resolve();
+        }
+
+      }, 100);
+
+    });
+
+    ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
+
+    updateAvailable = false;
+
+    updateButtonUI(false);
+
+    confirmBtn.innerText = '✓ Updated';
+
+    console.log('[Cache Update] Update complete');
 
     setTimeout(() => {
       window.location.reload();
-    }, 1500);
+    }, 1200);
 
-    updateAvailable = false;
-    updateButtonUI(false);
-  } catch (error) {
-    console.error('[Cache Update] Update failed:', error);
-    window.closeCustomModal();
-    showNotification('Update Failed', error.message, 'error');
+  } catch (err) {
+
+    console.error('[Cache Update] Install failed:', err);
+
+    showNotification(
+      'Update Failed',
+      err.message,
+      'error'
+    );
+
+  } finally {
+
+    userTriggeredUpdate = false;
   }
 }
 
 /**
- * Create confetti animation on update
+ * Notification
  */
-/*function createUpdateAnimation() {
-  const container = document.createElement('div');
-  container.style.cssText = `
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none; z-index: 9998;
-  `;
+function showNotification(title, message, type = 'info') {
 
-  for (let i = 0; i < 20; i++) {
-    const particle = document.createElement('div');
-    const size = Math.random() * 10 + 5;
-    const left = Math.random() * 100;
-    const delay = Math.random() * 0.2;
+  let container =
+    document.getElementById('notification-container');
 
-    particle.style.cssText = `
-      position: absolute; left: ${left}%; bottom: 0;
-      width: ${size}px; height: ${size}px;
-      background: var(--accent); border-radius: 50%;
-      opacity: 0.6; animation: float 2s ease-out ${delay}s forwards;
-    `;
-
-    container.appendChild(particle);
-  }
-
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes float {
-      0% { transform: translateY(0) scale(1); opacity: 0.8; }
-      100% { transform: translateY(-100vh) scale(0); opacity: 0; }
-    }
-  `;
-  document.head.appendChild(style);
-  document.body.appendChild(container);
-
-  setTimeout(() => container.remove(), 2500);
-}
-
-/**
- * Show notification toast
- */
-/*function showNotification(title, message, type = 'info') {
-  let container = document.getElementById('notification-container');
   if (!container) {
+
     container = document.createElement('div');
+
     container.id = 'notification-container';
+
     container.style.cssText = `
-      position: fixed; top: 20px; left: 20px; right: 20px;
-      z-index: 10000; pointer-events: none; display: flex;
-      flex-direction: column; gap: 12px;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     `;
+
     document.body.appendChild(container);
   }
 
   const notification = document.createElement('div');
-  let bgColor = 'var(--bg-card)';
-  let textColor = 'var(--text-main)';
+
+  let bg = 'var(--bg-card)';
+  let color = 'var(--text-main)';
 
   if (type === 'success') {
-    bgColor = 'var(--accent)';
-    textColor = 'white';
-  } else if (type === 'error') {
-    bgColor = 'var(--accent1)';
-    textColor = 'white';
+    bg = 'var(--accent)';
+    color = '#fff';
+  }
+
+  if (type === 'error') {
+    bg = 'var(--accent1)';
+    color = '#fff';
   }
 
   notification.style.cssText = `
-    padding: 16px 20px; border-radius: 12px; background: ${bgColor};
-    color: ${textColor}; font-size: 14px; z-index: 10000;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: ${bg};
+    color: ${color};
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideDown 0.3s ease-out;
-    pointer-events: auto; cursor: pointer;
+    font-size: 14px;
   `;
 
   notification.innerHTML = `
-    <div style="font-weight: 600; margin-bottom: 4px;">
-      ${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'} ${title}
+    <div style="font-weight:600;">
+      ${title}
     </div>
-    <div style="opacity: 0.9; font-size: 13px;">${message}</div>
-  `;
 
-  if (!document.getElementById('notification-styles')) {
-    const style = document.createElement('style');
-    style.id = 'notification-styles';
-    style.textContent = `
-      @keyframes slideDown {
-        from { transform: translateY(-120%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-      @keyframes slideUp {
-        from { opacity: 1; }
-        to { opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
+    <div style="opacity:0.9;font-size:13px;">
+      ${message}
+    </div>
+  `;
 
   container.appendChild(notification);
 
-  const timeout = setTimeout(() => {
-    notification.style.animation = 'slideUp 0.3s ease-out';
-    setTimeout(() => notification.remove(), 300);
-  }, 4000);
-
-  notification.addEventListener('click', () => {
-    clearTimeout(timeout);
+  setTimeout(() => {
     notification.remove();
+  }, 4000);
+}
+
+/**
+ * Helper
+ */
+function wait(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
   });
 }
 
-console.log('[Cache Update] Manager initialized');*/
+console.log('[Cache Update] SW-only manager loaded');

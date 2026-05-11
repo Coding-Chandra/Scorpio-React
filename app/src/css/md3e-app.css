@@ -20,7 +20,6 @@
   --accent-color: rgb(var(--md-seed));
   --accent: rgb(var(--md-seed));
   --blue: rgb(var(--md-seed));
-  --highlight-color: rgba(var(--md-seed), 0.22);
 
   /* Text (light) */
   --text-primary: #1c1b1f;

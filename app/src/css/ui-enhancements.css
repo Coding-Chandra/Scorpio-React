@@ -190,7 +190,7 @@ html[data-theme="dark"] .note-item:active::before {
 .sidebar-header {
   padding: 16px 0;
   border-bottom: 1px solid var(--sep);
-  margin-bottom: 16px;
+  margin-bottom: 1.5vh;
 }
 
 .sidebar-header h2 {
