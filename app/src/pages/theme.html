@@ -533,6 +533,10 @@ h2:nth-of-type(2) { animation-delay: 0.15s; }
     <span class="label">Dark</span>
     <span class="check"></span>
   </div>
+  <div class="row" id="mode-system" onclick="setMode('system')">
+    <span class="label">System</span>
+    <span class="check"></span>
+  </div>
 </div>
 
 </div>
@@ -547,7 +551,7 @@ const MODE_KEY = "notesApp_theme";
 const SEED_KEY = "md3e-seed";
 
 const ui = localStorage.getItem(UI_KEY) || "ios";
-const mode = localStorage.getItem(MODE_KEY) || "dark";
+const mode = localStorage.getItem(MODE_KEY) || "system";
 const seed = localStorage.getItem(SEED_KEY) || "#6750A4";
 
 applyUI(ui);
@@ -591,7 +595,8 @@ function applyUI(v) {
 }
 
 function applyMode(v) {
-  document.documentElement.setAttribute("data-theme", v);
+  const actualTheme = v === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : v;
+  document.documentElement.setAttribute("data-theme", actualTheme);
   document.querySelectorAll('[id^="mode-"]').forEach(r => r.classList.remove("selected"));
   document.getElementById("mode-" + v)?.classList.add("selected");
 }

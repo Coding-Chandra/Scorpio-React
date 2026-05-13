@@ -32,8 +32,8 @@ const animate = (element, animationName, duration = 300, onComplete = null) => {
 // --- Core UI & Theme ---
 const applyThemeUI = (theme) => {
     if (!theme) return;
-    document.documentElement.setAttribute('data-theme', theme);
-    document.getElementById('currentThemeDisplay').textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+    const displayTheme = theme === 'system' ? 'System' : theme.charAt(0).toUpperCase() + theme.slice(1);
+    document.getElementById('currentThemeDisplay').textContent = displayTheme;
     const frame = document.getElementById('portal-frame');
     if (frame?.contentWindow) frame.contentWindow.postMessage({ type: 'INIT_THEME', theme }, '*');
 };
@@ -51,7 +51,7 @@ window.openPortal = (url) => {
         animate(nav, 'drawerSlideIn', 300);
     }
     
-    frame.onload = () => applyThemeUI(localStorage.getItem('notesApp_theme') || 'dark');
+    frame.onload = () => applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
 };
 
 window.closePortal = () => {
@@ -311,7 +311,7 @@ async function load() {
         }
     }
     
-    applyThemeUI(localStorage.getItem('notesApp_theme') || 'dark');
+    applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
 }
 
 load();
@@ -330,7 +330,8 @@ function applyUI(ui) {
 }
 
 function applyTheme(mode) {
-    document.documentElement.setAttribute("data-theme", mode);
+    const actualTheme = mode === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : mode;
+    document.documentElement.setAttribute("data-theme", actualTheme);
     localStorage.setItem("notesApp_theme", mode);
 }
 
@@ -346,7 +347,7 @@ function applyMD3EAccent(hex) {
 
 (function restoreThemeState() {
     const ui = localStorage.getItem("ui-theme") || "ios";
-    const theme = localStorage.getItem("notesApp_theme") || "dark";
+    const theme = localStorage.getItem("notesApp_theme") || "system";
     const accent = localStorage.getItem("md3e-seed");
     applyUI(ui);
     applyTheme(theme);

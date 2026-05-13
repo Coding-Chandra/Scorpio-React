@@ -621,8 +621,17 @@ const app = {
 
         this.ui.isMobile = window.innerWidth <= 1024;
         const savedTheme = localStorage.getItem('notesApp_theme');
-        const theme = savedTheme || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const theme = savedTheme || 'system'; // Default to system
         this.applyTheme(theme);
+
+        // Listen for system theme changes
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (this.ui.theme === 'system') {
+                    this.applyTheme('system');
+                }
+            });
+        }
 
         if (this.activeFolderId !== 'all' && !this.folders.some(f => f.id === this.activeFolderId)) {
             this.activeFolderId = 'all';
@@ -822,23 +831,18 @@ const app = {
 
         for (let i = 0; i < needsDecryption.length; i += batchSize) {
             const batch = needsDecryption.slice(i, i + batchSize);
-
             await Promise.all(batch.map(async (note) => {
                 try {
-                    if (note.title?.startsWith('enc:')) {
-                        note.title = await decryptWithMasterKey(note.title);
-                    }
-                    if (note.content?.startsWith('enc:')) {
-                        note.content = await decryptWithMasterKey(note.content);
-                    }
+                    if (note.title?.startsWith('enc:'))
+                        note.title = await _fastDecrypt(note.title);
+                    if (note.content?.startsWith('enc:'))
+                        note.content = await _fastDecrypt(note.content);
                     note._decrypted = true;
-                    this.updateNoteItemInList(note.id);
+                    this.updateNoteItemInList(note.id); // patch DOM
                 } catch (e) {
                     console.error('[Decrypt] Failed for note:', note.id, e);
                 }
             }));
-
-            // Yield to browser between batches to keep UI responsive
             await new Promise(r => setTimeout(r, 0));
         }
     },
@@ -2289,7 +2293,8 @@ app.requestDeletePendingFolder = function () {
 
 app.applyTheme = function (theme) {
     this.ui.theme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
+    const actualTheme = theme === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
+    document.documentElement.setAttribute('data-theme', actualTheme);
     localStorage.setItem('notesApp_theme', theme);
     this.updateThemeToggleIcon();
 };
@@ -2304,7 +2309,14 @@ app.toggleTheme = function () {
         setTimeout(() => btn.classList.remove('theme-icon-animating'), 320);
     }
 
-    const newTheme = this.ui.theme === 'dark' ? 'light' : 'dark';
+    let newTheme;
+    if (this.ui.theme === 'light') {
+        newTheme = 'dark';
+    } else if (this.ui.theme === 'dark') {
+        newTheme = 'system';
+    } else {
+        newTheme = 'light';
+    }
     this.applyTheme(newTheme);
 };
 
@@ -2312,7 +2324,16 @@ app.updateThemeToggleIcon = function () {
     const icon = document.getElementById('themeToggleIcon');
     if (!icon) return;
 
-    if (this.ui.theme === 'dark') {
+    if (this.ui.theme === 'system') {
+        // System icon - monitor with sun/moon
+        icon.innerHTML = `
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+            <circle cx="9" cy="9" r="2"></circle>
+            <path d="M 15 9 A 2 2 0 0 1 13 7"></path>
+        `;
+    } else if (this.ui.theme === 'dark') {
         icon.innerHTML = `
             <circle cx="12" cy="12" r="4.2"></circle>
             <line x1="12" y1="3.2" x2="12" y2="1.4"></line>
@@ -2736,7 +2757,34 @@ app.exportPDF = function () {
     const baseCtx = { fontSize: 11, bold: false, italic: false, indent: 0 };
     container.childNodes.forEach(node => walkNode(node, baseCtx));
 
-    doc.save(filename);
+    // Generate PDF blob instead of saving directly
+    const pdfBlob = doc.output('blob');
+
+    // Use Median bridge for download with proper filename
+    if (window.MedianJsBridge && window.MedianJsBridge.downloadFile) {
+        // Convert blob to base64 for bridge
+        const reader = new FileReader();
+        reader.onload = function() {
+            const base64Data = reader.result.split(',')[1];
+            window.MedianJsBridge.downloadFile({
+                data: base64Data,
+                filename: filename,
+                mimeType: 'application/pdf'
+            });
+        };
+        reader.readAsDataURL(pdfBlob);
+    } else {
+        // Fallback for web browser
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     this.closeDropdown('shareDropdown');
 };
 
@@ -3078,3 +3126,380 @@ const BackHandler = {
 
 // Initialize app
 app.init();
+
+// ============================================================================
+// LOAD NOTES (OVERRIDE)
+// ============================================================================
+
+app.loadNotes = async function () {
+
+console.log('[Startup] IndexedDB-first loading');
+
+try {
+
+    const localNotes = await getNotesOffline(CURRENT_USER_ID);
+
+    if (localNotes && localNotes.length > 0) {
+
+        this.notes = localNotes.sort((a, b) =>
+            new Date(b.updated_at || 0) -
+            new Date(a.updated_at || 0)
+        );
+
+        console.log(`[Startup] Loaded ${this.notes.length} local notes`);
+
+        this.renderNotesList(false);
+        this.renderEditor();
+        this.updateNotesCount();
+
+        await this.decryptNotesInBackground(); // decrypts all, patches list items as it goes
+
+    } else {
+
+        this.notes = [];
+    }
+
+} catch (err) {
+
+    console.error('[IndexedDB] Failed:', err);
+    this.notes = [];
+}
+
+if (isOnline()) {
+    this.syncNotesFromServer();
+}
+
+};
+
+// ============================================================================
+// BACKGROUND SYNC
+// ============================================================================
+
+app.syncNotesFromServer = async function () {
+
+console.log('[Sync] Starting background sync');
+
+const { data, error } = await supabaseClient
+    .from(NOTES_TABLE)
+    .select('*')
+    .eq('user_id', CURRENT_USER_ID)
+    .order('updated_at', { ascending: false });
+
+if (error || !data) {
+
+    console.error('[Sync] Failed:', error);
+    return;
+}
+
+await this.mergeServerNotes(data);
+
+console.log('[Sync] Finished');
+
+};
+
+// ============================================================================
+// MERGE SERVER NOTES
+// ============================================================================
+
+app.mergeServerNotes = async function (serverNotes) {
+
+if (!serverNotes || !serverNotes.length) return;
+
+const localMap = new Map(
+    this.notes.map(note => [note.id, note])
+);
+
+let added = 0;
+let updated = 0;
+
+for (const serverNote of serverNotes) {
+
+    const localNote = localMap.get(serverNote.id);
+
+    // =====================================================
+    // NEW NOTE
+    // =====================================================
+
+    if (!localNote) {
+
+        this.notes.unshift(serverNote);
+
+        await this.saveSingleNoteToIndexedDB(serverNote);
+
+        this.insertSingleNoteIntoUI(serverNote);
+
+        this.queueNoteDecrypt(serverNote);
+
+        added++;
+        continue;
+    }
+
+    // =====================================================
+    // UPDATED NOTE
+    // =====================================================
+
+    const serverTime = new Date(serverNote.updated_at || 0).getTime();
+    const localTime = new Date(localNote.updated_at || 0).getTime();
+
+    if (serverTime > localTime) {
+
+        Object.assign(localNote, serverNote);
+
+        await this.saveSingleNoteToIndexedDB(serverNote);
+
+        this.updateNoteItemInList(serverNote.id);
+
+        this.queueNoteDecrypt(serverNote);
+
+        if (this.activeNoteId === serverNote.id) {
+            this.renderEditor();
+        }
+
+        updated++;
+    }
+}
+
+console.log(`[Sync] Added ${added}, Updated ${updated}`);
+
+};
+
+// ============================================================================
+// SAVE SINGLE NOTE TO INDEXEDDB
+// ============================================================================
+
+app.saveSingleNoteToIndexedDB = async function (note) {
+
+    const noteToStore = { ...note };
+
+    if (note.title && !note.title.startsWith('enc:')) {
+        noteToStore.title = await _fastEncrypt(note.title);
+    }
+    if (note.content && !note.content.startsWith('enc:')) {
+        noteToStore.content = await _fastEncrypt(note.content);
+    }
+
+    return new Promise((resolve, reject) => {
+
+        try {
+
+            if (!db) {
+                reject('IndexedDB unavailable');
+                return;
+            }
+
+            const tx = db.transaction([STORES.notes], 'readwrite');
+            const store = tx.objectStore(STORES.notes);
+
+            store.put({
+                ...noteToStore,
+                synced: true,
+                offline: false
+            });
+
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+
+        } catch (err) {
+
+            reject(err);
+        }
+    });
+
+};
+
+// ============================================================================
+// DECRYPT ONLY VISIBLE NOTES
+// ============================================================================
+
+app.decryptVisibleNotesOnly = async function () {
+
+    // Wait for master key to be available before queuing
+    const mk = getLocalMasterKeyBytes();
+    if (!mk) {
+        console.warn('[Decrypt] Master key not ready, retrying in 300ms');
+        setTimeout(() => this.decryptVisibleNotesOnly(), 300);
+        return;
+    }
+
+    const notes = this.getNotesToDisplay().slice(0, 15);
+    for (const note of notes) {
+        if (!note._decrypted) {
+            DecryptQueue.queuePreview(note.id);
+        }
+    }
+
+    if (this.activeNoteId) {
+        await DecryptQueue.priorityFull(this.activeNoteId);
+    }
+
+};
+
+// ============================================================================
+// QUEUE NOTE DECRYPT
+// ============================================================================
+
+app.queueNoteDecrypt = function (note) {
+
+if (!note) return;
+
+const encrypted =
+    note.title?.startsWith('enc:') ||
+    note.content?.startsWith('enc:');
+
+if (!encrypted) return;
+
+DecryptQueue.queuePreview(note.id);
+
+};
+
+// ============================================================================
+// INSERT SINGLE NOTE INTO UI
+// ============================================================================
+
+app.insertSingleNoteIntoUI = function (note) {
+
+const container = document.getElementById('notesListContainer');
+
+if (!container) return;
+
+const existing = document.querySelector(
+    `[data-note-id="${note.id}"]`
+);
+
+if (existing) return;
+
+const el = document.createElement('div');
+
+el.className = 'note-item';
+el.setAttribute('data-note-id', note.id);
+
+el.innerHTML = `
+    <div class="note-main">
+        <div class="note-title">...</div>
+        <div class="note-preview">...</div>
+    </div>
+`;
+
+el.onclick = () => {
+    this.activeNoteId = note.id;
+    this.renderNotesList();
+    this.renderEditor();
+};
+
+container.prepend(el);
+
+this.updateNoteItemInList(note.id);
+
+};
+
+// ============================================================================
+// REMOVE NOTE FROM UI
+// ============================================================================
+
+app.removeNoteFromUI = function (noteId) {
+
+this.notes = this.notes.filter(n => n.id !== noteId);
+
+const el = document.querySelector(
+    `[data-note-id="${noteId}"]`
+);
+
+if (el) {
+    el.remove();
+}
+
+if (this.activeNoteId === noteId) {
+    this.activeNoteId = null;
+    this.renderEditor();
+}
+
+this.updateNotesCount();
+
+};
+
+// ============================================================================
+// REALTIME PATCH SYSTEM
+// ============================================================================
+
+app.initializeRealtimeSync = function () {
+
+if (!CURRENT_USER_ID) return;
+
+supabaseClient
+    .channel('notes-realtime')
+    .on(
+        'postgres_changes',
+        {
+            event: '*',
+            schema: 'public',
+            table: NOTES_TABLE,
+            filter: `user_id=eq.${CURRENT_USER_ID}`
+        },
+        async (payload) => {
+
+            console.log('[Realtime]', payload.eventType);
+
+            switch (payload.eventType) {
+
+                case 'INSERT':
+                    await this.mergeServerNotes([
+                        payload.new
+                    ]);
+                    break;
+
+                case 'UPDATE':
+                    await this.mergeServerNotes([
+                        payload.new
+                    ]);
+                    break;
+
+                case 'DELETE':
+                    this.removeNoteFromUI(
+                        payload.old.id
+                    );
+                    break;
+            }
+        }
+    )
+    .subscribe();
+
+};
+
+// ============================================================================
+// PATCH updateCurrentNote
+// ============================================================================
+
+const _originalUpdateCurrentNote = app.updateCurrentNote;
+
+app.updateCurrentNote = async function () {
+
+const note = this.getActiveNote();
+
+if (!note) return;
+
+await this.saveSingleNoteToIndexedDB({
+    ...note,
+    user_id: CURRENT_USER_ID
+});
+
+return _originalUpdateCurrentNote.apply(this, arguments);
+
+};
+
+// ============================================================================
+// PATCH INIT
+// ============================================================================
+
+const _originalInit = app.init;
+
+app.init = async function () {
+
+await _originalInit.apply(this, arguments);
+
+this.initializeRealtimeSync();
+
+};
+
+// ============================================================================
+// DONE
+// ============================================================================
