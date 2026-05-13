@@ -391,3 +391,39 @@ window.openModal = openModal;
 window.closeCustomModal = closeCustomModal;
 window.showSignOutModal = showSignOutModal;
 window.showDeleteModal = showDeleteModal;
+
+// ========================================
+// KEYBOARD DETECTION FOR PORTAL LAYER
+// ========================================
+(function () {
+    let lastKeyboardHeight = 0;
+    
+    function checkKeyboard() {
+        const keyboardHeight = Math.max(0, window.outerHeight - window.innerHeight);
+        const portalLayer = document.getElementById('portal-layer');
+        
+        if (!portalLayer) return;
+        
+        // Only update if keyboard height actually changed
+        if (keyboardHeight !== lastKeyboardHeight) {
+            lastKeyboardHeight = keyboardHeight;
+            
+            if (keyboardHeight > 0) {
+                // Keyboard is visible
+                portalLayer.classList.add('keyboard-visible');
+            } else {
+                // Keyboard is hidden
+                portalLayer.classList.remove('keyboard-visible');
+            }
+        }
+    }
+    
+    // Check on resize events (keyboard show/hide triggers resize)
+    window.addEventListener('resize', checkKeyboard);
+    // Also check on focus/blur of input elements
+    document.addEventListener('focusin', () => setTimeout(checkKeyboard, 50));
+    document.addEventListener('focusout', () => setTimeout(checkKeyboard, 50));
+    
+    // Initial check
+    checkKeyboard();
+})();
