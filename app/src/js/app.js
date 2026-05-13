@@ -594,6 +594,10 @@ const app = {
     // ========================================================================
 
     async init() {
+        // Show loading state
+        this.loading.show();
+        this.loading.startProgress();
+
         // Reset decrypt queue on init (handles re-login in same tab)
         DecryptQueue.reset();
         _decryptCache.clear();
@@ -647,6 +651,17 @@ const app = {
 
         this._setupEventListeners();
         BackHandler.init();
+
+        // Hide loading state with smooth transition
+        setTimeout(() => {
+            this.loading.stopProgress();
+            this.loading.setProgress(100);
+            setTimeout(() => {
+                this.loading.hide();
+                // Add fade-in animation to content
+                document.getElementById('app').classList.add('content-fade-in');
+            }, 200);
+        }, 100);
     },
 
     async handleLogout() {
@@ -3021,12 +3036,60 @@ function navigateToSettings() {
 // (With Priority-Ordered Interception of Back Presses, Mobile View Navigation Handling, and Fallbacks for Different Environments)
 // ============================================================================
 
+// ============================================================================
+// LOADING STATE MANAGEMENT
+// (Skeleton Screens, Progress Bars, and Smooth Transitions)
+// ============================================================================
+
+app.loading = {
+    container: null,
+    progress: null,
+
+    init() {
+        this.container = document.getElementById('loadingContainer');
+        this.progress = document.getElementById('loadingProgress');
+    },
+
+    show() {
+        if (this.container) {
+            this.container.classList.remove('fade-out');
+            this.container.style.display = 'flex';
+        }
+    },
+
+    hide() {
+        if (this.container) {
+            this.container.classList.add('fade-out');
+            setTimeout(() => {
+                this.container.style.display = 'none';
+            }, 300);
+        }
+    },
+
+    setProgress(percent) {
+        if (this.progress) {
+            this.progress.style.width = percent + '%';
+        }
+    },
+
+    startProgress() {
+        if (this.progress) {
+            this.progress.classList.add('animate');
+        }
+    },
+
+    stopProgress() {
+        if (this.progress) {
+            this.progress.classList.remove('animate');
+        }
+    }
+};
+
+// Initialize loading on app start
+app.loading.init();
+
 const BackHandler = {
-
-    // Priority-ordered list of "can we intercept this back press?"
-    // First one that returns true wins — back is consumed, app stays put
     intercept() {
-
         // ── Priority 1: Close any open dialog first ──────────────────────
         const dialog = document.getElementById('appDialogOverlay');
         if (dialog?.classList.contains('show')) {
@@ -3123,9 +3186,6 @@ const BackHandler = {
         });
     }
 };
-
-// Initialize app
-app.init();
 
 // ============================================================================
 // LOAD NOTES (OVERRIDE)
@@ -3486,6 +3546,24 @@ return _originalUpdateCurrentNote.apply(this, arguments);
 
 };
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if running inside the Median wrapper
+    if (navigator.userAgent.indexOf('median') > -1) {
+        
+        // 1. Force the Navigation Bar to be transparent
+        median.android.navigationBar.set({
+            'color': '00000000', // Hex with 00 alpha for transparency
+            'style': 'dark'      // 'dark' for white icons, 'light' for black
+        });
+
+        // 2. Optional: Sync the Status Bar to be sure
+        median.statusbar.set({
+            'overlay': true,
+            'color': '00000000'
+        });
+    }
+});
+
 // ============================================================================
 // PATCH INIT
 // ============================================================================
@@ -3499,6 +3577,9 @@ await _originalInit.apply(this, arguments);
 this.initializeRealtimeSync();
 
 };
+
+// Initialize app
+app.init();
 
 // ============================================================================
 // DONE

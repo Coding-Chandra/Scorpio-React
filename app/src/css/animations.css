@@ -14,22 +14,22 @@
 @keyframes pageSlideIn {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateY(22px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
 @keyframes pageSlideOut {
   from {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
   to {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateY(-22px);
   }
 }
 
@@ -60,7 +60,7 @@
 @keyframes listItemSlideIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -210,31 +210,36 @@
 
 @keyframes shimmer {
   0% {
-    background-position: -1000px 0;
+    background-position: -120%;
   }
   100% {
-    background-position: 1000px 0;
+    background-position: 120%;
   }
 }
 
 @keyframes progressFill {
   from {
     width: 0%;
+    opacity: 0.9;
   }
-  to {
+  50% {
+    width: 78%;
+    opacity: 1;
+  }
+  100% {
     width: 100%;
+    opacity: 0.9;
   }
 }
 
 @keyframes skeletonLoading {
-  0% {
-    background-color: var(--bg-active);
+  0%, 100% {
+    opacity: 0.92;
+    transform: scale(1);
   }
   50% {
-    background-color: var(--bg-secondary);
-  }
-  100% {
-    background-color: var(--bg-active);
+    opacity: 0.98;
+    transform: scale(1.001);
   }
 }
 

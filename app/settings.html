@@ -110,28 +110,27 @@
 <style>
 /* Settings-specific animation overrides */
 .container {
-    animation: pageFadeIn 0.4s ease-out forwards;
+    animation: pageFadeIn 0.48s ease-out forwards;
 }
 
 .header-main {
-    animation: pageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: pageSlideIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .settings-group {
-    animation: listItemSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    animation: listItemSlideIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     opacity: 0;
+    transform: translateY(12px);
+    animation-fill-mode: both;
 }
 
 .settings-group .row.clickable {
-    transition: all 0.2s ease-out;
+    transition: background-color 0.28s ease, transform 0.28s ease;
 }
 
 .settings-group .row.clickable:active {
-    animation: buttonPressDown 0.15s ease-out forwards;
-}
-
-.settings-group .row.clickable:active {
-    transform: scale(0.98);
+    animation: buttonPressDown 0.18s ease-out forwards;
+    transform: scale(0.986);
 }
 
 #custom-modal-overlay {

@@ -30,6 +30,61 @@
 <body>
 <script>if ('serviceWorker' in navigator) {navigator.serviceWorker.getRegistrations().then(registrations => {registrations.forEach(reg => {console.log('[Index] Clearing old SW');reg.unregister();});});}
 </script>
+
+  <!-- Loading States -->
+  <div id="loadingContainer" class="loading-container">
+    <div class="loading-progress" id="loadingProgress"></div>
+
+    <!-- Skeleton Folders -->
+    <div class="skeleton-folders">
+      <div class="skeleton-folder-item">
+        <div class="skeleton-folder-icon"></div>
+        <div class="skeleton-folder-text"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+      <div class="skeleton-folder-item">
+        <div class="skeleton-folder-icon"></div>
+        <div class="skeleton-folder-text"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+      <div class="skeleton-folder-item">
+        <div class="skeleton-folder-icon"></div>
+        <div class="skeleton-folder-text"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+    </div>
+
+    <!-- Skeleton Notes -->
+    <div class="skeleton-notes">
+      <div class="skeleton-note-item">
+        <div class="skeleton-note-title"></div>
+        <div class="skeleton-note-preview"></div>
+        <div class="skeleton-note-preview"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+      <div class="skeleton-note-item">
+        <div class="skeleton-note-title"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+      <div class="skeleton-note-item">
+        <div class="skeleton-note-title"></div>
+        <div class="skeleton-note-preview"></div>
+        <div class="skeleton-note-preview"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+      <div class="skeleton-note-item">
+        <div class="skeleton-note-title"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+      <div class="skeleton-note-item">
+        <div class="skeleton-note-title"></div>
+        <div class="skeleton-note-preview"></div>
+        <div class="skeleton-note-preview"></div>
+        <div class="skeleton-shimmer"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="mobileNavBar"></div>
 
   <div id="app">
