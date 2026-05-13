@@ -73,7 +73,7 @@ body::before {
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 4vh 16px 0 16px;
+  padding: 3vh 16px 0 16px;
   height: 100vh;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -164,7 +164,11 @@ body::before {
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  padding-top: 3vh;
+  padding-top: calc(env(safe-area-inset-top) + 3vh);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #portal-layer.active {
@@ -172,7 +176,7 @@ body::before {
 }
 
 #portal-layer.keyboard-visible {
-  padding-top: 3vh;
+  padding-top: calc(env(safe-area-inset-top) + 3vh);
 }
 
 .portal-nav {
