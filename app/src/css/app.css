@@ -146,7 +146,7 @@
 
         #mobileNavBar {
             display: none;
-            height: 7vh;
+            height: 14vh;
             padding: 5px 15px 10px;
             border-bottom: 0.5px solid rgba(0,0,0,0.12);
             background: rgba(248,248,250,0.86);

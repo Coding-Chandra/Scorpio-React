@@ -73,7 +73,7 @@ body::before {
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 14vh 16px 0 16px;
   height: 100vh;
   overflow-y: scroll;
   scrollbar-width: none;
