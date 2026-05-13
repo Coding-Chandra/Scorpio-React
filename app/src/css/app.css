@@ -314,7 +314,7 @@
         }
 
         .sidebar-actions {
-            padding: 3px 12px 10px;
+            padding: 3px 12px calc(2vh + 10px);
             border-top: 1px solid rgba(255,255,255,0.4);
             border-top-color: rgba(0,0,0,0.06);
             display: flex;
@@ -719,7 +719,7 @@
             position: absolute;
             left: 0;
             right: 0;
-            bottom: 0;
+            bottom: 2vh;
             padding: 8px 12px;
             display: none;
             justify-content: space-between;

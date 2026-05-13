@@ -73,7 +73,7 @@ body::before {
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 7vh 16px 0 16px;
+  padding: 4vh 16px 0 16px;
   height: 100vh;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -164,7 +164,7 @@ body::before {
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  padding-top: 7vh;
+  padding-top: 3vh;
 }
 
 #portal-layer.active {
@@ -172,7 +172,7 @@ body::before {
 }
 
 #portal-layer.keyboard-visible {
-  padding-top: 14vh;
+  padding-top: 3vh;
 }
 
 .portal-nav {
