@@ -2672,8 +2672,16 @@ app.exportPDF = function () {
     const title = note.title || 'Note';
     const filename = Utils.sanitizeFilename(title) + '.pdf';
 
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        console.error('jsPDF is not loaded (window.jspdf missing)');
+        alert('PDF export is unavailable: the jsPDF library failed to load.');
+        this.closeDropdown('shareDropdown');
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
     const pageWidth  = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -2798,10 +2806,14 @@ app.exportPDF = function () {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    }
+        }
+        } catch (err) {
+            console.error('Export PDF failed', err);
+            alert('Export to PDF failed: ' + (err && err.message ? err.message : 'Unknown error'));
+        }
 
-    this.closeDropdown('shareDropdown');
-};
+        this.closeDropdown('shareDropdown');
+    };
 
 // ============================================================================
 // 11. SELECTION TOOLBAR & TEXT FORMATTING 

@@ -55,6 +55,7 @@
             --icon-stroke: 1.5px;
             --highlight-color: #fff3a0;
             --vh: 1vh;
+            --wallpaper-image: none;
         }
 
         [data-theme="dark"] {
@@ -82,12 +83,20 @@
             height: calc(var(--vh) * 100);
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
-            background: radial-gradient(circle at top left, #ffffff 0%, #e7ecff 30%, #f7f7fb 70%, #f0f0f5 100%);
-            padding-top: env(safe-area-inset-top); 
+            position: relative;
+            background-image: var(--wallpaper-image), radial-gradient(circle at top left, #ffffff 0%, #e7ecff 30%, #f7f7fb 70%, #f0f0f5 100%);
+            background-size: cover, cover;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
+            padding-top: env(safe-area-inset-top);
             padding-bottom: 0;
+            transition: background-image 0.3s ease;
         }
         [data-theme="dark"] body {
-            background:radial-gradient(circle at top left, #1a1a1f 0%, #050509 40%, #000000 100%);
+            background-image: var(--wallpaper-image), radial-gradient(circle at top left, #1a1a1f 0%, #050509 40%, #000000 100%);
+            background-size: cover, cover;
+            background-position: center, center;
+            background-repeat: no-repeat, no-repeat;
         }
 
         #app {
@@ -314,7 +323,7 @@
         }
 
         .sidebar-actions {
-            padding: 3px 12px calc(2vh + 10px);
+            padding: 3px 12px calc(3vh + 10px);
             border-top: 1px solid rgba(255,255,255,0.4);
             border-top-color: rgba(0,0,0,0.06);
             display: flex;
@@ -719,7 +728,7 @@
             position: absolute;
             left: 0;
             right: 0;
-            bottom: 2vh;
+            bottom: 3vh;
             padding: 8px 12px;
             display: none;
             justify-content: space-between;
@@ -1824,7 +1833,7 @@ html[data-ui="ios"][data-theme="dark"] .skeleton-folder-item {
 /* MD3E Theme Skeletons */
 html[data-ui="md3e"] .skeleton-folder-item {
     border-radius: 16px;
-    background: rgba(103, 80, 164, 0.08);
+    background: var(--md-surface-0);
     position: relative;
 }
 
@@ -1833,10 +1842,7 @@ html[data-ui="md3e"] .skeleton-folder-item::before {
     position: absolute;
     inset: 0;
     border-radius: 16px;
-    background: linear-gradient(135deg,
-        rgba(103, 80, 164, 0.1) 0%,
-        rgba(103, 80, 164, 0.05) 50%,
-        rgba(103, 80, 164, 0.1) 100%);
+    background: rgbmix(var(--md-surface-0) 40%);
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -1846,14 +1852,11 @@ html[data-ui="md3e"] .skeleton-folder-item:hover::before {
 }
 
 html[data-ui="md3e"][data-theme="dark"] .skeleton-folder-item {
-    background: rgba(208, 188, 255, 0.08);
+    background: var(--md-surface-0);
 }
 
 html[data-ui="md3e"][data-theme="dark"] .skeleton-folder-item::before {
-    background: linear-gradient(135deg,
-        rgba(208, 188, 255, 0.15) 0%,
-        rgba(208, 188, 255, 0.08) 50%,
-        rgba(208, 188, 255, 0.15) 100%);
+    background: rgbmix(var(--md-surface-0) 40%);
 }
 
 /* Nothing OS Theme Skeletons */
@@ -1921,7 +1924,7 @@ html[data-ui="ios"][data-theme="dark"] .skeleton-note-item {
 
 html[data-ui="md3e"] .skeleton-note-item {
     border-radius: 16px;
-    background: rgba(103, 80, 164, 0.08);
+    background: rgbmix(var(--md-surface-0) 20%);
     position: relative;
 }
 
@@ -1930,10 +1933,7 @@ html[data-ui="md3e"] .skeleton-note-item::before {
     position: absolute;
     inset: 0;
     border-radius: 16px;
-    background: linear-gradient(135deg,
-        rgba(103, 80, 164, 0.1) 0%,
-        rgba(103, 80, 164, 0.05) 50%,
-        rgba(103, 80, 164, 0.1) 100%);
+    background: rgbmix(var(--md-surface-0) 40%);
     opacity: 0;
     transition: opacity 0.2s ease;
 }
@@ -1943,14 +1943,11 @@ html[data-ui="md3e"] .skeleton-note-item:hover::before {
 }
 
 html[data-ui="md3e"][data-theme="dark"] .skeleton-note-item {
-    background: rgba(208, 188, 255, 0.08);
+    background: var(--md-surface-0);
 }
 
 html[data-ui="md3e"][data-theme="dark"] .skeleton-note-item::before {
-    background: linear-gradient(135deg,
-        rgba(208, 188, 255, 0.15) 0%,
-        rgba(208, 188, 255, 0.08) 50%,
-        rgba(208, 188, 255, 0.15) 100%);
+    background: rgbmix(var(--md-surface-0) 20%);
 }
 
 html[data-ui="nothing"] .skeleton-note-item {
@@ -1992,7 +1989,7 @@ html[data-ui="nothing"][data-theme="dark"] .skeleton-note-item {
 /* Shimmer Effect Overlay */
 .skeleton-shimmer {
     position: absolute;
-    top: 0;
+    top: 10vh;
     left: 0;
     right: 0;
     bottom: 0;

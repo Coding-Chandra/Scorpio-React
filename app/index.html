@@ -4,7 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, interactive-widget=resizes-content">
   <title>Notoz</title>
-  <script>(function () { const root = document.documentElement; const ui = localStorage.getItem("ui-theme") || "ios"; root.setAttribute("data-ui", ui); const mode = localStorage.getItem("notesApp_theme"); if (mode) { root.setAttribute("data-theme", mode); } if (ui === "md3e") { const hex = localStorage.getItem("md3e-seed"); if (hex) { const v = hex.replace("#", ""); root.style.setProperty("--md-seed", `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`); } } })();</script>
+  <!--<script>
+    (function () {
+      const root = document.documentElement;
+      const ui = localStorage.getItem("ui-theme") || "ios";
+      root.setAttribute("data-ui", ui);
+      const mode = localStorage.getItem("notesApp_theme");
+      if (mode) {
+        root.setAttribute("data-theme", mode);
+      }
+      if (ui === "md3e") {
+        const hex = localStorage.getItem("md3e-seed");
+        if (hex) {
+          const v = hex.replace("#", "");
+          root.style.setProperty("--md-seed", `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`);
+        }
+      }
+
+      const wallpaper = localStorage.getItem('notesApp_wallpaper') || 'w1';
+      const wallpaperMap = {
+        'w1': "url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777916043/photo-gallery/nishantc205_gmail_com/the-electric-vein-1777916038428.jpg')",
+        'w2': "url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777554449/photo-gallery/nishantc205_gmail_com/the-golden-ascent-1777554445493.jpg')",
+        'w3': "url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777549757/photo-gallery/nishantc205_gmail_com/transient-flight-1777549752102.jpg')",
+        'w4': "url('./src/assets/wallpapers/wallpaper-ios-md3e-4.jpg')",
+        'n1': "url('./src/assets/wallpapers/wallpaper-nothing-os-1.jpg')",
+        'n2': "url('./src/assets/wallpapers/wallpaper-nothing-os-2.jpg')",
+        'n3': "url('./src/assets/wallpapers/wallpaper-nothing-os-3.jpg')",
+        'n4': "url('./src/assets/wallpapers/wallpaper-nothing-os-4.jpg')"
+      };
+      const wallpaperValue = wallpaperMap[wallpaper] || (wallpaper.startsWith('http://') || wallpaper.startsWith('https://') ? `url('${wallpaper}')` : 'none');
+      root.style.setProperty('--wallpaper-image', wallpaperValue);
+    })();
+  </script> -->
   <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
   <link rel="apple-touch-icon" href="./src/assets/icons/logo.png">
   <link rel="stylesheet" href="./src/css/animations.css">
@@ -14,6 +45,7 @@
   <link rel="stylesheet" href="./src/css/nthng.css" loading="lazy">
   <link rel="manifest" href="../manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     (function () {
       function setVh() {
@@ -355,7 +387,6 @@
   <script src="./src/js/offline-sync.js"></script>
   <script src="./src/js/app.js"></script>
   <script src="./src/js/md3e-enhance.js" defer loading="lazy"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     window.addEventListener("message", (e) => {
       if (!e.data || e.data.type !== "SET_MD3E_COLOR") return;

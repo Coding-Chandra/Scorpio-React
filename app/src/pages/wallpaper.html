@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallpaper</title>
+<link rel="icon" type="image/png" href="../assets/icons/logo.png">
+<link rel="apple-touch-icon" href="../assets/icons/logo.png">
+<style>
+@font-face {
+  font-family: 'SF Pro Rounded';
+  src: url('../assets/fonts/SFR.ttf') format('truetype');
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  color: var(--text-main, #fff);
+  background: linear-gradient(180deg, rgba(28,28,30,0.95) 0%, rgba(18,18,20,0.98) 100%);
+  padding: 24px;
+}
+
+.container {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 20px 0;
+  font-size: 28px;
+}
+
+p.subtitle {
+  margin: 0 0 12px 0;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.6;
+}
+
+.theme-note {
+  margin: 0 0 24px 0;
+  color: rgba(255,255,255,0.86);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-note span {
+  font-weight: 600;
+}
+
+.category.active {
+  border: 1px solid rgba(10,132,255,0.35);
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+}
+
+.category.inactive {
+  opacity: 0.65;
+}
+
+.category.inactive .item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.card {
+  display: grid;
+  gap: 30px;
+}
+
+.category {
+  display: grid;
+  gap: 18px;
+}
+
+.category-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.category-header p {
+  margin: 4px 0 0 0;
+  color: rgba(255,255,255,0.72);
+  font-size: 14px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.item:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,0.10);
+}
+
+.item.selected {
+  border-color: var(--accent, #0A84FF);
+  background: rgba(10,132,255,0.14);
+}
+
+.item .details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row .label {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.row .description {
+  font-size: 13px;
+  color: rgba(255,255,255,0.72);
+}
+
+.row .preview {
+  width: 84px;
+  height: 64px;
+  border-radius: 14px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.72);
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Wallpaper</h1>
+  <p class="subtitle">Choose one wallpaper set. iOS and MD3E share the same wallpaper style, while Nothing OS uses its own wallpaper.</p>
+  <div class="theme-note"><span>Current UI Theme:</span><span id="current-ui-label">Loading...</span></div>
+  <div class="card">
+    <section class="category" id="category-ios">
+      <div class="category-header">
+        <h2>iOS / MD3E Wallpapers</h2>
+        <p>Choose any wallpaper from the iOS / Material You collection.</p>
+      </div>
+      <div class="grid">
+        <div id="wallpaper-w1" class="item" onclick="setWallpaper('w1')">
+          <div class="preview" style="background-image: url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777916043/photo-gallery/nishantc205_gmail_com/the-electric-vein-1777916038428.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 1</span>
+            <span class="description">Soft light blur with blue accents.</span>
+          </div>
+        </div>
+        <div id="wallpaper-w2" class="item" onclick="setWallpaper('w2')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-ios-md3e-2.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 2</span>
+            <span class="description">Warm gradient glow with subtle depth.</span>
+          </div>
+        </div>
+        <div id="wallpaper-w3" class="item" onclick="setWallpaper('w3')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-ios-md3e-3.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 3</span>
+            <span class="description">Cool teal waves with crisp highlights.</span>
+          </div>
+        </div>
+        <div id="wallpaper-w4" class="item" onclick="setWallpaper('w4')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-ios-md3e-4.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 4</span>
+            <span class="description">Minimal soft texture with bright tones.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="category" id="category-nothing">
+      <div class="category-header">
+        <h2>Nothing OS Wallpapers</h2>
+        <p>Choose any wallpaper crafted for the Nothing OS style.</p>
+      </div>
+      <div class="grid">
+        <div id="wallpaper-n1" class="item" onclick="setWallpaper('n1')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-1.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 1</span>
+            <span class="description">High contrast black with neon highlights.</span>
+          </div>
+        </div>
+        <div id="wallpaper-n2" class="item" onclick="setWallpaper('n2')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-2.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 2</span>
+            <span class="description">Clean white texture with subtle grain.</span>
+          </div>
+        </div>
+        <div id="wallpaper-n3" class="item" onclick="setWallpaper('n3')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-3.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 3</span>
+            <span class="description">Monochrome grid with glass-like depth.</span>
+          </div>
+        </div>
+        <div id="wallpaper-n4" class="item" onclick="setWallpaper('n4')">
+          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-4.jpg');"></div>
+          <div class="details">
+            <span class="label">Wallpaper 4</span>
+            <span class="description">Soft grey gradient with tactile shadows.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <p class="note">Wallpaper selection is saved immediately. The main app will use it on next load and when the app refreshes.</p>
+</div>
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+  root.setAttribute('data-ui', ui);
+  const mode = localStorage.getItem('notesApp_theme');
+  if (mode) {
+    root.setAttribute('data-theme', mode);
+  }
+  if (ui === 'md3e') {
+    const hex = localStorage.getItem('md3e-seed');
+    if (hex) {
+      const v = hex.replace('#', '');
+      root.style.setProperty('--md-seed', `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`);
+    }
+  }
+})();
+
+const WALLPAPER_KEY = 'notesApp_wallpaper';
+const wallpaperRows = {
+  'w1': document.getElementById('wallpaper-w1'),
+  'w2': document.getElementById('wallpaper-w2'),
+  'w3': document.getElementById('wallpaper-w3'),
+  'w4': document.getElementById('wallpaper-w4'),
+  'n1': document.getElementById('wallpaper-n1'),
+  'n2': document.getElementById('wallpaper-n2'),
+  'n3': document.getElementById('wallpaper-n3'),
+  'n4': document.getElementById('wallpaper-n4')
+};
+const categoryIos = document.getElementById('category-ios');
+const categoryNothing = document.getElementById('category-nothing');
+
+function setThemeCategoryClasses(ui) {
+  const currentUI = ui === 'nothing' ? 'nothing' : 'ios-md3e';
+  const currentLabel = currentUI === 'nothing' ? 'Nothing OS' : 'iOS / MD3E';
+  document.getElementById('current-ui-label').textContent = currentLabel;
+
+  if (currentUI === 'nothing') {
+    categoryNothing.classList.add('active');
+    categoryNothing.classList.remove('inactive');
+    categoryIos.classList.add('inactive');
+    categoryIos.classList.remove('active');
+  } else {
+    categoryIos.classList.add('active');
+    categoryIos.classList.remove('inactive');
+    categoryNothing.classList.add('inactive');
+    categoryNothing.classList.remove('active');
+  }
+}
+
+function setWallpaper(value) {
+  if (!wallpaperRows[value]) return;
+  localStorage.setItem(WALLPAPER_KEY, value);
+  updateSelection(value);
+  window.parent.postMessage({ type: 'WALLPAPER_CHANGED', wallpaper: value }, '*');
+}
+
+function updateSelection(selectedValue) {
+  Object.entries(wallpaperRows).forEach(([key, row]) => {
+    if (!row) return;
+    row.classList.toggle('selected', key === selectedValue);
+  });
+}
+
+const current = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+const currentUI = localStorage.getItem('ui-theme') || 'ios';
+setThemeCategoryClasses(currentUI);
+updateSelection(current);
+</script>
+</body>
+</html>

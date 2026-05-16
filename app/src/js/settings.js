@@ -312,6 +312,7 @@ async function load() {
     }
     
     applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
+    applyWallpaperUI();
 }
 
 load();
@@ -343,6 +344,22 @@ function applyMD3EAccent(hex) {
     const b = parseInt(v.slice(4, 6), 16);
     document.documentElement.style.setProperty("--md-seed", `${r},${g},${b}`);
     localStorage.setItem("md3e-seed", hex);
+}
+
+function applyWallpaperUI() {
+    const wallpaperValue = localStorage.getItem('notesApp_wallpaper') || 'w1';
+    let wallpaperLabel;
+    if (wallpaperValue.startsWith('http://') || wallpaperValue.startsWith('https://')) {
+        wallpaperLabel = 'Custom wallpaper';
+    } else if (wallpaperValue.startsWith('n')) {
+        wallpaperLabel = `Nothing OS (${wallpaperValue.slice(1)})`;
+    } else {
+        wallpaperLabel = `iOS / MD3E (${wallpaperValue.slice(1)})`;
+    }
+    const wallpaperDisplay = document.getElementById('currentWallpaperDisplay');
+    if (wallpaperDisplay) {
+        wallpaperDisplay.textContent = wallpaperLabel;
+    }
 }
 
 (function restoreThemeState() {
@@ -380,6 +397,17 @@ window.addEventListener("message", (event) => {
             if (frame3?.contentWindow) {
                 frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notesApp_theme") }, "*");
             }
+            break;
+
+        case "WALLPAPER_CHANGED":
+            applyWallpaperUI();
+            showNotification(
+                'Wallpaper Saved',
+                event.data.wallpaper === 'nothing'
+                    ? 'Nothing OS wallpaper selected.'
+                    : 'iOS / MD3E wallpaper selected.',
+                'success'
+            );
             break;
     }
 });

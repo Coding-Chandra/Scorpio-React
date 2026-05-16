@@ -73,7 +73,7 @@ body::before {
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 3vh 16px 0 16px;
+  padding: 3.5vh;
   height: 100vh;
   overflow-y: scroll;
   scrollbar-width: none;
@@ -184,8 +184,6 @@ body::before {
   display: flex;
   align-items: center;
   padding: 0 16px;
-  background: var(--glass-bg);
-  backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 0.5px solid var(--sep);
 }
 
@@ -795,8 +793,4 @@ html[data-ui="md3e"][data-theme="light"] .row.clickable:active {
 
 html[data-ui="md3e"][data-theme="dark"] .row.clickable:active {
   background-color: var(--clickable);
-}
-
-html[data-ui="md3e"] .portal-nav {
-  background-color: var(--bg-secondary);
 }
