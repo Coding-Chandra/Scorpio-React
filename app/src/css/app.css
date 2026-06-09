@@ -847,7 +847,7 @@
             font-weight: 700;
             margin-bottom: 7px;
             padding: 10px 0;
-            background: var(--editor-bg-glass);
+            background: transparent;
             position: relative;
             z-index: 2;
             color: var(--text-primary);

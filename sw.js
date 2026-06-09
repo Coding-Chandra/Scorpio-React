@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notoj-app-cache-v1.8.60';
+const CACHE_NAME = 'notoj-app-cache-v1.8.70';
 const urlsToCache = [
   '/',
   '/index.html',

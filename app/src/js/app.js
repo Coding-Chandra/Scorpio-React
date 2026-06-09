@@ -2709,9 +2709,9 @@ app.exportPDF = async function () {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
         const margin = 60;
-        const footerText = 'Created on NOTOZ';
-        const footerHeight = 20;
-        const footerY = pageHeight - margin + 10;
+        const footerText = 'Created on <a href="https://notoz.netlify.app/">NOTOZ</a>';
+        const footerHeight = 15;
+        const footerY = pageHeight - 12;
         const maxWidth = pageWidth - margin * 2;
         const bottomEdge = pageHeight - margin - footerHeight;
         let y = margin;
@@ -2726,34 +2726,34 @@ app.exportPDF = async function () {
             return window.btoa(binary);
         };
 
-        const loadCustomPdfFont = async (doc, fontUrl, filename, name, style = 'normal') => {
-            try {
-                const response = await fetch(fontUrl);
-                if (!response.ok) return false;
-                const arrayBuffer = await response.arrayBuffer();
-                const base64 = arrayBufferToBase64(arrayBuffer);
-                doc.addFileToVFS(filename, base64);
-                doc.addFont(filename, name, style);
-                return true;
-            } catch (err) {
-                console.warn('[PDF Export] Custom font load failed', err);
-                return false;
-            }
-        };
-
-        const footerFontName = 'Ndot 57 Aligned';
+        const footerFontName = 'NDot57';
         const footerFontFile = 'Ndot-57-Aligned.otf';
         const footerFontUrl = new URL('./src/assets/fonts/Ndot-57-Aligned.otf', window.location.href).href;
-        const footerFontLoaded = await loadCustomPdfFont(doc, footerFontUrl, footerFontFile, footerFontName);
+        const notozLink = 'https://notoz.netlify.app';
 
         const renderFooter = () => {
-            if (footerFontLoaded) {
-                doc.setFont(footerFontName, 'normal');
-            } else {
-                doc.setFont('helvetica', 'normal');
-            }
-            doc.setFontSize(10);
-            doc.text(footerText, pageWidth / 2, footerY, { align: 'center' });
+            const fullText = 'Created on NOTOZ';
+            
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            
+            // Render full footer text centered
+            const textWidth = doc.getTextWidth(fullText);
+            const textX = (pageWidth - textWidth) / 2;
+            
+            doc.text(fullText, textX, footerY);
+            
+            // Add clickable link area around "NOTOZ" part
+            // Calculate position of "NOTOZ" within the full text
+            const prefixText = 'Created on ';
+            const prefixWidth = doc.getTextWidth(prefixText);
+            const notozWidth = doc.getTextWidth('NOTOZ');
+            const notozX = textX + prefixWidth;
+            
+            // Create clickable area for NOTOZ
+            const linkHeight = 2.5;
+            doc.link(notozX, footerY - linkHeight, notozWidth, linkHeight * 2, { url: notozLink });
         };
 
         const checkPage = (lineHeight) => {
