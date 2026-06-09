@@ -54,10 +54,11 @@
       rgb(var(--md-seed)) 1%
     );
 
-  --editor-bg-glass: var(--md-surface-0);
-  --list-bg-glass: var(--md-surface-1);
-  --sidebar-bg-glass: var(--md-surface-2);
+  --editor-bg-glass: rgba(255, 255, 255, 0.80);
+  --list-bg-glass: rgba(255, 255, 255, 0.76);
+  --sidebar-bg-glass: rgba(255, 255, 255, 0.72);
 
+  --md-surface-glass: rgba(255, 255, 255, 0.72);
 
   /* State layers */
   --active-item-bg: rgba(var(--md-seed), 0.16);
@@ -107,11 +108,10 @@
       rgb(var(--md-seed)) 4%
     );
 
-  --editor-bg-glass: var(--md-surface-0);
-  --list-bg-glass: var(--md-surface-1);
-  --sidebar-bg-glass: var(--md-surface-2);
-
-
+  --editor-bg-glass: rgba(22, 22, 24, 0.84);
+  --list-bg-glass: rgba(20, 20, 22, 0.78);
+  --sidebar-bg-glass: rgba(18, 18, 20, 0.72);
+  --md-surface-glass: rgba(18, 18, 20, 0.72);
 
   --active-item-bg: rgba(var(--md-seed),0.22);
   --active-item-bg-sidebar: rgba(var(--md-seed),0.16);

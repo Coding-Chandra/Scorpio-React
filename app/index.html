@@ -13,27 +13,70 @@
       if (mode) {
         root.setAttribute("data-theme", mode);
       }
-      if (ui === "md3e") {
-        const hex = localStorage.getItem("md3e-seed");
-        if (hex) {
-          const v = hex.replace("#", "");
-          root.style.setProperty("--md-seed", `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`);
-        }
-      }
-
       const wallpaper = localStorage.getItem('notesApp_wallpaper') || 'w1';
+      const wallpaperDisabled = localStorage.getItem('notesApp_wallpaper_disabled') === 'true';
       const wallpaperMap = {
-        'w1': "url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777916043/photo-gallery/nishantc205_gmail_com/the-electric-vein-1777916038428.jpg')",
-        'w2': "url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777554449/photo-gallery/nishantc205_gmail_com/the-golden-ascent-1777554445493.jpg')",
-        'w3': "url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777549757/photo-gallery/nishantc205_gmail_com/transient-flight-1777549752102.jpg')",
-        'w4': "url('./src/assets/wallpapers/wallpaper-ios-md3e-4.jpg')",
-        'n1': "url('./src/assets/wallpapers/wallpaper-nothing-os-1.jpg')",
-        'n2': "url('./src/assets/wallpapers/wallpaper-nothing-os-2.jpg')",
-        'n3': "url('./src/assets/wallpapers/wallpaper-nothing-os-3.jpg')",
-        'n4': "url('./src/assets/wallpapers/wallpaper-nothing-os-4.jpg')"
+        'w1': '../../src/assets/wallpaper/imd/imd1.jpg',
+        'w2': '../../src/assets/wallpaper/imd/imd2.jpg',
+        'w3': '../../src/assets/wallpaper/imd/imd3.jpg',
+        'w4': '../../src/assets/wallpaper/imd/imd4.jpg',
+        'n1': '../../src/assets/wallpaper/n/nos1.jpg',
+        'n2': '../../src/assets/wallpaper/n/nos2.jpg',
+        'n3': '../../src/assets/wallpaper/n/nos3.jpg',
+        'n4': '../../src/assets/wallpaper/n/nos4.jpg'
       };
-      const wallpaperValue = wallpaperMap[wallpaper] || (wallpaper.startsWith('http://') || wallpaper.startsWith('https://') ? `url('${wallpaper}')` : 'none');
+      const wallpaperValue = wallpaperDisabled
+        ? 'none'
+        : (wallpaperMap[wallpaper]
+            ? `url('${wallpaperMap[wallpaper]}')`
+            : (wallpaper.startsWith('http://') || wallpaper.startsWith('https://')
+                ? `url('${wallpaper}')`
+                : 'none'));
       root.style.setProperty('--wallpaper-image', wallpaperValue);
+      root.style.setProperty('--wallpaper-active', wallpaperValue !== 'none' ? '1' : '0');
+
+      const setMdSeed = (hex) => {
+        const v = hex.replace('#', '');
+        if (v.length === 6) {
+          root.style.setProperty('--md-seed', `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`);
+        }
+      };
+
+      const storedSeed = localStorage.getItem('md3e-seed') || '#6750A4';
+      const wallpaperSource = wallpaperMap[wallpaper] || (wallpaper.startsWith('http://') || wallpaper.startsWith('https://') ? wallpaper : null);
+      const shouldUseWallpaperSeed = ui === 'md3e' && wallpaperValue !== 'none' && !wallpaperDisabled && wallpaperSource;
+
+      setMdSeed(storedSeed);
+
+      if (shouldUseWallpaperSeed) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = wallpaperSource;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 16;
+          canvas.height = 16;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          let r = 0, g = 0, b = 0, count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count += 1;
+          }
+          if (count) {
+            r = Math.round(r / count);
+            g = Math.round(g / count);
+            b = Math.round(b / count);
+            root.style.setProperty('--md-seed', `${r},${g},${b}`);
+          }
+        };
+        img.onerror = () => {
+          setMdSeed(storedSeed);
+        };
+      }
     })();
   </script>
   <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
@@ -60,9 +103,6 @@
 </head>
 
 <body>
-<script>if ('serviceWorker' in navigator) {navigator.serviceWorker.getRegistrations().then(registrations => {registrations.forEach(reg => {console.log('[Index] Clearing old SW');reg.unregister();});});}
-</script>
-
   <!-- Loading States -->
   <div id="loadingContainer" class="loading-container">
     <div class="loading-progress" id="loadingProgress"></div>
@@ -383,22 +423,126 @@
   </div>
 
 <!-- Your other scripts -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      const swUrl = new URL('../sw.js', location.href).href;
+
+      navigator.serviceWorker.register(swUrl)
+        .then(reg => {
+          console.log('[SW] Registered at:', swUrl, 'scope:', reg.scope);
+        })
+        .catch(err => {
+          console.error('[SW] Registration failed:', err);
+        });
+    }
+  </script>
   <script src="./src/js/animation-utils.js"></script>
   <script src="./src/js/offline-sync.js"></script>
   <script src="./src/js/app.js"></script>
   <script src="./src/js/md3e-enhance.js" defer loading="lazy"></script>
   <script>
     window.addEventListener("message", (e) => {
-      if (!e.data || e.data.type !== "SET_MD3E_COLOR") return;
+      if (!e.data || !e.data.type) return;
 
-      const hex = e.data.color;
-      if (!hex) return;
+      const wallpaperMap = {
+        'w1': '../../src/assets/wallpaper/imd/imd1.jpg',
+        'w2': '../../src/assets/wallpaper/imd/imd2.jpg',
+        'w3': '../../src/assets/wallpaper/imd/imd3.jpg',
+        'w4': '../../src/assets/wallpaper/imd/imd4.jpg',
+        'n1': '../../src/assets/wallpaper/n/nos1.jpg',
+        'n2': '../../src/assets/wallpaper/n/nos2.jpg',
+        'n3': '../../src/assets/wallpaper/n/nos3.jpg',
+        'n4': '../../src/assets/wallpaper/n/nos4.jpg'
+      };
 
-      const v = hex.replace("#", "");
-      document.documentElement.style.setProperty(
-        "--md-seed",
-        `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`
-      );
+      const setMdSeed = (hex) => {
+        if (!hex) return;
+        const v = hex.replace('#', '');
+        if (v.length !== 6) return;
+        document.documentElement.style.setProperty(
+          '--md-seed',
+          `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`
+        );
+      };
+
+      const wallpaperToUrl = (id) => {
+        if (!id) return null;
+        if (wallpaperMap[id]) return wallpaperMap[id];
+        if (id.startsWith('http://') || id.startsWith('https://')) return id;
+        return null;
+      };
+
+      const deriveSeedFromImage = (src, fallbackSeed) => {
+        if (!src) {
+          setMdSeed(fallbackSeed);
+          return;
+        }
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = src;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 16;
+          canvas.height = 16;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+          let r = 0, g = 0, b = 0, count = 0;
+          for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            count += 1;
+          }
+          if (count) {
+            r = Math.round(r / count);
+            g = Math.round(g / count);
+            b = Math.round(b / count);
+            document.documentElement.style.setProperty('--md-seed', `${r},${g},${b}`);
+          } else {
+            setMdSeed(fallbackSeed);
+          }
+        };
+        img.onerror = () => setMdSeed(fallbackSeed);
+      };
+
+      switch (e.data.type) {
+        case "SET_MD3E_COLOR": {
+          const hex = e.data.color;
+          if (!hex) return;
+          localStorage.setItem('md3e-seed', hex);
+
+          const wallpaperDisabled = localStorage.getItem('notesApp_wallpaper_disabled') === 'true';
+          const wallpaperId = localStorage.getItem('notesApp_wallpaper') || 'w1';
+          const wallpaperUrl = wallpaperToUrl(wallpaperId);
+          const useWallpaper = !wallpaperDisabled && wallpaperUrl && document.documentElement.getAttribute('data-ui') === 'md3e';
+
+          if (!useWallpaper) {
+            setMdSeed(hex);
+          }
+          break;
+        }
+        case "WALLPAPER_CHANGED": {
+          const wallpaper = e.data.wallpaper || localStorage.getItem('notesApp_wallpaper') || 'w1';
+          const wallpaperDisabled = e.data.disabled === true || localStorage.getItem('notesApp_wallpaper_disabled') === 'true';
+          const wallpaperValue = wallpaperDisabled
+            ? 'none'
+            : (wallpaperMap[wallpaper] ? `url('${wallpaperMap[wallpaper]}')` : (wallpaper.startsWith('http://') || wallpaper.startsWith('https://') ? `url('${wallpaper}')` : 'none'));
+          document.documentElement.style.setProperty('--wallpaper-image', wallpaperValue);
+          document.documentElement.style.setProperty('--wallpaper-active', wallpaperValue !== 'none' ? '1' : '0');
+
+          if (document.documentElement.getAttribute('data-ui') === 'md3e') {
+            const storedSeed = localStorage.getItem('md3e-seed') || '#6750A4';
+            const wallpaperUrl = wallpaperToUrl(wallpaper);
+            if (!wallpaperDisabled && wallpaperUrl) {
+              deriveSeedFromImage(wallpaperUrl, storedSeed);
+            } else {
+              setMdSeed(storedSeed);
+            }
+          }
+          break;
+        }
+      }
     });
   </script>
 

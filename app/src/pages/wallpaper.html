@@ -2,305 +2,856 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>Wallpaper</title>
 <link rel="icon" type="image/png" href="../assets/icons/logo.png">
 <link rel="apple-touch-icon" href="../assets/icons/logo.png">
-<style>
-@font-face {
-  font-family: 'SF Pro Rounded';
-  src: url('../assets/fonts/SFR.ttf') format('truetype');
-  font-display: swap;
-}
+<!-- Must run before CSS so data-ui / data-theme are set before any selector matches -->
+<script>(function(){const r=document.documentElement;const ui=localStorage.getItem('ui-theme')||'ios';r.setAttribute('data-ui',ui);const stored=localStorage.getItem('notesApp_theme');const mode=(stored==='system'||!stored)?((window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):stored;r.setAttribute('data-theme',mode);if(ui==='md3e'){const hex=localStorage.getItem('md3e-seed');if(hex){const v=hex.replace('#','');r.style.setProperty('--md-seed',`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
 
-body {
+<!-- Shared design tokens -->
+<link rel="stylesheet" href="../css/settings.css">
+<!-- Theme-specific tokens -->
+<link rel="stylesheet" href="../css/nthing.css">
+<link rel="stylesheet" href="../css/md3e-app.css">
+
+<style>
+/* =====================================================
+   BASE RESET — wallpaper page overrides body constraints
+   set by settings.css (overflow:hidden, height:100vh)
+===================================================== */
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
   margin: 0;
   min-height: 100vh;
-  font-family: 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-  color: var(--text-main, #fff);
-  background: linear-gradient(180deg, rgba(28,28,30,0.95) 0%, rgba(18,18,20,0.98) 100%);
-  padding: 24px;
+  touch-action: pan-y;
+  overflow: auto;
+  height: auto;
 }
+
+/* ── Per-theme body background ─────────────────────── */
+
+/*(default) */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+/* MD3E — tonal surface from md3e-app.css */
+html[data-ui="md3e"] body {
+  background-color: var(--md-surface-1) !important;
+  color: var(--text-primary);
+  font-family: "Google Sans", sans-serif;
+}
+
+/* Nothing OS — uses its own --bg-main */
+html[data-ui="nothing"] body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-family, 'NType 82 Regular', sans-serif);
+  letter-spacing: var(--letter-tight, 0.02em);
+}
+
+/* ── Container ─────────────────────────────────────── */
 
 .container {
-  max-width: 620px;
+  width: 100%;
+  max-width: 600px;
   margin: 0 auto;
+  padding: 28px 20px 52px;
 }
+
+/* ── Page header ───────────────────────────────────── */
+
+.page-head { display: grid; gap: 12px; margin-bottom: 4px; }
 
 h1 {
-  margin: 0 0 20px 0;
+  margin: 0;
   font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-main);
 }
 
-p.subtitle {
-  margin: 0 0 12px 0;
-  color: rgba(255,255,255,0.72);
+html[data-ui="nothing"] h1 {
+  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-size: 24px;
+  letter-spacing: var(--letter-wide, 0.06em);
+  font-weight: 400;
+}
+
+html[data-ui="md3e"] h1 {
+  font-family: "Google Sans", sans-serif;
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: 0;
+  color: var(--text-primary, var(--text-main));
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
   line-height: 1.6;
+  max-width: 52ch;
 }
 
-.theme-note {
-  margin: 0 0 24px 0;
-  color: rgba(255,255,255,0.86);
+html[data-ui="nothing"] .subtitle {
+  font-family: var(--font-family, 'NType 82 Regular');
+  color: var(--text-dim);
+}
+
+html[data-ui="md3e"] .subtitle {
+  font-family: "Google Sans", sans-serif;
+  color: var(--text-secondary, var(--text-dim));
   font-size: 14px;
+}
+
+/* ── State row ─────────────────────────────────────── */
+
+.state-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+/* ── Badge ─────────────────────────────────────────── */
+
+.badge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--sep);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.badge strong { color: var(--text-main); font-weight: 600; }
+
+/* Nothing badge */
+html[data-ui="nothing"] .badge {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);       /* 6px — sharp, mechanical */
+  font-family: var(--font-family, 'NType 82 Regular');
+  font-size: 12px;
+}
+
+html[data-ui="nothing"] .badge strong {
+  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  color: var(--text-main);
+}
+
+/* MD3E badge */
+html[data-ui="md3e"] .badge {
+  background: var(--md-surface-0);
+  border: 0.5px solid var(--border-color);
+  border-radius: 999px;
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary, var(--text-dim));
+}
+
+html[data-ui="md3e"] .badge strong {
+  color: var(--text-primary, var(--text-main));
+}
+
+/* ── Toggle row (disable wallpaper) ────────────────── */
+
+.toggle-row {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.theme-note span {
-  font-weight: 600;
-}
-
-.category.active {
-  border: 1px solid rgba(10,132,255,0.35);
-  padding: 16px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.08);
-}
-
-.category.inactive {
-  opacity: 0.65;
-}
-
-.category.inactive .item:hover {
-  background: rgba(255,255,255,0.08);
-}
-
-.card {
-  display: grid;
-  gap: 30px;
-}
-
-.category {
-  display: grid;
-  gap: 18px;
-}
-
-.category-header h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.category-header p {
-  margin: 4px 0 0 0;
-  color: rgba(255,255,255,0.72);
-  font-size: 14px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-.item {
-  display: grid;
-  grid-template-columns: 84px 1fr;
-  gap: 14px;
-  align-items: center;
-  padding: 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06);
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--sep);
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.18s ease;
 }
 
-.item:hover {
-  transform: translateY(-1px);
-  background: rgba(255,255,255,0.10);
+.toggle-row:active { background: var(--bg-active); }
+
+.toggle-row-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
 }
 
-.item.selected {
-  border-color: var(--accent, #0A84FF);
-  background: rgba(10,132,255,0.14);
+/* Nothing toggle row — panel style */
+html[data-ui="nothing"] .toggle-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: background var(--motion-fast, 80ms) var(--motion-ease, ease);
 }
 
-.item .details {
+html[data-ui="nothing"] .toggle-row:active {
+  background: var(--bg-elevated);
+}
+
+html[data-ui="nothing"] .toggle-row-label {
+  font-family: var(--font-family, 'NType 82 Regular');
+  font-size: 12px;
+}
+
+/* Nothing pill — square thumb per nothing-theme.css §9 */
+html[data-ui="nothing"] .toggle-pill {
+  width: 36px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: transparent;
+}
+
+html[data-ui="nothing"] .toggle-pill .toggle-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-xs);
+  background: var(--text-dim);
+  box-shadow: none;
+  transform: translateX(0px);
+  transition:
+    transform var(--motion-fast, 80ms) var(--motion-ease, ease),
+    background-color var(--motion-fast, 80ms) var(--motion-ease, ease);
+}
+
+html[data-ui="nothing"] .toggle-pill.on {
+  border-color: var(--accent-color);
+  background: transparent;
+}
+
+html[data-ui="nothing"] .toggle-pill.on .toggle-thumb {
+  background: var(--accent-color);
+  transform: translateX(14px);
+}
+
+/* MD3E toggle row */
+html[data-ui="md3e"] .toggle-row {
+  background: var(--md-surface-0);
+  border: 0.5px solid var(--border-color);
+  border-radius: 999px;
+  transition: background var(--md-fast, 90ms) var(--md-ease, ease);
+}
+
+html[data-ui="md3e"] .toggle-row:active {
+  background: var(--active-item-bg);
+}
+
+html[data-ui="md3e"] .toggle-row-label {
+  font-family: "Google Sans", sans-serif;
+  color: var(--text-secondary, var(--text-dim));
+}
+
+html[data-ui="md3e"] .toggle-pill.on {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+/* ── Status note ───────────────────────────────────── */
+
+.note {
+  margin: 14px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.65;
+  min-height: 20px;
+}
+
+html[data-ui="nothing"] .note {
+  font-family: var(--font-family, 'NType 82 Regular');
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+html[data-ui="md3e"] .note {
+  font-family: "Google Sans", sans-serif;
+  color: var(--text-secondary, var(--text-dim));
+}
+
+/* ── Error banner ──────────────────────────────────── */
+
+.error-banner {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(255, 69, 58, 0.08);
+  border: 0.5px solid rgba(255, 69, 58, 0.28);
+  color: #FF453A;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.error-banner.visible {
   display: flex;
-  flex-direction: column;
+  animation: bannerIn 220ms ease-out both;
+}
+
+html[data-ui="nothing"] .error-banner {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(215, 25, 33, 0.4);
+  background: rgba(215, 25, 33, 0.07);
+  color: var(--accent-color);
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+html[data-ui="md3e"] .error-banner {
+  border-radius: 16px;
+  font-family: "Google Sans", sans-serif;
+}
+
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Carousel ──────────────────────────────────────── */
+
+.wallpaper-board {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 4px 2px 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
+}
+
+.wallpaper-board::-webkit-scrollbar { height: 0; }
+
+/* ── Cards — tall portrait rectangle ──────────────── */
+/*
+  Portrait aspect: ~75% width, 75vh+ height
+  This produces a noticeably tall rectangle on all phones.
+*/
+
+.wallpaper-card {
+  position: relative;
+  flex: 0 0 75%;
+  height: min(75vh, 600px);
+  border-radius: 22px;
+  overflow: hidden;
+  scroll-snap-align: center;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 260ms ease;
+  cursor: pointer;
+  border: 0.5px solid var(--sep);
+}
+
+.wallpaper-card:active { transform: scale(0.982); }
+
+/* Selected ring */
+.wallpaper-card.selected {
+  box-shadow:
+    0 0 0 2.5px var(--accent),
+    0 10px 32px rgba(0, 0, 0, 0.26);
+}
+
+/* ── Nothing OS card ───────────────────────────────── */
+/* Sharp corners (8px), red selection ring */
+
+html[data-ui="nothing"] .wallpaper-card {
+  border-radius: var(--radius-md);          /* 8px */
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+html[data-ui="nothing"] .wallpaper-card.selected {
+  box-shadow: 0 0 0 2px var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+html[data-ui="nothing"] .wallpaper-card:active {
+  transform: scale(0.988);
+  transition-duration: var(--motion-fast, 80ms);
+}
+
+/* ── MD3E card ─────────────────────────────────────── */
+/* Expressive large radius, no border, elevation */
+
+html[data-ui="md3e"] .wallpaper-card {
+  border-radius: 28px;
+  border: none;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.18),
+    0 6px 20px rgba(0,0,0,0.14);
+}
+
+html[data-ui="md3e"] .wallpaper-card.selected {
+  box-shadow:
+    0 0 0 2.5px var(--accent-color),
+    0 6px 20px rgba(0,0,0,0.2);
+}
+
+html[data-ui="md3e"] .wallpaper-card:active {
+  transform: scale(0.984);
+  transition-duration: var(--md-fast, 90ms);
+}
+
+/* ── Card frost overlay ────────────────────────────── */
+/* Always dark so text on any wallpaper is readable */
+
+.card-frost {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  background: rgba(0, 0, 0, 0.38);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  display: grid;
   gap: 4px;
 }
 
-.row .label {
-  font-size: 16px;
+/* Nothing frost — translucent panel, sharp corners */
+html[data-ui="nothing"] .card-frost {
+  border-radius: var(--radius-sm);          /* 6px */
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  left: 10px; right: 10px; bottom: 10px;
+  padding: 12px 14px;
+}
+
+html[data-ui="nothing"][data-theme="light"] .card-frost {
+  background: rgba(0, 0, 0, 0.24);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* MD3E frost — seed-tinted blur, large radius */
+html[data-ui="md3e"] .card-frost {
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 0.5px solid rgba(var(--md-seed, 44,126,255), 0.22);
+  backdrop-filter: blur(16px) saturate(200%);
+  -webkit-backdrop-filter: blur(16px) saturate(200%);
+}
+
+/* ── Card text ─────────────────────────────────────── */
+/* Always white — frost is always dark */
+
+.card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.card-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+/* Nothing — Ndot title, NType body */
+html[data-ui="nothing"] .card-title {
+  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-size: 1rem;
+  letter-spacing: var(--letter-wide, 0.06em);
+  font-weight: 400;
+}
+
+html[data-ui="nothing"] .card-description {
+  font-family: var(--font-family, 'NType 82 Regular', monospace);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* MD3E — Google Sans */
+html[data-ui="md3e"] .card-title {
+  font-family: "Google Sans", sans-serif;
   font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0;
 }
 
-.row .description {
-  font-size: 13px;
-  color: rgba(255,255,255,0.72);
+html[data-ui="md3e"] .card-description {
+  font-family: "Google Sans", sans-serif;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.82);
 }
 
-.row .preview {
-  width: 84px;
-  height: 64px;
-  border-radius: 14px;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid rgba(255,255,255,0.14);
+/* ── Card badge (top-left label) ───────────────────── */
+
+.card-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.4);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  letter-spacing: 0.02em;
 }
 
-.note {
-  margin-top: 20px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgba(255,255,255,0.72);
+html[data-ui="nothing"] .card-badge {
+  top: 10px; left: 10px;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);          /* 4px */
+  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-size: 0.68rem;
+  letter-spacing: var(--letter-wide, 0.06em);
+  font-weight: 400;
+  background: rgba(0, 0, 0, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
+html[data-ui="md3e"] .card-badge {
+  border-radius: 999px;
+  font-family: "Google Sans", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.32);
+  border: none;
+}
+
+/* ── Nothing — dot-matrix selected indicator ──────── */
+/* Red animated dot strip on left edge of selected card */
+
+html[data-ui="nothing"] .wallpaper-card.selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  background-image: radial-gradient(
+    var(--accent-color) var(--dot-size, 1.6px),
+    transparent var(--dot-size, 1.6px)
+  );
+  background-size: 4px var(--dot-gap, 6px);
+  animation: nothing-sync 1.6s linear infinite;
+  border-radius: 2px;
+}
+
+@keyframes nothing-sync {
+  0%   { opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* ── Shake animation ───────────────────────────────── */
+
+.wallpaper-board.shake {
+  animation: shake 380ms ease-in-out;
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-10px); }
+  30%  { transform: translateX(10px); }
+  45%  { transform: translateX(-7px); }
+  60%  { transform: translateX(7px); }
+  75%  { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Responsive ────────────────────────────────────── */
+
+@media (max-width: 400px) {
+  .wallpaper-card {
+    flex: 0 0 86%;
+    height: min(72vh, 560px);
+  }
+  .card-frost { left: 10px; right: 10px; bottom: 10px; padding: 10px 12px; }
+  h1 { font-size: 22px; }
+}
 </style>
 </head>
+
 <body>
 <div class="container">
-  <h1>Wallpaper</h1>
-  <p class="subtitle">Choose one wallpaper set. iOS and MD3E share the same wallpaper style, while Nothing OS uses its own wallpaper.</p>
-  <div class="theme-note"><span>Current UI Theme:</span><span id="current-ui-label">Loading...</span></div>
-  <div class="card">
-    <section class="category" id="category-ios">
-      <div class="category-header">
-        <h2>iOS / MD3E Wallpapers</h2>
-        <p>Choose any wallpaper from the iOS / Material You collection.</p>
-      </div>
-      <div class="grid">
-        <div id="wallpaper-w1" class="item" onclick="setWallpaper('w1')">
-          <div class="preview" style="background-image: url('https://res.cloudinary.com/dpemqdflm/image/upload/v1777916043/photo-gallery/nishantc205_gmail_com/the-electric-vein-1777916038428.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 1</span>
-            <span class="description">Soft light blur with blue accents.</span>
-          </div>
-        </div>
-        <div id="wallpaper-w2" class="item" onclick="setWallpaper('w2')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-ios-md3e-2.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 2</span>
-            <span class="description">Warm gradient glow with subtle depth.</span>
-          </div>
-        </div>
-        <div id="wallpaper-w3" class="item" onclick="setWallpaper('w3')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-ios-md3e-3.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 3</span>
-            <span class="description">Cool teal waves with crisp highlights.</span>
-          </div>
-        </div>
-        <div id="wallpaper-w4" class="item" onclick="setWallpaper('w4')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-ios-md3e-4.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 4</span>
-            <span class="description">Minimal soft texture with bright tones.</span>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="category" id="category-nothing">
-      <div class="category-header">
-        <h2>Nothing OS Wallpapers</h2>
-        <p>Choose any wallpaper crafted for the Nothing OS style.</p>
+  <div class="page-head">
+    <div>
+      <h1>Wallpaper</h1>
+      <p class="subtitle">Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.</p>
+    </div>
+
+    <div class="state-row">
+      <span class="badge">UI: <strong id="current-ui-label">Loading…</strong></span>
+
+      <div class="toggle-row"
+           id="wallpaperToggleRow"
+           onclick="toggleWallpaperState()"
+           role="switch"
+           aria-checked="false">
+        <span class="toggle-row-label" id="wallpaperToggleLabel">Disable wallpaper</span>
+        <span class="toggle-pill" id="wallpaperTogglePill">
+          <span class="toggle-thumb"></span>
+        </span>
       </div>
-      <div class="grid">
-        <div id="wallpaper-n1" class="item" onclick="setWallpaper('n1')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-1.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 1</span>
-            <span class="description">High contrast black with neon highlights.</span>
-          </div>
-        </div>
-        <div id="wallpaper-n2" class="item" onclick="setWallpaper('n2')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-2.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 2</span>
-            <span class="description">Clean white texture with subtle grain.</span>
-          </div>
-        </div>
-        <div id="wallpaper-n3" class="item" onclick="setWallpaper('n3')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-3.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 3</span>
-            <span class="description">Monochrome grid with glass-like depth.</span>
-          </div>
-        </div>
-        <div id="wallpaper-n4" class="item" onclick="setWallpaper('n4')">
-          <div class="preview" style="background-image: url('../assets/wallpapers/wallpaper-nothing-os-4.jpg');"></div>
-          <div class="details">
-            <span class="label">Wallpaper 4</span>
-            <span class="description">Soft grey gradient with tactile shadows.</span>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </div>
-  <p class="note">Wallpaper selection is saved immediately. The main app will use it on next load and when the app refreshes.</p>
+
+  <p id="errorBanner" class="error-banner"></p>
+  <p id="wallpaperStatus" class="note"></p>
+  <div id="wallpaperBoard" class="wallpaper-board" role="list"></div>
+
 </div>
 
 <script>
-(function () {
+/* =====================================================
+   CONSTANTS
+===================================================== */
+const WALLPAPER_KEY         = 'notesApp_wallpaper';
+const WALLPAPER_DISABLE_KEY = 'notesApp_wallpaper_disabled';
+
+const $board   = document.getElementById('wallpaperBoard');
+const $status  = document.getElementById('wallpaperStatus');
+const $error   = document.getElementById('errorBanner');
+const $pill    = document.getElementById('wallpaperTogglePill');
+const $trow    = document.getElementById('wallpaperToggleRow');
+const $tlabel  = document.getElementById('wallpaperToggleLabel');
+
+const wallpaperCards = [
+  { id:'w1', theme:'ios-md3e', title:'Aurora Bloom',  description:'Soft violet glow with deep glass-like depth.',    image:'url(../assets/wallpaper/imd/imd1.jpg)', label:'iOS / MD3E' },
+  { id:'w2', theme:'ios-md3e', title:'Sunset Drift',  description:'Warm gradient glow with subtle motion.',          image:'url(../assets/wallpaper/imd/imd2.jpg)',   label:'iOS / MD3E' },
+  { id:'w3', theme:'ios-md3e', title:'Teal Waves',    description:'Cool cyan texture with crisp highlights.',        image:'url(../assets/wallpaper/imd/imd3.jpg)',   label:'iOS / MD3E' },
+  { id:'w4', theme:'ios-md3e', title:'Soft Gradient', description:'Minimal texture with gentle tonal transitions.',  image:'url(../assets/wallpaper/imd/imd4.jpg)',   label:'iOS / MD3E' },
+  { id:'n1', theme:'nothing',  title:'Volt Shift',    description:'Dark high-contrast energy with neon flares.',     image:'url(../assets/wallpaper/n/nos1.jpg)', label:'Nothing OS' },
+  { id:'n2', theme:'nothing',  title:'Paper Grid',    description:'Soft white surface with fine tactile grain.',     image:'url(../assets/wallpaper/n/nos2.jpg)', label:'Nothing OS' },
+  { id:'n3', theme:'nothing',  title:'Glass Mesh',    description:'Monochrome pattern with glass-like depth.',       image:'url(../assets/wallpaper/n/nos3.jpg)', label:'Nothing OS' },
+  { id:'n4', theme:'nothing',  title:'Stone Fade',    description:'Soft grey gradient with tactile shadowing.',      image:'url(../assets/wallpaper/n/nos4.jpg)', label:'Nothing OS' }
+];
+
+// NOTE:
+// The buildWallpaperBoard() uses these `image` values directly as `background-image`.
+// Keep them as absolute paths from `app/src/pages/` so they resolve correctly inside the iframe.
+
+
+/* =====================================================
+   THEME BOOT — mirrors the inline script in settings.html
+===================================================== */
+function initializeTheme() {
   const root = document.documentElement;
-  const ui = localStorage.getItem('ui-theme') || 'ios';
+  const ui   = localStorage.getItem('ui-theme') || 'ios';
   root.setAttribute('data-ui', ui);
+
   const mode = localStorage.getItem('notesApp_theme');
-  if (mode) {
-    root.setAttribute('data-theme', mode);
-  }
+  if (mode) root.setAttribute('data-theme', mode);
+
   if (ui === 'md3e') {
     const hex = localStorage.getItem('md3e-seed');
     if (hex) {
       const v = hex.replace('#', '');
-      root.style.setProperty('--md-seed', `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`);
+      root.style.setProperty('--md-seed',
+        `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);
     }
   }
-})();
 
-const WALLPAPER_KEY = 'notesApp_wallpaper';
-const wallpaperRows = {
-  'w1': document.getElementById('wallpaper-w1'),
-  'w2': document.getElementById('wallpaper-w2'),
-  'w3': document.getElementById('wallpaper-w3'),
-  'w4': document.getElementById('wallpaper-w4'),
-  'n1': document.getElementById('wallpaper-n1'),
-  'n2': document.getElementById('wallpaper-n2'),
-  'n3': document.getElementById('wallpaper-n3'),
-  'n4': document.getElementById('wallpaper-n4')
-};
-const categoryIos = document.getElementById('category-ios');
-const categoryNothing = document.getElementById('category-nothing');
+  const labels = { ios: 'iOS', md3e: 'Material You', nothing: 'Nothing OS' };
+  document.getElementById('current-ui-label').textContent = labels[ui] || 'iOS';
+}
 
-function setThemeCategoryClasses(ui) {
-  const currentUI = ui === 'nothing' ? 'nothing' : 'ios-md3e';
-  const currentLabel = currentUI === 'nothing' ? 'Nothing OS' : 'iOS / MD3E';
-  document.getElementById('current-ui-label').textContent = currentLabel;
+/* =====================================================
+   TOGGLE — disable / enable wallpaper
+===================================================== */
+const isDisabled = () => localStorage.getItem(WALLPAPER_DISABLE_KEY) === 'true';
 
-  if (currentUI === 'nothing') {
-    categoryNothing.classList.add('active');
-    categoryNothing.classList.remove('inactive');
-    categoryIos.classList.add('inactive');
-    categoryIos.classList.remove('active');
-  } else {
-    categoryIos.classList.add('active');
-    categoryIos.classList.remove('inactive');
-    categoryNothing.classList.add('inactive');
-    categoryNothing.classList.remove('active');
+function syncToggleUI() {
+  const off = isDisabled();
+  $pill.classList.toggle('on', off);
+  $trow.setAttribute('aria-checked', String(off));
+  $tlabel.textContent = off ? 'Enable wallpaper' : 'Disable wallpaper';
+  updateStatus();
+}
+
+function toggleWallpaperState() {
+  localStorage.setItem(WALLPAPER_DISABLE_KEY, String(!isDisabled()));
+  syncToggleUI();
+  notifyParent();
+}
+
+/* =====================================================
+   STATUS NOTE
+===================================================== */
+function updateStatus() {
+  if (isDisabled()) {
+    $status.textContent = 'Wallpaper is disabled. Your selection is saved and will apply when re-enabled.';
+    return;
   }
+  const id   = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+  const card = wallpaperCards.find(c => c.id === id);
+  $status.textContent = card ? `Active: ${card.title} · ${card.label}` : 'No wallpaper selected.';
 }
 
-function setWallpaper(value) {
-  if (!wallpaperRows[value]) return;
-  localStorage.setItem(WALLPAPER_KEY, value);
-  updateSelection(value);
-  window.parent.postMessage({ type: 'WALLPAPER_CHANGED', wallpaper: value }, '*');
+/* =====================================================
+   BOARD BUILDER
+===================================================== */
+function buildWallpaperBoard() {
+  const ui           = localStorage.getItem('ui-theme') || 'ios';
+  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios-md3e';
+  let   selected     = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+
+  const visible = wallpaperCards.filter(c => c.theme === currentTheme);
+  if (!visible.some(c => c.id === selected)) {
+    selected = visible[0]?.id || selected;
+    if (visible[0]) localStorage.setItem(WALLPAPER_KEY, selected);
+  }
+
+  if (!visible.length) {
+    $board.innerHTML = '<p class="note">No wallpapers available for this theme.</p>';
+    return;
+  }
+
+  $board.innerHTML = visible.map(card => `
+    <article
+      class="wallpaper-card${card.id === selected ? ' selected' : ''}"
+      data-key="${card.id}"
+      role="listitem"
+      onclick="handleWallpaperTap('${card.id}')"
+      style="background-image:${card.image};"
+    >
+      <span class="card-badge">${card.label}</span>
+      <div class="card-frost">
+        <h2 class="card-title">${card.title}</h2>
+        <p class="card-description">${card.description}</p>
+      </div>
+    </article>
+  `).join('');
+
+  updateStatus();
+  requestAnimationFrame(scrollSelectedIntoView);
 }
 
-function updateSelection(selectedValue) {
-  Object.entries(wallpaperRows).forEach(([key, row]) => {
-    if (!row) return;
-    row.classList.toggle('selected', key === selectedValue);
+/* =====================================================
+   TAP HANDLER
+===================================================== */
+function handleWallpaperTap(id) {
+  const ui           = localStorage.getItem('ui-theme') || 'ios';
+  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios-md3e';
+  const card         = wallpaperCards.find(c => c.id === id);
+  if (!card) return;
+
+  if (card.theme !== currentTheme) {
+    showError(card.theme === 'nothing'
+      ? 'This wallpaper is only available for Nothing OS theme.'
+      : 'This wallpaper is only available for iOS / Material You theme.');
+    return;
+  }
+
+  localStorage.setItem(WALLPAPER_KEY, id);
+  buildWallpaperBoard();
+  notifyParent();
+}
+
+/* =====================================================
+   POST TO PARENT
+===================================================== */
+function notifyParent() {
+  window.parent.postMessage({
+    type:     'WALLPAPER_CHANGED',
+    wallpaper: localStorage.getItem(WALLPAPER_KEY) || 'w1',
+    disabled:  isDisabled()
+  }, '*');
+}
+
+/* =====================================================
+   ERROR BANNER
+===================================================== */
+function showError(msg) {
+  $error.textContent = msg;
+  $error.classList.add('visible');
+  $board.classList.add('shake');
+  setTimeout(() => {
+    $error.classList.remove('visible');
+    $board.classList.remove('shake');
+  }, 1500);
+}
+
+/* =====================================================
+   SCROLL SELECTED INTO VIEW
+===================================================== */
+function scrollSelectedIntoView() {
+  const sel = document.querySelector('.wallpaper-card.selected');
+  if (!sel) return;
+  const r = sel.getBoundingClientRect();
+  const b = $board.getBoundingClientRect();
+  $board.scrollBy({ left: (r.left+r.right)/2 - (b.left+b.right)/2, behavior: 'smooth' });
+}
+
+/* =====================================================
+   DRAG-TO-SCROLL
+===================================================== */
+(function enableDragScroll(el) {
+  let down = false, startX = 0, scrollLeft = 0;
+  el.addEventListener('pointerdown', e => {
+    down = true;
+    el.setPointerCapture(e.pointerId);
+    startX = e.clientX;
+    scrollLeft = el.scrollLeft;
   });
-}
+  window.addEventListener('pointerup', e => {
+    if (!down) return;
+    down = false;
+    try { el.releasePointerCapture(e.pointerId); } catch {}
+  });
+  el.addEventListener('pointermove', e => {
+    if (!down) return;
+    el.scrollLeft = scrollLeft + (startX - e.clientX);
+  });
+})($board);
 
-const current = localStorage.getItem(WALLPAPER_KEY) || 'w1';
-const currentUI = localStorage.getItem('ui-theme') || 'ios';
-setThemeCategoryClasses(currentUI);
-updateSelection(current);
+/* =====================================================
+   BOOT
+===================================================== */
+initializeTheme();
+syncToggleUI();
+buildWallpaperBoard();
+
+// --- Live system theme updates (when mode === system) ---
+(function syncSystemThemeOnWallpaper() {
+  if (!window.matchMedia) return;
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+  const applyFromSystem = () => {
+    if (localStorage.getItem('notesApp_theme') !== 'system') return;
+    document.documentElement.setAttribute(
+      'data-theme',
+      mq.matches ? 'dark' : 'light'
+    );
+
+    // Rebuild so any theme-dependent CSS/selectors update immediately
+    // (wallpaper cards themselves are UI/IOS vs Nothing, but frost/badges can depend on data-theme)
+    buildWallpaperBoard();
+  };
+
+  if (typeof mq.addEventListener === 'function') {
+    mq.addEventListener('change', applyFromSystem);
+  } else if (typeof mq.addListener === 'function') {
+    mq.addListener(applyFromSystem);
+  }
+})();
 </script>
 </body>
 </html>

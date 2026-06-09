@@ -15,6 +15,10 @@ let ACTIVE_CACHE_NAME = null;
 let LATEST_CACHE_NAME = null;
 let userTriggeredUpdate = false;
 
+function shouldShowNotifications() {
+  return localStorage.getItem('app_notifications_disabled') !== 'true';
+}
+
 /**
  * Init
  */
@@ -25,12 +29,26 @@ window.addEventListener('load', async () => {
   }
 
   try {
-    await navigator.serviceWorker.ready;
+    const registration = await navigator.serviceWorker.ready;
 
     console.log('[Cache Update] SW ready');
 
     await syncCacheState();
     displayBuildNumber();
+
+    registration.addEventListener('updatefound', () => {
+      const newSW = registration.installing;
+      console.log('[Cache Update] updatefound', newSW);
+      if (newSW) {
+        newSW.addEventListener('statechange', () => {
+          console.log('[Cache Update] SW state', newSW.state);
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            updateAvailable = true;
+            updateButtonUI(true);
+          }
+        });
+      }
+    });
 
     setTimeout(() => {
       checkForUpdates();
@@ -297,13 +315,25 @@ async function manualUpdateCheck() {
 
     } else {
 
-      window.closeCustomModal();
+      document.getElementById('modal-title').innerText =
+        'No Updates';
 
-      showNotification(
-        'Up to Date',
-        'You already have latest version',
-        'success'
-      );
+      document.getElementById('modal-message').innerText =
+        'Your app is already up to date.';
+
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = 'Close';
+      confirmBtn.onclick = () => {
+        window.closeCustomModal();
+      };
+
+      if (shouldShowNotifications()) {
+        showNotification(
+          'Up to Date',
+          'You already have latest version',
+          'success'
+        );
+      }
     }
 
   } catch (err) {
@@ -335,8 +365,10 @@ async function performUpdate() {
       throw new Error('No SW registration');
     }
 
+    await registration.update();
+
     const sw =
-      registration.waiting || registration.active;
+      registration.waiting || registration.installing || registration.active;
 
     if (!sw) {
       throw new Error('No SW found');
@@ -436,6 +468,7 @@ async function performUpdate() {
  * Notification
  */
 function showNotification(title, message, type = 'info') {
+  if (!shouldShowNotifications()) return;
 
   let container =
     document.getElementById('notification-container');

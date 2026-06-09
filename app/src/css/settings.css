@@ -31,8 +31,15 @@
   --glass-bg: rgba(30, 30, 30, 0.85);
   --glass-border: rgba(255, 255, 255, 0.15);
   --transparent: #ffffff06;
+
+  /* Settings toggle (notification) theme tokens */
+  --toggle-off: rgba(255,255,255,0.08);
+  --toggle-on: linear-gradient(135deg, #4cafeb, #44d9b6);
+  --toggle-thumb: #fff;
+
   --ui-refresh-token: 0;
 }
+
 
 :root[data-theme="light"] {
   --bg-main: #F2F2F7;

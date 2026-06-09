@@ -36,17 +36,26 @@
                 <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
         </div>
-        <!-- <div class="row clickable" onclick="openPortal('./src/pages/wallpaper.html')">
+        <div class="row clickable" onclick="openPortal('./src/pages/wallpaper.html')">
             <span class="label">Wallpaper</span>
             <div style="display:flex; align-items:center; gap: 8px;">
                 <span id="currentWallpaperDisplay" class="value" style="font-size: 14px;">Default</span>
                 <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
-        </div> -->
+        </div>
+        <div class="row" onclick="toggleAppNotifications()" style="justify-content:space-between; gap: 8px;">
+            <span class="label">Notifications</span>
+            <div style="display:flex; align-items:center; gap: 10px;">
+                <span id="notificationRowStatus" class="value" style="font-size: 14px;">Loading...</span>
+<span id="notificationRowToggle" style="width: 46px; height: 26px; border-radius: 999px; border: 1px solid var(--sep); display: grid; place-items: center; background: var(--toggle-off); transition: background 0.2s ease;">
+                    <span id="notificationRowThumb" style="width: 20px; height: 20px; border-radius: 50%; background: var(--toggle-thumb); transform: translateX(3px); transition: transform 0.2s ease;"></span>
+                </span>
+            </div>
+        </div>
         <div class="row clickable" id="updateCacheBtn" onclick="showUpdateCacheModal()">
-            <span class="label" style="color: var(--accent);">Update App</span>
+            <span class="label" style="color: var(--accent);">Security Update</span>
             <div id="updateCacheStatus" style="display:flex; align-items:center; gap: 8px;">
-                <span id="updateCacheText" class="value" style="font-size: 14px;">script security updates coming soon</span>
+                <span id="updateCacheText" class="value" style="font-size: 14px;">Update</span>
                 <svg id="updateCacheIcon" class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
         </div>
@@ -90,6 +99,8 @@
             <span class="label" style="color: var(--accent1);">Delete Account</span>
             <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
         </div>
+    </div>
+    <div class="settings-group">
     </div>
 </div>
 
@@ -211,22 +222,14 @@
 }
 </style>
 
-<!-- ✅ SERVICE WORKER REGISTRATION (after cleanup) -->
+<!-- ✅ SERVICE WORKER REGISTRATION -->
 <script>
-function getBasePath() {
-  const path = window.location.pathname;
-  if (!path.includes('/project-scorpio')) {
-    return '/';
-  }
-  return '/project-scorpio/';
-}
-
-const basePath = getBasePath();
-
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register(`${basePath}sw.js`, { scope: basePath })
+  const swUrl = new URL('../sw.js', location.href).href;
+
+  navigator.serviceWorker.register(swUrl)
     .then(reg => {
-      console.log('[SW] Registered at:', basePath);
+      console.log('[SW] Registered at:', swUrl, 'scope:', reg.scope);
     })
     .catch(err => {
       console.error('[SW] Registration failed:', err);

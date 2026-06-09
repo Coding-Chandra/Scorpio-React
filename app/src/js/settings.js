@@ -185,7 +185,12 @@ const showPasswordGate = () => {
     };
 };
 
+function shouldShowNotifications() {
+    return localStorage.getItem('app_notifications_disabled') !== 'true';
+}
+
 function showNotification(title, message, type = 'info') {
+    if (!shouldShowNotifications()) return;
     let container = document.getElementById('notification-container');
     if (!container) {
         container = document.createElement('div');
@@ -313,6 +318,7 @@ async function load() {
     
     applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
     applyWallpaperUI();
+    updateSettingsNotificationUI();
 }
 
 load();
@@ -331,10 +337,61 @@ function applyUI(ui) {
 }
 
 function applyTheme(mode) {
-    const actualTheme = mode === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : mode;
+    const actualTheme = mode === 'system'
+        ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        : mode;
+
     document.documentElement.setAttribute("data-theme", actualTheme);
     localStorage.setItem("notesApp_theme", mode);
+
+    // Keep portal pages in sync too
+    const frame = document.getElementById("portal-frame");
+    if (frame?.contentWindow) {
+        frame.contentWindow.postMessage({ type: 'INIT_THEME', theme: mode }, '*');
+    }
 }
+
+// --- Live system theme updates (when mode === system) ---
+(function syncSystemTheme() {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+    const onChange = () => {
+        if (localStorage.getItem('notesApp_theme') !== 'system') return;
+        applyTheme('system');
+    };
+
+    // Safari fallback uses addListener
+    if (typeof mq.addEventListener === 'function') {
+        mq.addEventListener('change', onChange);
+    } else if (typeof mq.addListener === 'function') {
+        mq.addListener(onChange);
+    }
+})();
+
+function isNotificationsEnabled() {
+    return localStorage.getItem('app_notifications_disabled') !== 'true';
+}
+
+function updateSettingsNotificationUI() {
+    const enabled = isNotificationsEnabled();
+    const statusEl = document.getElementById('notificationRowStatus');
+    const thumb = document.getElementById('notificationRowThumb');
+    const toggle = document.getElementById('notificationRowToggle');
+
+    if (!statusEl || !thumb || !toggle) return;
+
+    statusEl.textContent = enabled ? 'Enabled' : 'Blocked';
+    // Theme-aware toggle background/thumb colors (use CSS variables)
+    toggle.style.background = enabled ? 'var(--toggle-on)' : 'var(--toggle-off)';
+    thumb.style.transform = enabled ? 'translateX(18px)' : 'translateX(3px)';
+}
+
+window.toggleAppNotifications = function () {
+    const enabled = !isNotificationsEnabled();
+    localStorage.setItem('app_notifications_disabled', enabled ? 'false' : 'true');
+    updateSettingsNotificationUI();
+};
 
 function applyMD3EAccent(hex) {
     if (!hex || hex.length !== 7) return;

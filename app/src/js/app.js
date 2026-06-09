@@ -2665,7 +2665,7 @@ app.exportTXT = function () {
     this.closeDropdown('shareDropdown');
 };
 
-app.exportPDF = function () {
+app.exportPDF = async function () {
     const note = this.getActiveNote();
     if (!note) return;
 
@@ -2679,141 +2679,262 @@ app.exportPDF = function () {
         return;
     }
 
+    const fetchImageAsDataUrl = async (src) => {
+        if (!src) return null;
+        if (src.startsWith('data:')) return src;
+
+        try {
+            const response = await fetch(src, { mode: 'cors' });
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            return await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        } catch (err) {
+            console.warn('[PDF Export] Unable to fetch image:', src, err);
+            return null;
+        }
+    };
+
+    // addImageToPdf will be declared inside the PDF generation `try` block
+    // so it can access layout variables (`doc`, `maxWidth`, `pageHeight`, `margin`, `bottomEdge`, `y`).
+
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
-    const pageWidth  = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin     = 60;
-    const maxWidth   = pageWidth - margin * 2;
-    const bottomEdge = pageHeight - margin;
-    let y = margin;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 60;
+        const footerText = 'Created on NOTOZ';
+        const footerHeight = 20;
+        const footerY = pageHeight - margin + 10;
+        const maxWidth = pageWidth - margin * 2;
+        const bottomEdge = pageHeight - margin - footerHeight;
+        let y = margin;
 
-    const checkPage = (lineHeight) => {
-        if (y + lineHeight > bottomEdge) {
-            doc.addPage();
-            y = margin;
-        }
-    };
+        const arrayBufferToBase64 = (buffer) => {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const chunkSize = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+            }
+            return window.btoa(binary);
+        };
 
-    // Helper: render a text run with given style, returns new y
-    const renderText = (text, { fontSize, bold, italic, indent = 0 }) => {
-        const style = bold && italic ? 'bolditalic' : bold ? 'bold' : italic ? 'italic' : 'normal';
-        doc.setFont('helvetica', style);
-        doc.setFontSize(fontSize);
-        const lineHeight = fontSize * 1.4;
-        const lines = doc.splitTextToSize(text.trim(), maxWidth - indent);
-        lines.forEach(line => {
-            checkPage(lineHeight);
-            doc.text(line, margin + indent, y);
-            y += lineHeight;
-        });
-    };
+        const loadCustomPdfFont = async (doc, fontUrl, filename, name, style = 'normal') => {
+            try {
+                const response = await fetch(fontUrl);
+                if (!response.ok) return false;
+                const arrayBuffer = await response.arrayBuffer();
+                const base64 = arrayBufferToBase64(arrayBuffer);
+                doc.addFileToVFS(filename, base64);
+                doc.addFont(filename, name, style);
+                return true;
+            } catch (err) {
+                console.warn('[PDF Export] Custom font load failed', err);
+                return false;
+            }
+        };
 
-    // --- Walk DOM nodes recursively ---
-    const walkNode = (node, ctx) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.textContent.replace(/\s+/g, ' ');
-            if (text.trim()) renderText(text, ctx);
-            return;
-        }
-        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        const footerFontName = 'Ndot 57 Aligned';
+        const footerFontFile = 'Ndot-57-Aligned.otf';
+        const footerFontUrl = new URL('./src/assets/fonts/Ndot-57-Aligned.otf', window.location.href).href;
+        const footerFontLoaded = await loadCustomPdfFont(doc, footerFontUrl, footerFontFile, footerFontName);
 
-        const tag = node.tagName.toLowerCase();
-        let newCtx = { ...ctx };
+        const renderFooter = () => {
+            if (footerFontLoaded) {
+                doc.setFont(footerFontName, 'normal');
+            } else {
+                doc.setFont('helvetica', 'normal');
+            }
+            doc.setFontSize(10);
+            doc.text(footerText, pageWidth / 2, footerY, { align: 'center' });
+        };
 
-        switch (tag) {
-            case 'h1': newCtx = { ...ctx, fontSize: 18, bold: true };  break;
-            case 'h2': newCtx = { ...ctx, fontSize: 16, bold: true };  break;
-            case 'h3': newCtx = { ...ctx, fontSize: 14, bold: true };  break;
-            case 'h4':
-            case 'h5':
-            case 'h6': newCtx = { ...ctx, fontSize: 12, bold: true };  break;
-            case 'strong':
-            case 'b':   newCtx = { ...ctx, bold: true };               break;
-            case 'em':
-            case 'i':   newCtx = { ...ctx, italic: true };             break;
-            case 'li':  newCtx = { ...ctx, indent: (ctx.indent||0) + 16 }; break;
-        }
+        const checkPage = (lineHeight) => {
+            if (y + lineHeight > bottomEdge) {
+                renderFooter();
+                doc.addPage();
+                y = margin;
+            }
+        };
 
-        // Add spacing before block elements
-        const blockTags = new Set(['p','div','h1','h2','h3','h4','h5','h6','li','ul','ol','blockquote','pre']);
-        if (blockTags.has(tag)) y += 4;
+        const addImageToPdf = async (src) => {
+            const dataUrl = await fetchImageAsDataUrl(src);
+            if (!dataUrl) return false;
 
-        // Bullet prefix for list items
-        if (tag === 'li') {
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(newCtx.fontSize);
-            checkPage(newCtx.fontSize * 1.4);
-            doc.text('•', margin + (ctx.indent || 0), y);
-        }
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = dataUrl;
 
-        node.childNodes.forEach(child => walkNode(child, newCtx));
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
 
-        // Add spacing after block elements
-        if (blockTags.has(tag)) y += 4;
+            const imgMaxWidth = maxWidth;
+            const ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1;
+            let displayWidth = Math.min(img.naturalWidth || imgMaxWidth, imgMaxWidth);
+            let displayHeight = displayWidth / ratio;
 
-        // Force line break after block elements
-        if (['p','div','h1','h2','h3','h4','h5','h6','br','li'].includes(tag)) {
-            // y already advanced by renderText — just add a small gap
-        }
-    };
+            if (displayHeight > pageHeight - margin - y) {
+                displayHeight = pageHeight - margin - y;
+                displayWidth = displayHeight * ratio;
+            }
 
-    // --- Title ---
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.splitTextToSize(title, maxWidth).forEach(l => {
-        checkPage(28);
-        doc.text(l, margin, y);
-        y += 28;
-    });
-    y += 8;
-    doc.setDrawColor(180);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 20;
+            if (y + displayHeight > bottomEdge) {
+                doc.addPage();
+                y = margin;
+            }
 
-    // --- Parse and walk note HTML ---
-    const container = document.createElement('div');
-    container.innerHTML = note.content || '';
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx2 = canvas.getContext('2d');
+            ctx2.drawImage(img, 0, 0);
+            const pngDataUrl = canvas.toDataURL('image/png');
 
-    const baseCtx = { fontSize: 11, bold: false, italic: false, indent: 0 };
-    container.childNodes.forEach(node => walkNode(node, baseCtx));
+            doc.addImage(pngDataUrl, 'PNG', margin, y, displayWidth, displayHeight);
+            y += displayHeight + 8;
+            return true;
+        };
 
-    // Generate PDF blob instead of saving directly
-    const pdfBlob = doc.output('blob');
-
-    // Use Median bridge for download with proper filename
-    if (window.MedianJsBridge && window.MedianJsBridge.downloadFile) {
-        // Convert blob to base64 for bridge
-        const reader = new FileReader();
-        reader.onload = function() {
-            const base64Data = reader.result.split(',')[1];
-            window.MedianJsBridge.downloadFile({
-                data: base64Data,
-                filename: filename,
-                mimeType: 'application/pdf'
+        const renderText = (text, { fontSize, bold, italic, indent = 0 }) => {
+            const style = bold && italic ? 'bolditalic' : bold ? 'bold' : italic ? 'italic' : 'normal';
+            doc.setFont('helvetica', style);
+            doc.setFontSize(fontSize);
+            const lineHeight = fontSize * 1.4;
+            const lines = doc.splitTextToSize(text.trim(), maxWidth - indent);
+            lines.forEach(line => {
+                checkPage(lineHeight);
+                doc.text(line, margin + indent, y);
+                y += lineHeight;
             });
         };
-        reader.readAsDataURL(pdfBlob);
-    } else {
-        // Fallback for web browser
-        const url = URL.createObjectURL(pdfBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        }
-        } catch (err) {
-            console.error('Export PDF failed', err);
-            alert('Export to PDF failed: ' + (err && err.message ? err.message : 'Unknown error'));
+
+        const walkNode = async (node, ctx) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent.replace(/\s+/g, ' ');
+                if (text.trim()) renderText(text, ctx);
+                return;
+            }
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+            const tag = node.tagName.toLowerCase();
+            let newCtx = { ...ctx };
+
+            switch (tag) {
+                case 'h1': newCtx = { ...ctx, fontSize: 18, bold: true }; break;
+                case 'h2': newCtx = { ...ctx, fontSize: 16, bold: true }; break;
+                case 'h3': newCtx = { ...ctx, fontSize: 14, bold: true }; break;
+                case 'h4':
+                case 'h5':
+                case 'h6': newCtx = { ...ctx, fontSize: 12, bold: true }; break;
+                case 'strong':
+                case 'b': newCtx = { ...ctx, bold: true }; break;
+                case 'em':
+                case 'i': newCtx = { ...ctx, italic: true }; break;
+                case 'li': newCtx = { ...ctx, indent: (ctx.indent || 0) + 16 }; break;
+            }
+
+            if (tag === 'img') {
+                const src = node.getAttribute('src');
+                if (!(await addImageToPdf(src))) {
+                    renderText('[Image could not be loaded]', newCtx);
+                }
+                return;
+            }
+
+            const blockTags = new Set(['p','div','h1','h2','h3','h4','h5','h6','li','ul','ol','blockquote','pre']);
+            if (blockTags.has(tag)) y += 4;
+
+            if (tag === 'li') {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(newCtx.fontSize);
+                checkPage(newCtx.fontSize * 1.4);
+                doc.text('•', margin + (ctx.indent || 0), y);
+            }
+
+            for (const child of node.childNodes) {
+                await walkNode(child, newCtx);
+            }
+
+            if (blockTags.has(tag)) y += 4;
+        };
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.splitTextToSize(title, maxWidth).forEach(l => {
+            checkPage(28);
+            doc.text(l, margin, y);
+            y += 28;
+        });
+        y += 8;
+        doc.setDrawColor(180);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 20;
+
+        const container = document.createElement('div');
+        container.innerHTML = note.content || '';
+        const baseCtx = { fontSize: 11, bold: false, italic: false, indent: 0 };
+
+        for (const node of container.childNodes) {
+            await walkNode(node, baseCtx);
         }
 
-        this.closeDropdown('shareDropdown');
-    };
+        renderFooter();
+        const pdfBlob = doc.output('blob');
+
+        const downloadPdfBlob = async (blob) => {
+            const reader = new FileReader();
+            const base64Data = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+
+            const payload = {
+                data: base64Data,
+                filename,
+                mimeType: 'application/pdf'
+            };
+
+            if (window.MedianJsBridge?.downloadFile) {
+                window.MedianJsBridge.downloadFile(payload);
+                return;
+            }
+            if (window.median?.nativebridge?.downloadFile) {
+                window.median.nativebridge.downloadFile(payload);
+                return;
+            }
+            if (window.median?.nativebridge?.saveFile) {
+                window.median.nativebridge.saveFile(payload);
+                return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        await downloadPdfBlob(pdfBlob);
+    } catch (err) {
+        console.error('Export PDF failed', err);
+        alert('Export to PDF failed: ' + (err && err.message ? err.message : 'Unknown error'));
+    }
+
+    this.closeDropdown('shareDropdown');
+};
 
 // ============================================================================
 // 11. SELECTION TOOLBAR & TEXT FORMATTING 
