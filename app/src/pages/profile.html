@@ -7,6 +7,18 @@
     <link rel="icon" type="image/png" href="../assets/icons/logo.png">
     <link rel="apple-touch-icon" href="../assets/icons/logo.png">
     <script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notesApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+    <script>
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const applyFromSystem = () => {
+        if (localStorage.getItem('notesApp_theme') !== 'system') return;
+        document.documentElement.setAttribute(
+            'data-theme',
+            mq.matches ? 'dark' : 'light'
+        );
+    };
+    applyFromSystem();
+    mq.addEventListener('change', applyFromSystem);
+    </script>
     <link rel="stylesheet" href="../css/settings.css">
     <link rel="stylesheet" href="../css/animations.css">
     <link rel="stylesheet" href="../css/profile.css">
@@ -19,7 +31,7 @@
     </div>
 
     <div class="settings-group animate-list-item-in" style="animation-delay: 0.1s">
-        <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px 0;">
+        <div style="display: flex; align-items: center; flex-direction: column; gap: 16px; padding: 16px 0;">
             <img id="profileAvatarDisplay" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;" />
             <div style="flex: 1;">
                 <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 4px 0;">Avatar</p>
@@ -85,10 +97,14 @@
             <span class="label">Email Address</span>
             <span id="emailText" class="value">Loading...</span>
         </div>
-        <!-- <div class="row clickable" onclick="window.exportData()" id="exportBtn">
-            <span class="label" style="color: var(--accent);">Export All Notes</span>
+        <div class="row clickable" onclick="window.promptExportNotes()" id="exportBtn">
+            <span class="label" style="color: var(--accent);">Export Notes Backup</span>
             <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-        </div> -->
+        </div>
+        <div class="row clickable" onclick="window.promptImportNotes()" id="importBtn">
+            <span class="label" style="color: var(--accent);">Import Notes Backup</span>
+            <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
     </div>
     <div class="settings-group" style="animation-delay: 0.25s;">
         <p id="exportStatus" style="font-size: 12px; color: var(--text-dim); padding: 8px 16px 0 16px; margin: 0;"></p>

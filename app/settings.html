@@ -45,17 +45,17 @@
         </div>
         <div class="row" onclick="toggleAppNotifications()" style="justify-content:space-between; gap: 8px;">
             <span class="label">Notifications</span>
-            <div style="display:flex; align-items:center; gap: 10px;">
+            <div style="display:flex; align-items: center;gap: 10px; flex-direction: column-reverse;">
                 <span id="notificationRowStatus" class="value" style="font-size: 14px;">Loading...</span>
-<span id="notificationRowToggle" style="width: 46px; height: 26px; border-radius: 999px; border: 1px solid var(--sep); display: grid; place-items: center; background: var(--toggle-off); transition: background 0.2s ease;">
-                    <span id="notificationRowThumb" style="width: 20px; height: 20px; border-radius: 50%; background: var(--toggle-thumb); transform: translateX(3px); transition: transform 0.2s ease;"></span>
+                <span id="notificationRowToggle" class="notifToggle">
+                    <span id="notificationRowThumb" class="notifThumb"></span>
                 </span>
             </div>
         </div>
         <div class="row clickable" id="updateCacheBtn" onclick="showUpdateCacheModal()">
-            <span class="label" style="color: var(--accent);">Security Update</span>
+            <span class="label" style="color: var(--accent);">Updates</span>
             <div id="updateCacheStatus" style="display:flex; align-items:center; gap: 8px;">
-                <span id="updateCacheText" class="value" style="font-size: 14px;">Update</span>
+                <span id="updateCacheText" class="value" style="font-size: 14px;">Check for Updates</span>
                 <svg id="updateCacheIcon" class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
         </div>
@@ -174,6 +174,48 @@
 /* Chevron rotation animation */
 .row.clickable .chevron {
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* --- Portal blob loader --- */
+#portal-loader {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main);
+    z-index: 5;
+}
+
+.blob-stack {
+    position: relative;
+    width: 64px;
+    height: 64px;
+}
+
+.blob-stack span {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.55;
+    mix-blend-mode: screen;
+    animation: blobBreathe 1.8s ease-in-out infinite;
+}
+
+.blob-stack span:nth-child(1) { animation-delay: 0s; }
+.blob-stack span:nth-child(2) {
+    animation-delay: 0.3s;
+    transform: translate(10px, -6px) scale(0.85);
+}
+.blob-stack span:nth-child(3) {
+    animation-delay: 0.6s;
+    transform: translate(-8px, 8px) scale(0.7);
+}
+
+@keyframes blobBreathe {
+    0%, 100% { transform: scale(0.8) translate(0, 0); opacity: 0.35; }
+    50%      { transform: scale(1.15) translate(4px, -4px); opacity: 0.7; }
 }
 
 .row.clickable:active .chevron {

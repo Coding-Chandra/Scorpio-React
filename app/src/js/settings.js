@@ -42,7 +42,36 @@ const applyThemeUI = (theme) => {
 window.openPortal = (url) => {
     const frame = document.getElementById('portal-frame');
     const layer = document.getElementById('portal-layer');
+    
+    if (!frame || !layer) {
+        console.error('[Portal] Missing portal elements:', { frame: !!frame, layer: !!layer });
+        return;
+    }
+    
+    // Clear previous state
+    frame.style.opacity = '0';
+    frame.style.display = 'block';
+    
+    // Set up load handler BEFORE changing src
+    const handleLoad = () => {
+        console.log('[Portal] Frame loaded:', url);
+        frame.style.opacity = '1';
+        frame.style.transition = 'opacity 0.4s ease-out';
+        applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
+    };
+    
+    const handleError = () => {
+        console.error('[Portal] Frame failed to load:', url);
+        frame.style.opacity = '1';
+    };
+    
+    frame.onload = handleLoad;
+    frame.onerror = handleError;
+    
+    // Now set src
     frame.src = url;
+    
+    // Show portal layer
     layer.classList.add('active');
     
     // Animate portal entry
@@ -50,23 +79,33 @@ window.openPortal = (url) => {
     if (nav) {
         animate(nav, 'drawerSlideIn', 300);
     }
-    
-    frame.onload = () => applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
 };
 
 window.closePortal = () => {
+    const frame = document.getElementById('portal-frame');
     const layer = document.getElementById('portal-layer');
+    
+    if (!layer) return;
+    
     const nav = layer.querySelector('.portal-nav');
     
     // Animate portal exit
     if (nav) {
         animate(nav, 'drawerSlideOut', 300, () => {
             layer.classList.remove('active');
-            setTimeout(() => { document.getElementById('portal-frame').src = "about:blank"; }, 200);
+            frame.style.opacity = '0';
+            setTimeout(() => { 
+                frame.src = "about:blank";
+                frame.style.opacity = '0';
+            }, 200);
         });
     } else {
         layer.classList.remove('active');
-        setTimeout(() => { document.getElementById('portal-frame').src = "about:blank"; }, 400);
+        frame.style.opacity = '0';
+        setTimeout(() => { 
+            frame.src = "about:blank";
+            frame.style.opacity = '0';
+        }, 400);
     }
 };
 
@@ -373,20 +412,6 @@ function isNotificationsEnabled() {
     return localStorage.getItem('app_notifications_disabled') !== 'true';
 }
 
-function updateSettingsNotificationUI() {
-    const enabled = isNotificationsEnabled();
-    const statusEl = document.getElementById('notificationRowStatus');
-    const thumb = document.getElementById('notificationRowThumb');
-    const toggle = document.getElementById('notificationRowToggle');
-
-    if (!statusEl || !thumb || !toggle) return;
-
-    statusEl.textContent = enabled ? 'Enabled' : 'Blocked';
-    // Theme-aware toggle background/thumb colors (use CSS variables)
-    toggle.style.background = enabled ? 'var(--toggle-on)' : 'var(--toggle-off)';
-    thumb.style.transform = enabled ? 'translateX(18px)' : 'translateX(3px)';
-}
-
 window.toggleAppNotifications = function () {
     const enabled = !isNotificationsEnabled();
     localStorage.setItem('app_notifications_disabled', enabled ? 'false' : 'true');
@@ -427,6 +452,20 @@ function applyWallpaperUI() {
     applyTheme(theme);
     if (accent) applyMD3EAccent(accent);
 })();
+
+function updateSettingsNotificationUI() {
+    const enabled = isNotificationsEnabled();
+    const statusEl = document.getElementById('notificationRowStatus');
+    const thumb = document.getElementById('notificationRowThumb');
+    const toggle = document.getElementById('notificationRowToggle');
+
+    if (!statusEl || !thumb || !toggle) return;
+
+    statusEl.textContent = enabled ? 'Enabled' : 'Disabled';
+    // Theme-aware toggle background/thumb colors (use CSS variables)
+    toggle.setAttribute('data-checked', enabled ? 'true' : 'false');
+    thumb.style.transform = enabled ? 'translateX(11.5px)' : 'translateX(-12px)';
+}
 
 window.addEventListener("message", (event) => {
     if (!event.data || !event.data.type) return;

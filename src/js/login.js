@@ -8,6 +8,7 @@ if (typeof window.supabase === 'undefined') {
 }
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let CURRENT_USER_ID = null; // needed by migrateUserCrypto()
 
 // --- DOM Elements ---
 const loginForm = document.getElementById('login-form');
@@ -20,13 +21,13 @@ const messageEl = document.getElementById('auth-message');
 const loginEmailInput = document.getElementById('login-email');
 const passwordGroup = document.getElementById('password-group');
 const loginPasswordInput = document.getElementById('login-password');
-const loginButton = loginForm?.querySelector('button[type="submit"]'); 
+const loginButton = loginForm?.querySelector('button[type="submit"]');
 
 
 function displayMessage(text, isError = false) {
     if (!messageEl) return;
     messageEl.textContent = text;
-    messageEl.style.color = isError ? "#f44336" : "#4caf50"; 
+    messageEl.style.color = isError ? "#f44336" : "#4caf50";
     setTimeout(() => (messageEl.textContent = ""), 5000);
 }
 
@@ -35,7 +36,7 @@ function handleAuthSuccess() {
 }
 
 // ---------------------------------------------------------
-// 🔐 Crypto Helpers (PBKDF2 + AES-GCM + base64) - UNTOUCHED
+// 🔐 Crypto Helpers (PBKDF2 + AES-GCM + base64)
 // ---------------------------------------------------------
 
 function _b64FromBuf(buf) {
@@ -47,23 +48,18 @@ function _bufFromB64(b64) {
     return new Uint8Array([...bin].map(c => c.charCodeAt(0)));
 }
 
-async function deriveKeyFromPassword(password, salt = "notesapp_v1_salt") {
+const OLD_STATIC_SALT = "notesapp_v1_salt";
+const OLD_ITERATIONS = 600000;
+const NEW_ITERATIONS = 600000;
+
+// salt is now required (no default) — caller must pass old or new salt explicitly.
+async function deriveKeyFromPassword(password, salt, iterations = NEW_ITERATIONS) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
-        "raw",
-        enc.encode(password),
-        "PBKDF2",
-        false,
-        ["deriveKey"]
+        "raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]
     );
-
     return crypto.subtle.deriveKey(
-        {
-            name: "PBKDF2",
-            salt: enc.encode(salt),
-            iterations: 200000,
-            hash: "SHA-256"
-        },
+        { name: "PBKDF2", salt: enc.encode(salt), iterations, hash: "SHA-256" },
         keyMaterial,
         { name: "AES-GCM", length: 256 },
         false,
@@ -71,19 +67,17 @@ async function deriveKeyFromPassword(password, salt = "notesapp_v1_salt") {
     );
 }
 
-async function encryptMasterKey(masterKeyBytes, password) {
-    const derived = await deriveKeyFromPassword(password);
+async function encryptMasterKey(masterKeyBytes, password, salt, iterations) {
+    const derived = await deriveKeyFromPassword(password, salt, iterations);
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, derived, masterKeyBytes);
-
     return { iv: _b64FromBuf(iv), data: _b64FromBuf(ct) };
 }
 
-async function decryptMasterKey(encObj, password) {
-    const derived = await deriveKeyFromPassword(password);
+async function decryptMasterKey(encObj, password, salt, iterations) {
+    const derived = await deriveKeyFromPassword(password, salt, iterations);
     const iv = _bufFromB64(encObj.iv);
     const ct = _bufFromB64(encObj.data);
-
     const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, derived, ct);
     return new Uint8Array(plain);
 }
@@ -97,37 +91,68 @@ function getLocalMasterKeyBytes() {
     return b64 ? _bufFromB64(b64) : null;
 }
 
-// Utility: random 32-byte key
 function makeRandomKey() {
     return crypto.getRandomValues(new Uint8Array(32));
 }
 
+function genSaltB64(len = 16) {
+    return _b64FromBuf(crypto.getRandomValues(new Uint8Array(len)));
+}
+
 // ---------------------------------------------------------
-// 🟦 SIGNUP (Auth Function)
+// 🔁 Salt/iteration migration — called right after login
+// ---------------------------------------------------------
+
+async function migrateUserCrypto(password) {
+    const { data: row, error } = await supabaseClient
+        .from("user_keys")
+        .select("encrypted_master_key, salt, kdf_iterations")
+        .eq("user_id", CURRENT_USER_ID)
+        .maybeSingle();
+
+    if (error || !row?.encrypted_master_key) return null; // nothing to migrate yet
+
+    const currentSalt = row.salt || OLD_STATIC_SALT;
+    const currentIterations = row.salt ? (row.kdf_iterations || NEW_ITERATIONS) : OLD_ITERATIONS;
+
+    const encObj = JSON.parse(row.encrypted_master_key);
+    const masterKeyBytes = await decryptMasterKey(encObj, password, currentSalt, currentIterations);
+
+    if (row.salt) return masterKeyBytes; // already migrated
+
+    const newSalt = genSaltB64();
+    const newEncrypted = await encryptMasterKey(masterKeyBytes, password, newSalt, NEW_ITERATIONS);
+
+    const { error: updateErr } = await supabaseClient
+        .from("user_keys")
+        .update({
+            encrypted_master_key: JSON.stringify(newEncrypted),
+            salt: newSalt,
+            kdf_iterations: NEW_ITERATIONS
+        })
+        .eq("user_id", CURRENT_USER_ID);
+
+    if (updateErr) console.error("[Migrate] Failed to save new salt:", updateErr);
+    else console.log("[Migrate] Upgraded to personal salt + 600k iterations.");
+
+    return masterKeyBytes;
+}
+
+// ---------------------------------------------------------
+// 🟦 SIGNUP
 // ---------------------------------------------------------
 
 async function handleSignup(e) {
     e.preventDefault();
 
-    const displayName = document
-        .getElementById("signup-display-name")
-        ?.value?.trim();
+    const displayName = document.getElementById("signup-display-name")?.value?.trim();
+    const email = document.getElementById("signup-email")?.value?.trim()?.toLowerCase();
+    const password = document.getElementById("signup-password")?.value;
 
-    const email = document
-        .getElementById("signup-email")
-        ?.value?.trim()
-        ?.toLowerCase();
-
-    const password = document
-        .getElementById("signup-password")
-        ?.value;
-
-    // --- Validate inputs ---
     if (!displayName || !email || !password) {
         displayMessage("Please fill in all fields.", true);
         return;
     }
-
     if (password.length < 8) {
         displayMessage("Password must be at least 8 characters.", true);
         return;
@@ -136,89 +161,65 @@ async function handleSignup(e) {
     displayMessage("Creating account...", false);
 
     const { data, error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-            data: { full_name: displayName },
-            emailRedirectTo: window.location.origin
-        }
+        email, password,
+        options: { data: { full_name: displayName }, emailRedirectTo: window.location.origin }
     });
 
-    // --- Handle errors ---
     if (error) {
-
-        // Reject if email already exists
         if (error.message.toLowerCase().includes("already")) {
-            displayMessage(
-                "An account with this email already exists. Please log in instead.",
-                true
-            );
+            displayMessage("An account with this email already exists. Please log in instead.", true);
         } else {
             displayMessage(error.message, true);
         }
-
         return;
     }
 
-    // --- Email verification flow ---
     if (data.user && !data.session) {
-        displayMessage(
-            "Registration successful! Please check your email to verify your account before logging in.",
-            false
-        );
+        displayMessage("Registration successful! Please check your email to verify your account before logging in.", false);
     } else {
-        // Happens only if email confirmation disabled
         displayMessage("Account created successfully!", false);
     }
 
-    // Switch to login form
     switchForm(loginSection, signupSection);
 }
 
-
 // ---------------------------------------------------------
-// 🟩 LOGIN (Auth + Key Management Function)
+// 🟩 LOGIN
 // ---------------------------------------------------------
 
 async function handleLogin(e) {
     e.preventDefault();
-    
-    // If the password field is not visible, show it and stop submission
+
     if (!passwordGroup.classList.contains('active')) {
-        showPasswordFields(); 
+        showPasswordFields();
         loginPasswordInput.focus();
         return;
     }
 
     const email = document.getElementById("login-email")?.value;
     const password = document.getElementById("login-password")?.value;
-
     if (!email || !password) return;
 
     displayMessage("Logging in...", false);
 
-    // Step 1: Log in the user
     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
     if (error) {
         displayMessage(error.message, true);
         return;
     }
 
-    // Step 2: Get authenticated user
     const { data: userData, error: userErr } = await supabaseClient.auth.getUser();
     if (userErr || !userData?.user) {
         displayMessage("Login succeeded but failed to load user.", true);
         return;
     }
 
-    const userId = userData.user.id;
+    CURRENT_USER_ID = userData.user.id;
 
-    // Step 3: Try to fetch encrypted master key
     const { data: keyRow, error: keyErr } = await supabaseClient
         .from("user_keys")
         .select("encrypted_master_key")
-        .eq("user_id", userId)
+        .eq("user_id", CURRENT_USER_ID)
         .maybeSingle();
 
     if (keyErr) {
@@ -227,11 +228,11 @@ async function handleLogin(e) {
         return;
     }
 
-    // CASE 1: Key exists → decrypt it using password
+    // CASE 1: Key exists → migrate (decrypts + upgrades salt if needed) and use result
     if (keyRow) {
         try {
-            const encObj = JSON.parse(keyRow.encrypted_master_key);
-            const masterKeyBytes = await decryptMasterKey(encObj, password);
+            const masterKeyBytes = await migrateUserCrypto(password);
+            if (!masterKeyBytes) throw new Error("migration returned nothing");
 
             setLocalMasterKeyBytes(masterKeyBytes);
             handleAuthSuccess();
@@ -243,15 +244,18 @@ async function handleLogin(e) {
         }
     }
 
-    // CASE 2: No key exists → create + store new one
+    // CASE 2: No key exists → create new one directly on personal salt + 600k
     const newMasterKey = makeRandomKey();
-    const encrypted = await encryptMasterKey(newMasterKey, password);
+    const newSalt = genSaltB64();
+    const encrypted = await encryptMasterKey(newMasterKey, password, newSalt, NEW_ITERATIONS);
 
     const { error: insertErr } = await supabaseClient
         .from("user_keys")
         .insert({
-            user_id: userId,
-            encrypted_master_key: JSON.stringify(encrypted)
+            user_id: CURRENT_USER_ID,
+            encrypted_master_key: JSON.stringify(encrypted),
+            salt: newSalt,
+            kdf_iterations: NEW_ITERATIONS
         });
 
     if (insertErr) {
@@ -260,9 +264,7 @@ async function handleLogin(e) {
         return;
     }
 
-    // Store decrypted key locally
     setLocalMasterKeyBytes(newMasterKey);
-
     handleAuthSuccess();
 }
 
@@ -274,15 +276,9 @@ function isEmailComplete(email) {
 
 function showPasswordFields() {
     const email = loginEmailInput.value.trim();
-
-    if (isEmailComplete(email)) {
-        passwordGroup.classList.add('active');
-    }
-    else {
-        passwordGroup.classList.remove('active');
-    }
+    if (isEmailComplete(email)) passwordGroup.classList.add('active');
+    else passwordGroup.classList.remove('active');
 }
-
 
 function resetLoginView() {
     loginEmailInput.disabled = false;
@@ -291,78 +287,40 @@ function resetLoginView() {
     displayMessage("", false);
 }
 
-// ---------------------------------------------------------
-// 🔄 Form Switching Logic (For Animation)
-// ---------------------------------------------------------
-
 function switchForm(targetSection, otherSection) {
-    // 1. Hide the current section using the animation class
     otherSection.classList.add('hidden-auth');
-    
-    // 2. Wait for the fade-out/slide-out transition (300ms)
     setTimeout(() => {
-        // Hide the old section and show the new one
         otherSection.style.display = 'none';
         targetSection.style.display = 'block';
-
-        // 3. Start the fade-in/slide-in animation
         requestAnimationFrame(() => {
             targetSection.classList.remove('hidden-auth');
-            resetLoginView(); // Reset the login form state
+            resetLoginView();
         });
-        
-    }, 300); // Must match the CSS transition duration
+    }, 300);
 }
 
-// Ensure the login section is hidden with the class for animation, as it starts hidden
 if (loginSection && loginSection.style.display === 'none') {
     loginSection.classList.add('hidden-auth');
 }
 
-
-// ---------------------------------------------------------
-// Events
-// ---------------------------------------------------------
-
 if (signupForm) signupForm.addEventListener("submit", handleSignup);
-if (loginForm) loginForm.addEventListener("submit", handleLogin); 
+if (loginForm) loginForm.addEventListener("submit", handleLogin);
 
-// Auto-show password field on email input
 loginEmailInput?.addEventListener('input', showPasswordFields);
 
+showLoginLink?.addEventListener("click", e => { e.preventDefault(); switchForm(loginSection, signupSection); });
+showSignupLink?.addEventListener("click", e => { e.preventDefault(); switchForm(signupSection, loginSection); });
 
-// Toggle to Log In View
-showLoginLink?.addEventListener("click", e => {
-    e.preventDefault();
-    switchForm(loginSection, signupSection);
-});
-
-
-// Toggle to Sign Up View
-showSignupLink?.addEventListener("click", e => {
-    e.preventDefault();
-    switchForm(signupSection, loginSection);
-});
-
-// --- MOBILE ENHANCEMENTS ---
 if (window.innerWidth <= 768) {
-    // Prevent zoom on input focus for better UX
-    document.addEventListener('touchstart', function(e) {
-        if (e.target === loginEmailInput || e.target === loginPasswordInput) {
-            e.target.focus();
-        }
+    document.addEventListener('touchstart', function (e) {
+        if (e.target === loginEmailInput || e.target === loginPasswordInput) e.target.focus();
     });
-
-    // Add haptic feedback on button press (if supported)
     const submitButton = loginForm?.querySelector('button[type="submit"]');
     if (submitButton && navigator.vibrate) {
-        submitButton.addEventListener('click', function() {
-            navigator.vibrate(10);
-        });
+        submitButton.addEventListener('click', function () { navigator.vibrate(10); });
     }
 }
 
-// Auto-redirect if session exists
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (session) handleAuthSuccess();
 });

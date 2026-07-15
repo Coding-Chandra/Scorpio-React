@@ -1,4 +1,5 @@
-const CACHE_NAME = 'notoj-app-cache-v1.8.70';
+const CACHE_NAME = 'notoj-app-cache-v1.8.127';
+const BASE = self.registration.scope;
 const urlsToCache = [
   '/',
   '/index.html',
@@ -37,7 +38,7 @@ const urlsToCache = [
   '/app/src/assets/icons/logo_dark.png',
   '/src/assets/icons/logo.png',
   '/src/assets/icons/logo.svg',
-];
+].map(p => new URL(p, BASE).toString());
 
 // ============================================================================
 // INSTALL: Pre-cache all assets
@@ -118,7 +119,8 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Offline fallback for navigation
         if (event.request.mode === 'navigate') {
-          return caches.match('/app/index.html') || caches.match('/index.html');
+          return caches.match(new URL('/app/index.html', BASE).toString())
+            || caches.match(new URL('/index.html', BASE).toString());
         }
       });
     })
@@ -157,18 +159,54 @@ self.addEventListener('message', event => {
       });
       break;
 
-    case 'CACHE_URLS':
-      if (event.data.urls && Array.isArray(event.data.urls)) {
-        caches.open(CACHE_NAME).then(cache => {
-          cache.addAll(event.data.urls)
-            .then(() => event.ports[0]?.postMessage({ success: true }))
-            .catch(err => {
-              console.error('[SW] Error caching URLs:', err);
-              event.ports[0]?.postMessage({ success: false, error: err.message });
-            });
-        });
-      }
+    case 'CACHE_URLS': {
+      const urls = (event.data.urls && event.data.urls.length) ? event.data.urls : urlsToCache;
+      const port = event.ports[0];
+      let downloadedFiles = 0, downloadedBytes = 0;
+
+      (async () => {
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          for (const path of urls) {
+            const url = new URL(path, BASE).toString();
+            port?.postMessage({ type: 'UPDATE_PROGRESS', phase: 'downloading', url, downloadedFiles, totalFiles: urls.length, downloadedBytes });
+            const res = await fetch(url);
+            if (res && res.ok) {
+              const blob = await res.clone().blob();
+              downloadedBytes += blob.size;
+              await cache.put(url, res);
+            }
+            downloadedFiles++;
+          }
+          port?.postMessage({ type: 'UPDATE_PROGRESS', phase: 'installing', downloadedFiles, totalFiles: urls.length, downloadedBytes });
+          port?.postMessage({ type: 'UPDATE_DONE', downloadedFiles, totalFiles: urls.length, downloadedBytes });
+        } catch (err) {
+          port?.postMessage({ type: 'UPDATE_ERROR', error: err.message });
+        }
+      })();
       break;
+    }
+
+    case 'GET_UPDATE_SIZE': {
+      const urls = (event.data.urls && event.data.urls.length) ? event.data.urls : urlsToCache;
+      const port = event.ports[0];
+
+      (async () => {
+        let totalBytes = 0;
+        await Promise.all(urls.map(async path => {
+          try {
+            const url = new URL(path, BASE).toString();
+            const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+            const len = res.headers.get('content-length');
+            if (len) totalBytes += parseInt(len, 10);
+          } catch (e) {
+            // skip files that fail HEAD (e.g. opaque/cross-origin)
+          }
+        }));
+        port?.postMessage({ type: 'UPDATE_SIZE', totalBytes, totalFiles: urls.length });
+      })();
+      break;
+    }
 
     case 'GET_CACHE_SIZE':
       caches.keys().then(cacheNames => {

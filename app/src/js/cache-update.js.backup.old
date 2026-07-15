@@ -1,0 +1,406 @@
+/*
+ * Cache Update Manager (single source of truth)
+ *
+ * Responsibilities (client-only):
+ * - Detect update availability (lightweight): registration.update()
+ * - Show "Update available" UI
+ * - On user click:
+ *    1) Send CACHE_URLS to the waiting service worker for atomic download
+ *    2) If success: send SKIP_WAITING
+ *    3) After activation: send CLAIM_CLIENTS
+ *    4) Reload app
+ *
+ * Service worker responsibilities are cache-only.
+ */
+
+let updateAvailable = false;
+let userTriggeredUpdate = false;
+
+const VERSION = 'v1.8.92';
+
+function shouldShowNotifications() {
+  return localStorage.getItem('app_notifications_disabled') !== 'true';
+}
+
+function updateButtonUI(hasUpdate = false) {
+  const updateText = document.getElementById('updateCacheText');
+  if (!updateText) return;
+
+  if (hasUpdate) {
+    updateText.textContent = 'Update available';
+    updateText.style.color = 'var(--accent)';
+    updateText.style.fontWeight = '600';
+  } else {
+    updateText.textContent = 'Check for updates';
+    updateText.style.color = '';
+    updateText.style.fontWeight = '';
+  }
+}
+
+/**
+ * Notification
+ */
+function showNotification(title, message, type = 'info') {
+  if (!shouldShowNotifications()) return;
+
+  let container =
+    document.getElementById('notification-container');
+
+  if (!container) {
+
+    container = document.createElement('div');
+
+    container.id = 'notification-container';
+
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    `;
+
+    document.body.appendChild(container);
+  }
+
+  const notification = document.createElement('div');
+
+  let bg = 'var(--bg-card)';
+  let color = 'var(--text-main)';
+
+  if (type === 'success') {
+    bg = 'var(--accent)';
+    color = '#fff';
+  }
+
+  if (type === 'error') {
+    bg = 'var(--accent1)';
+    color = '#fff';
+  }
+
+  notification.style.cssText = `
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: ${bg};
+    color: ${color};
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+  `;
+
+  notification.innerHTML = `
+    <div style="font-weight:600;">
+      ${title}
+    </div>
+
+    <div style="opacity:0.9;font-size:13px;">
+      ${message}
+    </div>
+  `;
+
+  container.appendChild(notification);
+
+  setTimeout(() => {
+    notification.remove();
+  }, 4000);
+}
+
+/**
+ * Helper
+ */
+function wait(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
+console.log('[Cache Update] SW-only manager loaded');function showNotification(title, message, type = 'info') {
+  if (!shouldShowNotifications()) return;
+
+  let container = document.getElementById('notification-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notification-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const notification = document.createElement('div');
+
+  let bg = 'var(--bg-card)';
+  let color = 'var(--text-main)';
+
+  if (type === 'success') {
+    bg = 'var(--accent)';
+    color = '#fff';
+  }
+  if (type === 'error') {
+    bg = 'var(--accent1)';
+    color = '#fff';
+  }
+
+  notification.style.cssText = `
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: ${bg};
+    color: ${color};
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 14px;
+  `;
+
+  notification.innerHTML = `
+    <div style="font-weight:600;">${title}</div>
+    <div style="opacity:0.9;font-size:13px;">${message}</div>
+  `;
+
+  container.appendChild(notification);
+  setTimeout(() => notification.remove(), 4000);
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getCacheNamesForVersion(ver = VERSION) {
+  return {
+    html: `html-cache-${ver}`,
+    static: `static-cache-${ver}`,
+    font: `font-cache-${ver}`,
+    icon: `icon-cache-${ver}`,
+    image: `image-cache-${ver}`,
+  };
+}
+
+// Deterministic "cache everything we can" URL generator.
+// Bounded local list based on known repo asset files.
+function buildDeterministicCacheUrls() {
+  const urls = new Set();
+
+  // root entries
+  urls.add('/app/index.html');
+  urls.add('/index.html');
+  urls.add('/manifest.json');
+
+  // HTML pages
+  [
+    '/app/settings.html',
+    '/app/src/pages/about.html',
+    '/app/src/pages/donate.html',
+    '/app/src/pages/privacy.html',
+    '/app/src/pages/tos.html',
+    '/app/src/pages/profile.html',
+    '/app/src/pages/theme.html',
+    '/app/src/pages/wallpaper.html',
+  ].forEach((u) => urls.add(u));
+
+  // CSS
+  [
+    '/app/src/css/animations.css',
+    '/app/src/css/app.css',
+    '/app/src/css/avatars.css',
+    '/app/src/css/md3e-app.css',
+    '/app/src/css/nthng.css',
+    '/app/src/css/profile.css',
+    '/app/src/css/settings.css',
+    '/app/src/css/ui-enhancements.css',
+  ].forEach((u) => urls.add(u));
+
+  // JS
+  [
+    '/app/src/js/app.js',
+    '/app/src/js/live-update.js',
+    '/app/src/js/offline-sync.js',
+    '/app/src/js/profile.js',
+    '/app/src/js/settings.js',
+    '/app/src/js/md3e-enhance.js',
+    '/app/src/js/avatars.js',
+    '/app/src/js/cache-update.js',
+    '/app/src/js/animation-utils.js',
+  ].forEach((u) => urls.add(u));
+
+  // Fonts
+  [
+    '/app/src/assets/fonts/SFR.ttf',
+    '/app/src/assets/fonts/Ndot-57-Aligned.otf',
+    '/app/src/assets/fonts/NType82-Headline.otf',
+    '/app/src/assets/fonts/NType82-Regular.otf',
+    '/app/src/assets/fonts/UbuntuMono[wght].ttf',
+  ].forEach((u) => urls.add(u));
+
+  // Icons
+  [
+    '/app/src/assets/icons/logo.png',
+    '/app/src/assets/icons/logo_dark.png',
+    '/app/src/assets/icons/logo.svg',
+    '/app/src/assets/icons/logo-og.png',
+    '/app/src/assets/icons/logo-old.png',
+    '/app/src/assets/icons/logo-initial.png',
+    '/app/src/assets/icons/noise.png',
+    '/app/src/assets/icons/image.png',
+  ].forEach((u) => urls.add(u));
+
+  // Wallpapers (known)
+  [
+    '/app/src/assets/wallpaper/imd/imd1.jpg',
+    '/app/src/assets/wallpaper/imd/imd2.jpg',
+    '/app/src/assets/wallpaper/imd/imd3.jpg',
+    '/app/src/assets/wallpaper/n/nos1.jpg',
+    '/app/src/assets/wallpaper/n/nos2.jpg',
+    '/app/src/assets/wallpaper/n/nos3.jpg',
+    '/app/src/assets/wallpaper/n/nos4.jpg',
+  ].forEach((u) => urls.add(u));
+
+  return Array.from(urls);
+}
+
+function getWaitingServiceWorker(registration) {
+  return registration.waiting || registration.installing || registration.active;
+}
+
+function sendMessageToSW(sw, payload) {
+  return new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = (ev) => resolve(ev.data);
+    sw.postMessage(payload, [channel.port2]);
+  });
+}
+
+async function checkForUpdates() {
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) return;
+
+    await registration.update();
+    await wait(800);
+
+    const hasController = !!navigator.serviceWorker.controller;
+    updateAvailable = !!(registration.waiting && hasController);
+    updateButtonUI(updateAvailable);
+  } catch (err) {
+    console.error('[Cache Update] Check failed:', err);
+  }
+}
+
+window.showUpdateCacheModal = () => {
+  if (typeof window.openModal !== 'function') {
+    alert('Modal system not ready');
+    return;
+  }
+
+  if (updateAvailable) {
+    window.openModal(
+      'App Update Available',
+      'A new version is ready.',
+      'Update Now',
+      'var(--accent)',
+      async () => {
+        await performUpdate();
+      }
+    );
+  } else {
+    window.openModal(
+      'Check for Updates',
+      'Check for latest version?',
+      'Check Now',
+      'var(--accent)',
+      async () => {
+        await checkForUpdates();
+      }
+    );
+  }
+};
+
+async function performUpdate() {
+  userTriggeredUpdate = true;
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) throw new Error('No SW registration');
+
+    await registration.update();
+
+    const sw = getWaitingServiceWorker(registration);
+    if (!sw) throw new Error('No SW found');
+
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = 'Preparing update...';
+    }
+
+    const cacheNames = getCacheNamesForVersion(VERSION);
+    const urls = buildDeterministicCacheUrls();
+
+    if (confirmBtn) confirmBtn.innerText = 'Downloading update assets...';
+
+    const result = await sendMessageToSW(sw, {
+      type: 'CACHE_URLS',
+      urls,
+      cacheNames,
+    });
+
+    if (!result || !result.success) {
+      throw new Error(result?.error || 'Asset download failed');
+    }
+
+    if (confirmBtn) confirmBtn.innerText = 'Activating update...';
+
+    sw.postMessage({ type: 'SKIP_WAITING' });
+    await wait(50);
+
+    if (registration.active) {
+      registration.active.postMessage({ type: 'CLAIM_CLIENTS' });
+    }
+
+    await wait(1000);
+
+    updateAvailable = false;
+    updateButtonUI(false);
+
+    if (confirmBtn) confirmBtn.innerText = '✓ Updated';
+
+    setTimeout(() => window.location.reload(), 400);
+  } catch (err) {
+    console.error('[Cache Update] Update failed:', err);
+    showNotification('Update Failed', err?.message || String(err), 'error');
+  } finally {
+    userTriggeredUpdate = false;
+  }
+}
+
+// init
+window.addEventListener('load', async () => {
+  if (!('serviceWorker' in navigator)) return;
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+
+    registration.addEventListener('updatefound', () => {
+      const newSW = registration.installing;
+      if (!newSW) return;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          updateAvailable = true;
+          updateButtonUI(true);
+        }
+      });
+    });
+
+    setTimeout(() => checkForUpdates(), 1200);
+  } catch (err) {
+    console.error('[Cache Update] init failed:', err);
+  }
+});
+
+console.log('[Cache Update] single-source update')

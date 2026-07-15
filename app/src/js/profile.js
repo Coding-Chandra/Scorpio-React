@@ -11,6 +11,47 @@ let currentEmoji = null;
 let currentDisplayName = null;
 let currentGradientIndex = null; // Index of selected gradient
 
+function _b64FromBuf(buf) {
+    return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+
+function _bufFromB64(b64) {
+    const bin = atob(b64 || '');
+    return new Uint8Array([...bin].map(c => c.charCodeAt(0)));
+}
+
+function getLocalMasterKeyBytes() {
+    const stored = localStorage.getItem('notes_master_key');
+    return stored ? _bufFromB64(stored) : null;
+}
+
+async function encryptWithMasterKey(plaintext) {
+    if (!plaintext) return '';
+    const mk = getLocalMasterKeyBytes();
+    if (!mk) throw new Error('Master key not available locally.');
+    const key = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['encrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        new TextEncoder().encode(plaintext)
+    );
+    return `enc:${_b64FromBuf(iv)}:${_b64FromBuf(ciphertext)}`;
+}
+
+async function decryptWithMasterKey(stored) {
+    if (!stored) return '';
+    if (!stored.startsWith('enc:')) return stored;
+    const mk = getLocalMasterKeyBytes();
+    if (!mk) return stored;
+    const [, ivB64, ctB64] = stored.split(':');
+    const iv = _bufFromB64(ivB64);
+    const ct = _bufFromB64(ctB64);
+    const key = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['decrypt']);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return new TextDecoder().decode(decrypted);
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     await initializeProfile();
@@ -547,24 +588,36 @@ window.saveDisplayName = async () => {
 };
 
 // Decryption utility
-function decryptContent(encryptedText) {
+async function decryptContent(storedText) {
     try {
-        if (encryptedText && encryptedText.startsWith('encrypted:')) {
-            return atob(encryptedText.replace('encrypted:', ''));
-        }
-        return encryptedText || '';
+        return await decryptWithMasterKey(storedText);
     } catch (error) {
         console.error('Error decrypting content:', error);
-        return encryptedText || '';
+        return storedText || '';
     }
 }
 
-window.exportData = async () => {
-    const btn = document.getElementById('exportBtn');
+window.promptExportNotes = () => {
+    document.getElementById('modal-title').textContent = 'Export Notes Backup';
+    document.getElementById('modal-message').textContent = 'This will fetch your online notes, decrypt them locally, and create a JSON backup file.';
+    document.getElementById('modal-input-container').innerHTML = '';
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    confirmBtn.textContent = 'Export';
+    confirmBtn.style.background = 'var(--accent)';
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = async () => {
+        await exportNotesToFile();
+    };
+    document.getElementById('custom-modal-overlay').classList.remove('hidden');
+};
+
+async function exportNotesToFile() {
+    const btn = document.getElementById('modal-confirm-btn');
     const statusEl = document.getElementById('exportStatus');
-    
-    btn.style.pointerEvents = 'none';
-    btn.style.opacity = '0.6';
+    const messageEl = document.getElementById('modal-message');
+
+    btn.disabled = true;
+    messageEl.textContent = 'Fetching notes...';
     statusEl.textContent = 'Exporting...';
     statusEl.style.color = 'var(--text-dim)';
 
@@ -576,12 +629,18 @@ window.exportData = async () => {
 
         if (error) throw error;
 
-        // Decrypt notes before exporting
-        const decryptedNotes = (notes || []).map(note => ({
-            ...note,
-            title: decryptContent(note.title),
-            content: decryptContent(note.content)
-        }));
+        const decryptedNotes = [];
+        for (const note of notes || []) {
+            decryptedNotes.push({
+                title: await decryptContent(note.title),
+                content: await decryptContent(note.content),
+                paper_style: note.paper_style || 'blank',
+                folder_id: note.folder_id || null,
+                pinned: note.pinned || false,
+                created_at: note.created_at,
+                updated_at: note.updated_at
+            });
+        }
 
         const exportData = {
             exportDate: new Date().toISOString(),
@@ -596,7 +655,7 @@ window.exportData = async () => {
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `notes-export-${new Date().toISOString().split('T')[0]}.json`;
+        link.download = `notes-backup-${new Date().toISOString().split('T')[0]}.json`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -604,16 +663,104 @@ window.exportData = async () => {
 
         statusEl.textContent = `✓ Exported ${decryptedNotes.length} ${decryptedNotes.length === 1 ? 'note' : 'notes'}`;
         statusEl.style.color = 'var(--accent)';
-
+        messageEl.textContent = 'Backup created and downloaded successfully.';
+        btn.textContent = 'Done';
+        btn.disabled = false;
+        btn.onclick = window.closeCustomModal;
     } catch (error) {
         console.error('Export error:', error);
         statusEl.textContent = '✕ Export failed';
         statusEl.style.color = 'var(--accent1)';
-    } finally {
-        btn.style.pointerEvents = 'auto';
-        btn.style.opacity = '1';
+        messageEl.textContent = 'Could not export notes. Make sure your encryption key is available.';
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
     }
+}
+
+window.promptImportNotes = () => {
+    document.getElementById('modal-title').textContent = 'Import Notes Backup';
+    document.getElementById('modal-message').textContent = 'Select a JSON backup file with plain note text. Notes will be encrypted locally and uploaded to your account.';
+    document.getElementById('modal-input-container').innerHTML = `
+        <input id="notesImportFileInput" type="file" accept="application/json" style="width:100%; padding: 10px 0;" />
+        <p style="font-size: 13px; color: var(--text-dim); margin: 10px 0 0 0;">Choose the JSON file created by the notes export.</p>
+    `;
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    confirmBtn.textContent = 'Upload';
+    confirmBtn.style.background = 'var(--accent)';
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = async () => {
+        await importNotesFromFile();
+    };
+    document.getElementById('custom-modal-overlay').classList.remove('hidden');
 };
+
+async function importNotesFromFile() {
+    const fileInput = document.getElementById('notesImportFileInput');
+    const messageEl = document.getElementById('modal-message');
+    const statusEl = document.getElementById('exportStatus');
+    const btn = document.getElementById('modal-confirm-btn');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showNotification('Please choose a JSON file to import.', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    btn.disabled = true;
+    messageEl.textContent = 'Reading backup file...';
+    statusEl.textContent = 'Importing...';
+    statusEl.style.color = 'var(--text-dim)';
+
+    try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const importedNotes = Array.isArray(parsed.notes) ? parsed.notes : [];
+
+        if (importedNotes.length === 0) {
+            throw new Error('Backup file contains no notes.');
+        }
+
+        messageEl.textContent = `Encrypting ${importedNotes.length} notes...`;
+
+        const rows = [];
+        for (const note of importedNotes) {
+            const title = note.title || '';
+            const content = note.content || '';
+            rows.push({
+                title: title.startsWith('enc:') ? title : await encryptWithMasterKey(title),
+                content: content.startsWith('enc:') ? content : await encryptWithMasterKey(content),
+                paper_style: note.paper_style || 'blank',
+                user_id: currentUser.id,
+                folder_id: note.folder_id || null,
+                pinned: note.pinned || false,
+                created_at: note.created_at || undefined,
+                updated_at: note.updated_at || undefined
+            });
+        }
+
+        messageEl.textContent = 'Uploading encrypted notes...';
+
+        const { data, error } = await supabase
+            .from('notes')
+            .insert(rows);
+
+        if (error) throw error;
+
+        statusEl.textContent = `✓ Imported ${rows.length} ${rows.length === 1 ? 'note' : 'notes'}`;
+        statusEl.style.color = 'var(--accent)';
+        messageEl.textContent = 'Notes uploaded successfully.';
+        btn.textContent = 'Done';
+        btn.disabled = false;
+        btn.onclick = window.closeCustomModal;
+    } catch (error) {
+        console.error('Import error:', error);
+        statusEl.textContent = '✕ Import failed';
+        statusEl.style.color = 'var(--accent1)';
+        messageEl.textContent = `Import failed: ${error.message || 'Invalid backup file.'}`;
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+    }
+}
 
 function showNotification(message, type = 'success') {
     const notification = document.createElement('div');

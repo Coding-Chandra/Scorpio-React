@@ -12,7 +12,7 @@
 <!-- Shared design tokens -->
 <link rel="stylesheet" href="../css/settings.css">
 <!-- Theme-specific tokens -->
-<link rel="stylesheet" href="../css/nthing.css">
+<link rel="stylesheet" href="../css/nthng.css">
 <link rel="stylesheet" href="../css/md3e-app.css">
 
 <style>
@@ -359,6 +359,18 @@ html[data-ui="md3e"] .error-banner {
 }
 
 .wallpaper-card:active { transform: scale(0.982); }
+
+@media (hover: hover) and (pointer: fine) {
+  .wallpaper-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.26);
+  }
+  .wallpaper-card.selected:hover {
+    box-shadow:
+      0 0 0 2.5px var(--accent),
+      0 14px 38px rgba(0, 0, 0, 0.3);
+  }
+}
 
 /* Selected ring */
 .wallpaper-card.selected {
@@ -748,7 +760,13 @@ function buildWallpaperBoard() {
    TAP HANDLER
 ===================================================== */
 function handleWallpaperTap(id) {
-  const ui           = localStorage.getItem('ui-theme') || 'ios';
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+
+  if (ui === 'md3e') {
+    showError('Wallpaper selection is not available for Material You.');
+    return;
+  }
+
   const currentTheme = ui === 'nothing' ? 'nothing' : 'ios-md3e';
   const card         = wallpaperCards.find(c => c.id === id);
   if (!card) return;
@@ -760,6 +778,11 @@ function handleWallpaperTap(id) {
     return;
   }
 
+  if (isDisabled()) {
+    localStorage.setItem(WALLPAPER_DISABLE_KEY, 'false');
+    syncToggleUI();
+  }
+
   localStorage.setItem(WALLPAPER_KEY, id);
   buildWallpaperBoard();
   notifyParent();
@@ -769,9 +792,12 @@ function handleWallpaperTap(id) {
    POST TO PARENT
 ===================================================== */
 function notifyParent() {
+  const id = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+  const card = wallpaperCards.find(c => c.id === id);
   window.parent.postMessage({
-    type:     'WALLPAPER_CHANGED',
-    wallpaper: localStorage.getItem(WALLPAPER_KEY) || 'w1',
+    type:      'WALLPAPER_CHANGED',
+    wallpaper: id,
+    label:     card?.label || 'Wallpaper',
     disabled:  isDisabled()
   }, '*');
 }
@@ -804,22 +830,47 @@ function scrollSelectedIntoView() {
    DRAG-TO-SCROLL
 ===================================================== */
 (function enableDragScroll(el) {
-  let down = false, startX = 0, scrollLeft = 0;
+  let down = false, dragging = false, startX = 0, scrollLeft = 0;
+  const THRESHOLD = 6; // px — below this, treat as a click, not a drag
+
+  el.style.cursor = 'grab';
+
   el.addEventListener('pointerdown', e => {
     down = true;
-    el.setPointerCapture(e.pointerId);
+    dragging = false;
     startX = e.clientX;
     scrollLeft = el.scrollLeft;
+    // Capture lazily — only once we know it's a drag (see pointermove)
   });
+
   window.addEventListener('pointerup', e => {
     if (!down) return;
     down = false;
-    try { el.releasePointerCapture(e.pointerId); } catch {}
+    if (dragging) {
+      dragging = false;
+      el.style.cursor = 'grab';
+      try { el.releasePointerCapture(e.pointerId); } catch {}
+    }
   });
+
   el.addEventListener('pointermove', e => {
     if (!down) return;
-    el.scrollLeft = scrollLeft + (startX - e.clientX);
+    const delta = startX - e.clientX;
+    if (!dragging && Math.abs(delta) > THRESHOLD) {
+      dragging = true;
+      el.style.cursor = 'grabbing';
+      try { el.setPointerCapture(e.pointerId); } catch {}
+    }
+    if (dragging) {
+      el.scrollLeft = scrollLeft + delta;
+    }
   });
+
+  // Prevent the click that follows a real drag from selecting a card,
+  // but let genuine taps/clicks (no movement) through untouched.
+  el.addEventListener('click', e => {
+    if (dragging) e.stopPropagation();
+  }, true);
 })($board);
 
 /* =====================================================

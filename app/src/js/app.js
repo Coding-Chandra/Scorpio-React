@@ -72,19 +72,114 @@ function _b64Decode(str) {
     return new Uint8Array([...bin].map(c => c.charCodeAt(0)));
 }
 
-async function deriveKeyFromPassword(password, salt = 'notesapp_v1_salt') {
+// ============================================================================
+// CRYPTO UPGRADE — per-user salt + higher PBKDF2 iterations
+// Drop this in app.js, replacing the old deriveKeyFromPassword (section 3),
+// OR paste below it — these redefine the same names so order doesn't matter
+// as long as this runs after the original declarations.
+// ============================================================================
+
+const OLD_STATIC_SALT = 'notesapp_v1_salt';
+const OLD_ITERATIONS   = 600000;
+const NEW_ITERATIONS   = 600000;
+
+// Now requires an explicit salt — no silent default.
+async function deriveKeyFromPassword(password, salt, iterations = NEW_ITERATIONS) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
         'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
     );
     return crypto.subtle.deriveKey(
-        { name: 'PBKDF2', salt: enc.encode(salt), iterations: 200000, hash: 'SHA-256' },
+        { name: 'PBKDF2', salt: enc.encode(salt), iterations, hash: 'SHA-256' },
         keyMaterial,
         { name: 'AES-GCM', length: 256 },
         false,
         ['encrypt', 'decrypt']
     );
 }
+
+function _genSaltB64(len = 16) {
+    return _b64Encode(crypto.getRandomValues(new Uint8Array(len)));
+}
+
+/** Fetch this user's salt row. Returns { salt, iterations } — salt null = not migrated yet. */
+async function _getUserCryptoRow() {
+    const { data, error } = await supabaseClient
+        .from('user_keys')
+        .select('salt, kdf_iterations')
+        .eq('user_id', CURRENT_USER_ID)
+        .single();
+    if (error || !data) return { salt: null, iterations: OLD_ITERATIONS };
+    return { salt: data.salt, iterations: data.kdf_iterations || OLD_ITERATIONS };
+}
+
+/**
+ * Call once right after successful login (from your login page),
+ * BEFORE relying on encryptWithMasterKey/decryptWithMasterKey.
+ * - If user already has a personal salt: just derives + caches the key.
+ * - If not: decrypts master key with the old static salt, generates a new
+ *   random salt, re-encrypts with 600k iterations, saves to user_keys.
+ * Returns true on success, false if it couldn't proceed (wrong password etc).
+ */
+async function migrateUserCrypto(password) {
+    const { salt, iterations } = await _getUserCryptoRow();
+
+    if (salt) {
+        // Already migrated — just derive session keys with personal salt.
+        const key = await deriveKeyFromPassword(password, salt, iterations);
+        _cachedDecryptKey = key;
+        _cachedEncryptKey = key;
+        return true;
+    }
+
+    // Not migrated yet: decrypt existing master key with OLD static salt/iterations.
+    const { data: row, error } = await supabaseClient
+        .from('user_keys')
+        .select('encrypted_master_key')
+        .eq('user_id', CURRENT_USER_ID)
+        .single();
+    if (error || !row?.encrypted_master_key) return false;
+
+    let masterKeyBytes;
+    try {
+        const oldDerived = await deriveKeyFromPassword(password, OLD_STATIC_SALT, OLD_ITERATIONS);
+        const encObj = JSON.parse(row.encrypted_master_key);
+        const iv = _b64Decode(encObj.iv);
+        const ct = _b64Decode(encObj.data);
+        masterKeyBytes = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, oldDerived, ct));
+    } catch (e) {
+        console.error('[Migrate] Wrong password or corrupt key:', e);
+        return false;
+    }
+
+    // Generate new personal salt, re-encrypt master key under it.
+    const newSalt = _genSaltB64();
+    const newDerived = await deriveKeyFromPassword(password, newSalt, NEW_ITERATIONS);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, newDerived, masterKeyBytes);
+    const newEncrypted = JSON.stringify({ iv: _b64Encode(iv), data: _b64Encode(ct) });
+
+    const { error: updateErr } = await supabaseClient
+        .from('user_keys')
+        .update({
+            encrypted_master_key: newEncrypted,
+            salt: newSalt,
+            kdf_iterations: NEW_ITERATIONS
+        })
+        .eq('user_id', CURRENT_USER_ID);
+
+    if (updateErr) {
+        console.error('[Migrate] Failed to save new salt:', updateErr);
+        return false; // user still works off old salt next time; safe to retry later
+    }
+
+    _cachedDecryptKey = newDerived;
+    _cachedEncryptKey = newDerived;
+    console.log('[Migrate] User upgraded to personal salt + 600k iterations.');
+    return true;
+}
+
+window.migrateUserCrypto = migrateUserCrypto;
 
 async function encryptMasterKey(masterKeyBytes, password) {
     const derived = await deriveKeyFromPassword(password);

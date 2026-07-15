@@ -33,8 +33,8 @@
   --transparent: #ffffff06;
 
   /* Settings toggle (notification) theme tokens */
-  --toggle-off: rgba(255,255,255,0.08);
-  --toggle-on: linear-gradient(135deg, #4cafeb, #44d9b6);
+  --toggle-off: #e4e4e5;
+  --toggle-on: #65c466;
   --toggle-thumb: #fff;
 
   --ui-refresh-token: 0;
@@ -362,6 +362,40 @@ body::before {
   background: var(--bg-active);
 }
 
+/* --- Default Toggle Styles --- */
+.notifToggle {
+  width: 60px; 
+  height: 26px; 
+  border-radius: 99px; 
+  border: 1px solid var(--sep); 
+  display: grid; 
+  place-items: center; 
+  background: var(--toggle-off); 
+  transition: background 0.2s ease;
+}
+
+/* Default Checked State */
+.notifToggle[data-checked="true"] {
+  background: var(--toggle-on);
+}
+
+.notifThumb {
+  width: 32px; 
+  height: 21px;
+  background: var(--toggle-thumb); 
+  backdrop-filter: blur(4px);
+  border: 1px solid #ffffff46;
+  box-shadow: -1.5px 1.5px 10px 0px #2C2C2E5A;
+  border-radius: 38px;
+  transform: translateX(-14px); 
+  transition: transform 0.2s ease;
+}
+
+/* Default Thumb Checked State */
+.notifToggle[data-checked="true"] .notifThumb {
+  transform: translateX(14px); /* Perfectly mirrors the -14px */
+}
+
 /* =====================================================
            NOTHING OS 4 - MODAL OVERRIDES
 ===================================================== */
@@ -646,12 +680,23 @@ html[data-ui="nothing"] {
   --accent: rgb(215, 25, 33);
   --bg-main: #F3F3F3;
   --bg-card: #FFFFFF;
+
+  
+  --toggle-on: #000000;
+  --toggle-off: #F3F3F3;
+  --toggle-thumb: #1B1B1B;
+  --toggle-thumb-off: #ffffff;
 }
 
 html[data-ui="nothing"][data-theme="dark"] {
   --accent: rgb(215, 25, 33);
   --bg-main: #000000;
   --bg-card: #1B1B1B;
+
+  --toggle-on: #F3F3F3;
+  --toggle-off: #1B1B1B;
+  --toggle-thumb: #F3F3F3;
+  --toggle-thumb-off: #1B1B1B;
 }
 
 html[data-ui="nothing"] body {
@@ -709,6 +754,33 @@ html[data-ui="nothing"] .label {
   font-family: 'Ndot 57 Aligned';
 }
 
+/* --- Nothing UI Variant Styles --- */
+html[data-ui="nothing"] .notifToggle {
+  width: 55px; 
+  height: 30px;
+}
+
+/* Nothing Checked State */
+html[data-ui="nothing"] .notifToggle[data-checked="true"] {
+  background: var(--toggle-on) !important;
+}
+
+html[data-ui="nothing"] .notifThumb {
+  width: 18px; 
+  height: 18px;
+  background: var(--toggle-thumb);
+  transform: translateX(-14px); 
+  transition: transform 0.2s ease;
+}
+
+/* Nothing Thumb Checked State */
+html[data-ui="nothing"] .notifToggle[data-checked="true"] .notifThumb {
+  transform: translateX(11.5px);
+  width: 24px;
+  height: 24px;
+  background: var(--toggle-thumb-off);
+}
+
 /* =====================================================
         MD3E – SAFE PATCH (NO COLOR-MIX, JUST BASE COLORS)
 ===================================================== */
@@ -729,6 +801,10 @@ html[data-ui="md3e"][data-theme="light"] {
   --clickable: color-mix(in srgb,
       rgba(255, 255, 255, 0.130) 70%,
       rgb(var(--md-seed)) 30%);
+  
+  --toggle-on: rgba(var(--md-seed));
+  --toggle-off: rgba(0, 0, 0, 0.08);
+  --toggle-thumb-off: rgba(var(--md-seed), 0.24);
 }
 
 html[data-ui="md3e"][data-theme="dark"] {
@@ -753,6 +829,11 @@ html[data-ui="md3e"][data-theme="dark"] {
   --clickable: color-mix(in srgb,
       rgba(0, 0, 0, 0.10) 90%,
       rgb(var(--md-seed)) 10%);
+  
+      
+  --toggle-on: rgba(var(--md-seed));
+  --toggle-off: rgba(0, 0, 0, 0.08);
+  --toggle-thumb-off: rgba(var(--md-seed), 0.24);
 }
 
 html[data-ui="md3e"] body {
@@ -800,4 +881,32 @@ html[data-ui="md3e"][data-theme="light"] .row.clickable:active {
 
 html[data-ui="md3e"][data-theme="dark"] .row.clickable:active {
   background-color: var(--clickable);
+}
+
+/* --- MD3E UI Variant Styles --- */
+html[data-ui="md3e"] .notifToggle {
+  width: 55px; 
+  height: 30px; 
+  /* ... rest of your md3e code remains same ... */
+}
+
+/* MD3E Checked State */
+html[data-ui="md3e"] .notifToggle[data-checked="true"] {
+  background: var(--toggle-on) !important;
+}
+
+html[data-ui="md3e"] .notifThumb {
+  width: 20px; 
+  height: 20px;
+  background: var(--toggle-thumb-off);
+  transform: translateX(-14px); 
+  transition: transform 0.2s ease;
+}
+
+/* MD3E Thumb Checked State */
+html[data-ui="md3e"] .notifToggle[data-checked="true"] .notifThumb {
+  transform: translateX(11.5px);
+  width: 24px;
+  height: 24px;
+  background: var(--toggle-thumb);
 }

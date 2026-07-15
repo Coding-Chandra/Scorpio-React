@@ -14,6 +14,7 @@ let updateAvailable = false;
 let ACTIVE_CACHE_NAME = null;
 let LATEST_CACHE_NAME = null;
 let userTriggeredUpdate = false;
+let pendingUpdateSize = null;
 let updateProgressState = {
   phase: 'idle',
   downloadedFiles: 0,
@@ -73,7 +74,7 @@ async function getAppCaches() {
   const cacheNames = await caches.keys();
 
   return cacheNames.filter(name =>
-    name.startsWith('notoj-app-cache-v')
+    name.startsWith('notoj-app-v')
   );
 }
 
@@ -160,6 +161,35 @@ function displayBuildNumber() {
 }
 
 /**
+ * Ask the SW for the total download size of pending update files
+ */
+async function fetchUpdateSize() {
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const sw = registration?.active;
+    if (!sw) return null;
+
+    return await new Promise(resolve => {
+      const channel = new MessageChannel();
+
+      channel.port1.onmessage = event => {
+        if (event.data?.type === 'UPDATE_SIZE') {
+          resolve(event.data);
+        } else {
+          resolve(null);
+        }
+      };
+
+      sw.postMessage({ type: 'GET_UPDATE_SIZE' }, [channel.port2]);
+
+      setTimeout(() => resolve(null), 8000);
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Check for updates
  */
 async function checkForUpdates() {
@@ -200,6 +230,8 @@ async function checkForUpdates() {
       updateAvailable = true;
 
       updateButtonUI(true);
+
+      pendingUpdateSize = await fetchUpdateSize();
 
     } else {
       console.log('[Cache Update] Already latest');
@@ -266,9 +298,13 @@ window.showUpdateCacheModal = () => {
 
   if (updateAvailable) {
 
+    const sizeText = pendingUpdateSize?.totalBytes
+      ? ` (${formatBytes(pendingUpdateSize.totalBytes)})`
+      : '';
+
     window.openModal(
       'App Update Available',
-      'A new version is ready.',
+      `A new version is ready${sizeText}.`,
       'Update Now',
       'var(--accent)',
       async () => {
@@ -290,6 +326,68 @@ window.showUpdateCacheModal = () => {
 
   }
 };
+
+function formatBytes(bytes) {
+  if (!bytes || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function updateProgressUI(phase, message = '', extra = {}) {
+  updateProgressState = {
+    phase,
+    downloadedFiles: extra.downloadedFiles ?? updateProgressState.downloadedFiles,
+    totalFiles: extra.totalFiles ?? updateProgressState.totalFiles,
+    downloadedBytes: extra.downloadedBytes ?? updateProgressState.downloadedBytes,
+    message
+  };
+
+  const titleEl = document.getElementById('modal-title');
+  const messageEl = document.getElementById('modal-message');
+  const confirmBtn = document.getElementById('modal-confirm-btn');
+
+  if (!titleEl || !messageEl || !confirmBtn) return;
+
+  const totalFiles = updateProgressState.totalFiles || 1;
+  const percent = updateProgressState.totalFiles
+    ? Math.round((updateProgressState.downloadedFiles / totalFiles) * 100)
+    : 0;
+  const sizeLabel = formatBytes(updateProgressState.downloadedBytes);
+
+  if (phase === 'downloading') {
+    titleEl.innerText = 'Downloading update';
+    messageEl.innerHTML = `${message || 'Fetching new assets'}<br><br><strong>${updateProgressState.downloadedFiles}/${totalFiles}</strong> files • <strong>${sizeLabel}</strong> downloaded<br>${percent}% complete`;
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'Downloading...';
+  } else if (phase === 'installing') {
+    titleEl.innerText = 'Installing update';
+    messageEl.innerHTML = `${message || 'Preparing app files'}<br><br><strong>${updateProgressState.downloadedFiles}/${totalFiles}</strong> files • <strong>${sizeLabel}</strong> ready`;
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = 'Installing...';
+  } else if (phase === 'error') {
+    titleEl.innerText = 'Update failed';
+    messageEl.innerText = message || 'The update could not be completed.';
+    confirmBtn.disabled = false;
+    confirmBtn.innerText = 'Try again';
+    confirmBtn.onclick = async () => {
+      await performUpdate();
+    };
+  } else if (phase === 'complete') {
+    titleEl.innerText = 'Update ready';
+    messageEl.innerText = `${message || 'The update is ready to apply.'} (${sizeLabel})`;
+    confirmBtn.disabled = false;
+    confirmBtn.innerText = 'Reload app';
+    confirmBtn.onclick = () => window.location.reload();
+  }
+}
 
 /**
  * Manual check
@@ -314,11 +412,15 @@ async function manualUpdateCheck() {
         await performUpdate();
       };
 
+      const sizeText = pendingUpdateSize?.totalBytes
+        ? ` (${formatBytes(pendingUpdateSize.totalBytes)})`
+        : '';
+
       document.getElementById('modal-title').innerText =
         'Update Ready';
 
       document.getElementById('modal-message').innerText =
-        'A new version is available.';
+        `A new version is available${sizeText}.`;
 
     } else {
 
@@ -372,21 +474,62 @@ async function performUpdate() {
       throw new Error('No SW registration');
     }
 
-    await registration.update();
+    const confirmBtn =
+      document.getElementById('modal-confirm-btn');
 
-    const sw =
-      registration.waiting || registration.installing || registration.active;
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = 'Preparing...';
+    }
+
+    updateProgressUI('downloading', 'Fetching update assets from the service worker');
+
+    const sw = registration.waiting || registration.installing || registration.active;
 
     if (!sw) {
       throw new Error('No SW found');
     }
 
-    const confirmBtn =
-      document.getElementById('modal-confirm-btn');
+    const downloadPromise = new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
 
-    confirmBtn.disabled = true;
+      channel.port1.onmessage = event => {
+        const data = event.data || {};
 
-    confirmBtn.innerText = 'Installing...';
+        if (data.type === 'UPDATE_PROGRESS') {
+          if (data.phase === 'downloading') {
+            updateProgressUI('downloading', data.url ? `Downloading ${data.url}` : 'Fetching update assets', data);
+          } else if (data.phase === 'installing') {
+            updateProgressUI('installing', 'Installing downloaded files into cache', data);
+          } else if (data.phase === 'error') {
+            reject(new Error(data.error || 'Update download failed'));
+          }
+          return;
+        }
+
+        if (data.type === 'UPDATE_DONE') {
+          resolve(data);
+          return;
+        }
+
+        if (data.type === 'UPDATE_ERROR') {
+          reject(new Error(data.error || 'Update download failed'));
+        }
+      };
+
+      sw.postMessage({
+        type: 'CACHE_URLS',
+        urls: []
+      }, [channel.port2]);
+    });
+
+    const result = await downloadPromise;
+
+    updateProgressUI('installing', 'Finalizing update', {
+      downloadedFiles: result.downloadedFiles || 0,
+      totalFiles: result.totalFiles || 0,
+      downloadedBytes: result.downloadedBytes || 0
+    });
 
     console.log('[Cache Update] Sending SKIP_WAITING');
 
@@ -405,7 +548,6 @@ async function performUpdate() {
     let updated = false;
 
     const listener = () => {
-
       if (!userTriggeredUpdate) return;
 
       updated = true;
@@ -447,7 +589,11 @@ async function performUpdate() {
 
     updateButtonUI(false);
 
-    confirmBtn.innerText = '✓ Updated';
+    updateProgressUI('complete', 'Update installed successfully', {
+      downloadedFiles: result.downloadedFiles || 0,
+      totalFiles: result.totalFiles || 0,
+      downloadedBytes: result.downloadedBytes || 0
+    });
 
     console.log('[Cache Update] Update complete');
 
@@ -459,6 +605,7 @@ async function performUpdate() {
 
     console.error('[Cache Update] Install failed:', err);
 
+    updateProgressUI('error', err.message || 'The update could not be completed.');
     showNotification(
       'Update Failed',
       err.message,
@@ -466,7 +613,6 @@ async function performUpdate() {
     );
 
   } finally {
-
     userTriggeredUpdate = false;
   }
 }
