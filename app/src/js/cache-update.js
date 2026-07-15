@@ -14,6 +14,13 @@ let updateAvailable = false;
 let ACTIVE_CACHE_NAME = null;
 let LATEST_CACHE_NAME = null;
 let userTriggeredUpdate = false;
+let updateProgressState = {
+  phase: 'idle',
+  downloadedFiles: 0,
+  totalFiles: 0,
+  downloadedBytes: 0,
+  message: ''
+};
 
 function shouldShowNotifications() {
   return localStorage.getItem('app_notifications_disabled') !== 'true';
