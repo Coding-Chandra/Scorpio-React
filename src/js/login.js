@@ -49,7 +49,7 @@ function _bufFromB64(b64) {
 }
 
 const OLD_STATIC_SALT = "notesapp_v1_salt";
-const OLD_ITERATIONS = 600000;
+const OLD_ITERATIONS = 200000;
 const NEW_ITERATIONS = 600000;
 
 // salt is now required (no default) — caller must pass old or new salt explicitly.
