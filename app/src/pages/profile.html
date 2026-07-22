@@ -6,11 +6,11 @@
     <title>User Profile</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png">
     <link rel="apple-touch-icon" href="../assets/icons/logo.png">
-    <script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notesApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+    <script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notozApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
     <script>
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const applyFromSystem = () => {
-        if (localStorage.getItem('notesApp_theme') !== 'system') return;
+        if (localStorage.getItem('notozApp_theme') !== 'system') return;
         document.documentElement.setAttribute(
             'data-theme',
             mq.matches ? 'dark' : 'light'

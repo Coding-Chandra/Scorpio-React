@@ -80,7 +80,7 @@ function _b64Decode(str) {
 // ============================================================================
 
 const OLD_STATIC_SALT = 'notesapp_v1_salt';
-const OLD_ITERATIONS   = 600000;
+const OLD_ITERATIONS   = 200000;
 const NEW_ITERATIONS   = 600000;
 
 // Now requires an explicit salt — no silent default.
@@ -719,8 +719,8 @@ const app = {
         await this.loadNotes();
 
         this.ui.isMobile = window.innerWidth <= 1024;
-        const savedTheme = localStorage.getItem('notesApp_theme');
-        const theme = savedTheme || 'system'; // Default to system
+        const savedTheme = localStorage.getItem('notozApp_theme');
+        const theme = savedTheme || 'light'; // Default to light
         this.applyTheme(theme);
 
         // Listen for system theme changes
@@ -827,7 +827,7 @@ const app = {
         // Folders are small — cache them in localStorage for offline use
         if (!isOnline()) {
             try {
-                const cached = localStorage.getItem('notesApp_folders_' + CURRENT_USER_ID);
+                const cached = localStorage.getItem('notozApp_folders_' + CURRENT_USER_ID);
                 this.folders = cached ? JSON.parse(cached) : [];
                 console.log('[Offline] Loaded folders from localStorage');
             } catch (e) {
@@ -846,7 +846,7 @@ const app = {
             console.error('Error loading folders:', error);
             // Fallback to localStorage cache
             try {
-                const cached = localStorage.getItem('notesApp_folders_' + CURRENT_USER_ID);
+                const cached = localStorage.getItem('notozApp_folders_' + CURRENT_USER_ID);
                 this.folders = cached ? JSON.parse(cached) : [];
             } catch (e) {
                 this.folders = [];
@@ -857,7 +857,7 @@ const app = {
         this.folders = data || [];
         // Mirror folders to localStorage for offline access
         try {
-            localStorage.setItem('notesApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
+            localStorage.setItem('notozApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
         } catch (e) {
             console.warn('[Offline] Could not cache folders in localStorage:', e);
         }
@@ -1405,7 +1405,7 @@ const app = {
                     this.folders.push(data);
                     // Update local cache
                     try {
-                        localStorage.setItem('notesApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
+                        localStorage.setItem('notozApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
                     } catch (e) { /* ignore */ }
 
                     this.renderFolders();
@@ -1464,7 +1464,7 @@ const app = {
 
                     // Update local cache
                     try {
-                        localStorage.setItem('notesApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
+                        localStorage.setItem('notozApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
                     } catch (e) { /* ignore */ }
 
                     this.renderFolders();
@@ -1515,7 +1515,7 @@ const app = {
 
                 // Update local cache
                 try {
-                    localStorage.setItem('notesApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
+                    localStorage.setItem('notozApp_folders_' + CURRENT_USER_ID, JSON.stringify(this.folders));
                 } catch (e) { /* ignore */ }
 
                 if (this.activeFolderId === folderId) {
@@ -1651,6 +1651,8 @@ app.renderFolders = function () {
             </svg>
             <span>All Notes</span>
         </div>
+        <div class="folder-count">${this.notes.length}</div>
+        <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
     `;
     container.appendChild(allEl);
 
@@ -1666,6 +1668,7 @@ app.renderFolders = function () {
                 </svg>
                 <span>${Utils.escapeHtml(folder.name)}</span>
             </div>
+            <div class="folder-count">${this.notes.filter(n => String(n.folder_id) === String(folder.id)).length}</div>
             <button class="folder-more-btn" type="button" title="Folder actions">
                 <svg viewBox="0 0 24 24">
                     <circle cx="12" cy="5" r="1.3" />
@@ -1714,7 +1717,7 @@ app.renderEditor = function () {
     const titleInput = document.getElementById('noteTitleInput');
     const contentInput = document.getElementById('noteContentInput');
     const inputArea = document.getElementById('editorInputArea');
-    const pinBtn = document.getElementById('pinBtn');
+    const editorPinBtn = document.getElementById('editorPinBtn');
 
     const note = this.getActiveNote();
 
@@ -1753,8 +1756,8 @@ app.renderEditor = function () {
 
     document.getElementById('editorDateDisplay').innerText = Utils.formatDateTime(note.updated_at);
 
-    pinBtn.querySelector('svg').style.fill = note.pinned ? 'var(--accent-color)' : 'none';
-    pinBtn.querySelector('svg').style.stroke = note.pinned ? 'var(--accent-color)' : '#666';
+    editorPinBtn.querySelector('svg').style.fill = note.pinned ? 'var(--accent-color)' : 'none';
+    editorPinBtn.querySelector('svg').style.stroke = note.pinned ? 'var(--accent-color)' : '#666';
 
     this.animateEl(inputArea);
 
@@ -1773,11 +1776,8 @@ app.renderMobileNav = function () {
         : (this.folders.find(f => f.id === this.activeFolderId)?.name || 'Notes');
 
     if (this.ui.mobileView === 'folders') {
-        bar.innerHTML = `
-            <div class="mobile-nav-left"></div>
-            <div class="mobile-nav-title">Folders</div>
-            <div class="mobile-nav-right"></div>
-        `;
+        bar.style.display = 'none';
+        return;
     } else if (this.ui.mobileView === 'notes') {
         bar.innerHTML = `
             <div class="mobile-nav-left">
@@ -1799,7 +1799,7 @@ app.renderMobileNav = function () {
                     <span>Notes</span>
                 </button>
             </div>
-            <div class="mobile-nav-title">${Utils.escapeHtml(title)}</div>
+            <div class="mobile-nav-title">${Utils.escapeHtml(title)} <div class="editor-meta-info" id="mobileEditorDateDisplay">${note ? Utils.formatDateTime(note.updated_at) : ''}</div></div>
             <div class="mobile-nav-right">
                 <button class="mobile-nav-text-btn" onclick="app.doneEditingMobile()">Done</button>
             </div>
@@ -2326,12 +2326,7 @@ app.openNoteActionsMenu = function (ev, noteId) {
     const note = this.getActiveNote();
     const pinBtn = menu.querySelector('#pinBtn');
     if (note && pinBtn) {
-        pinBtn.textContent = note.pinned ? 'Unpin Note' : 'Pin Note';
-        pinBtn.innerHTML = pinBtn.innerHTML.replace(/<svg.*<\/svg>/,
-            `<svg viewBox="0 0 24 24" style="transform:rotate(45deg); fill:${note.pinned ? 'currentColor' : 'none'}; stroke:${note.pinned ? 'currentColor' : '#666'};">
-                <line x1="12" y1="17" x2="12" y2="22"/>
-                <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
-            </svg>`);
+        pinBtn.innerHTML = `${note.pinned ? 'Unpin Note' : 'Pin Note'}`;
     }
 
     const x = ev.clientX || (ev.touches?.[0]?.clientX) || 20;
@@ -2405,7 +2400,7 @@ app.applyTheme = function (theme) {
     this.ui.theme = theme;
     const actualTheme = theme === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
     document.documentElement.setAttribute('data-theme', actualTheme);
-    localStorage.setItem('notesApp_theme', theme);
+    localStorage.setItem('notozApp_theme', theme);
     this.updateThemeToggleIcon();
 };
 
@@ -2423,9 +2418,9 @@ app.toggleTheme = function () {
     if (this.ui.theme === 'light') {
         newTheme = 'dark';
     } else if (this.ui.theme === 'dark') {
-        newTheme = 'system';
-    } else {
         newTheme = 'light';
+    } else {
+        newTheme = 'dark';
     }
     this.applyTheme(newTheme);
 };
@@ -2440,8 +2435,6 @@ app.updateThemeToggleIcon = function () {
             <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
             <line x1="8" y1="21" x2="16" y2="21"></line>
             <line x1="12" y1="17" x2="12" y2="21"></line>
-            <circle cx="9" cy="9" r="2"></circle>
-            <path d="M 15 9 A 2 2 0 0 1 13 7"></path>
         `;
     } else if (this.ui.theme === 'dark') {
         icon.innerHTML = `
@@ -2636,7 +2629,7 @@ async function updateAccountUI() {
     const smallAvatarSpan = document.getElementById('accountAvatarInitials');
     const largeAvatarSpan = document.getElementById('accountInitialsLg');
     const smallAvatarDiv = document.querySelector('.account-avatar-pill');
-    const largeAvatarDiv = document.querySelector('.account-avatar.account-avatar-lg');
+    const largeAvatarDiv = document.querySelector('.account-avatar-lg');
 
     if (nameEl) nameEl.textContent = name || 'User';
     if (emailEl) emailEl.textContent = email || '';
@@ -2677,7 +2670,6 @@ async function updateAccountUI() {
                 const gradient = window.AdvancedAvatarGenerator?.colorPalettes[gradientIndex];
                 if (gradient) {
                     const gradientCSS = `linear-gradient(135deg, ${gradient.start}, ${gradient.end})`;
-                    if (smallAvatarDiv) smallAvatarDiv.style.background = gradientCSS;
                     if (largeAvatarDiv) largeAvatarDiv.style.background = gradientCSS;
                 }
             }
@@ -3394,13 +3386,13 @@ const BackHandler = {
 
         // ── Method 3: History API fallback (popstate) ────────────────────
         // Push a dummy state so we have something to catch
-        history.pushState({ notesApp: true }, '');
+        history.pushState({ notozApp: true }, '');
 
         window.addEventListener('popstate', (e) => {
             const intercepted = this.intercept();
             if (intercepted) {
                 // Re-push the dummy state so next back press is also caught
-                history.pushState({ notesApp: true }, '');
+                history.pushState({ notozApp: true }, '');
             }
             // If not intercepted, popstate fires naturally → browser/OS handles exit
         });

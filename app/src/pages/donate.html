@@ -11,7 +11,7 @@
       const root = document.documentElement;
       const ui = localStorage.getItem("ui-theme") || "ios";
       root.setAttribute("data-ui", ui);
-      const mode = localStorage.getItem("notesApp_theme");
+      const mode = localStorage.getItem("notozApp_theme");
       if (mode) root.setAttribute("data-theme", mode);
       if (ui === "md3e") {
         const hex = localStorage.getItem("md3e-seed");

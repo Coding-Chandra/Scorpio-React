@@ -57,7 +57,7 @@ window.openPortal = (url) => {
         console.log('[Portal] Frame loaded:', url);
         frame.style.opacity = '1';
         frame.style.transition = 'opacity 0.4s ease-out';
-        applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
+        applyThemeUI(localStorage.getItem('notozApp_theme') || 'system');
     };
     
     const handleError = () => {
@@ -355,7 +355,7 @@ async function load() {
         }
     }
     
-    applyThemeUI(localStorage.getItem('notesApp_theme') || 'system');
+    applyThemeUI(localStorage.getItem('notozApp_theme') || 'light');
     applyWallpaperUI();
     updateSettingsNotificationUI();
 }
@@ -381,7 +381,7 @@ function applyTheme(mode) {
         : mode;
 
     document.documentElement.setAttribute("data-theme", actualTheme);
-    localStorage.setItem("notesApp_theme", mode);
+    localStorage.setItem("notozApp_theme", mode);
 
     // Keep portal pages in sync too
     const frame = document.getElementById("portal-frame");
@@ -396,7 +396,7 @@ function applyTheme(mode) {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
 
     const onChange = () => {
-        if (localStorage.getItem('notesApp_theme') !== 'system') return;
+        if (localStorage.getItem('notozApp_theme') !== 'system') return;
         applyTheme('system');
     };
 
@@ -429,7 +429,7 @@ function applyMD3EAccent(hex) {
 }
 
 function applyWallpaperUI() {
-    const wallpaperValue = localStorage.getItem('notesApp_wallpaper') || 'w1';
+    const wallpaperValue = localStorage.getItem('notozApp_wallpaper') || 'w1';
     let wallpaperLabel;
     if (wallpaperValue.startsWith('http://') || wallpaperValue.startsWith('https://')) {
         wallpaperLabel = 'Custom wallpaper';
@@ -446,7 +446,7 @@ function applyWallpaperUI() {
 
 (function restoreThemeState() {
     const ui = localStorage.getItem("ui-theme") || "ios";
-    const theme = localStorage.getItem("notesApp_theme") || "system";
+    const theme = localStorage.getItem("notozApp_theme") || "light";
     const accent = localStorage.getItem("md3e-seed");
     applyUI(ui);
     applyTheme(theme);
@@ -491,7 +491,7 @@ window.addEventListener("message", (event) => {
             applyMD3EAccent(event.data.color);
             const frame3 = document.getElementById("portal-frame");
             if (frame3?.contentWindow) {
-                frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notesApp_theme") }, "*");
+                frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notozApp_theme") }, "*");
             }
             break;
 

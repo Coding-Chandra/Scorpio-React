@@ -9,12 +9,12 @@
       const root = document.documentElement;
       const ui = localStorage.getItem("ui-theme") || "ios";
       root.setAttribute("data-ui", ui);
-      const mode = localStorage.getItem("notesApp_theme");
+      const mode = localStorage.getItem("notozApp_theme");
       if (mode) {
         root.setAttribute("data-theme", mode);
       }
-      const wallpaper = localStorage.getItem('notesApp_wallpaper') || 'w1';
-      const wallpaperDisabled = localStorage.getItem('notesApp_wallpaper_disabled') === 'true';
+      const wallpaper = localStorage.getItem('notozApp_wallpaper') || 'w1';
+      const wallpaperDisabled = localStorage.getItem('notozApp_wallpaper_disabled') === 'true';
       const wallpaperMap = {
         'w1': '../../src/assets/wallpaper/imd/imd1.jpg',
         'w2': '../../src/assets/wallpaper/imd/imd2.jpg',
@@ -173,7 +173,7 @@
         <h2>Folders</h2>
       </div>
       <div class="folder-list" id="folderListContainer"></div>
-      <div id="notesCountDisplay" class="notes-count-label">0 Notes</div>
+      <div id="notesCountDisplay" class="notes-count-label" disabled>0 Notes</div>
       <div class="sidebar-actions">
         <button class="new-folder-btn" onclick="app.createNewFolder()">
           <svg viewBox="0 0 24 24">
@@ -188,12 +188,8 @@
 
     <section id="notes-list-pane" class="pane glass-panel" user-select="none">
       <div class="list-header">
-        <input type="text" id="searchInput" class="search-bar" placeholder=" 🔍︎ Search"
-          oninput="app.handleSearch(this.value)">
-      </div>
-      <div class="notes-header-row">
-        <span id="activeFolderName" style="font-weight:700; font-size:20px;">All Notes</span>
-        <div style="display:flex; align-items:center; gap:8px;">
+        <input type="text" id="searchInput" class="search-bar" placeholder=" 🔍︎ Search" oninput="app.handleSearch(this.value)">
+        <div style="display: flex; align-items: flex-end; gap: 2px;">
           <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()">Edit</button>
           <button class="icon-btn new-note-btn" onclick="app.createNewNote()" title="New Note">
             <svg viewBox="0 0 24 24">
@@ -202,6 +198,9 @@
             </svg>
           </button>
         </div>
+      </div>
+      <div class="notes-header-row" style="display: none;">
+        <span id="activeFolderName" style="font-weight:700; font-size:20px; display: none;">All Notes</span>
       </div>
       <div class="notes-scroll-area" id="notesListContainer"></div>
 
@@ -221,7 +220,7 @@
       </div>
 
       <div id="editorContainer" class="editor-container">
-        <div class="editor-meta-info" id="editorDateDisplay"></div>
+        <div class="editor-meta-info" id="editorDateDisplay" style="display: none;"></div>
 
         <div class="toolbar">
           <button id="textStyleBtn" onclick="app.toggleTextStyleDropdown(event)" title="Text Style">
@@ -277,14 +276,6 @@
               <path
                 d="M43.294 71.932c2.124 0 3.926-1.752 3.926-3.823V18.013l-.32-7.34 3.27 3.489 7.403 7.868a3.662 3.662 0 0 0 2.642 1.16c2.051 0 3.595-1.44 3.595-3.398 0-1.088-.435-1.844-1.202-2.56L46.122 1.306C45.148.332 44.33 0 43.294 0c-.985 0-1.814.332-2.829 1.305L23.97 17.233c-.716.715-1.151 1.471-1.151 2.559 0 1.958 1.481 3.398 3.543 3.398.933 0 1.98-.394 2.684-1.16l7.412-7.868 3.282-3.5-.321 7.351V68.11c0 2.07 1.803 3.822 3.875 3.822Z">
               </path>
-            </svg>
-          </button>
-
-          <button class="icon-btn" id="pinBtn" onclick="app.togglePin()" title="Pin/Unpin">
-            <svg viewBox="0 0 24 24" style="transform:rotate(45deg);">
-              <line x1="12" y1="17" x2="12" y2="22" />
-              <path
-                d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
             </svg>
           </button>
 
@@ -344,7 +335,7 @@
   <div id="accountDropdown" class="dropdown-menu account-dropdown" role="menu" aria-hidden="true">
     <div class="account-dropdown-inner">
       <div class="account-dropdown-header">
-        <div class="account-header-main">
+        <div class="account-info">
           <div class="account-avatar account-avatar-lg">
             <span id="accountInitialsLg">U</span>
           </div>
@@ -364,6 +355,7 @@
         <button class="account-signout-btn" type="button" onclick="app.handleLogout()">
           Log Out
         </button>
+        <div class="separator"></div>
         <button class="account-ac-btn" type="button" onclick="navigateToSettings()">
         Settings
         </button>
@@ -393,8 +385,8 @@
   <div id="noteActionsMenu" class="dropdown-menu" role="menu" aria-hidden="true">
     <div class="row">
       <button class="btn" onclick="app.requestDeleteActiveNoteFromMenu()">Delete Note</button>
-      <button class="btn" id="pinBtn" onclick="app.togglePin()" title="Pin/Unpin">Pin/Unpin
-        <svg viewBox="0 0 24 24" style="transform:rotate(45deg);">
+      <button class="btn" id="editorPinBtn" onclick="app.togglePin()" title="Pin/Unpin">Pin/Unpin
+        <svg viewBox="0 0 24 24" style="transform:rotate(45deg); display: none;">
           <line x1="12" y1="17" x2="12" y2="22" />
           <path
             d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
@@ -422,24 +414,12 @@
     </div>
   </div>
 
-<!-- Your other scripts -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      const swUrl = new URL('../sw.js', location.href).href;
-
-      navigator.serviceWorker.register(swUrl)
-        .then(reg => {
-          console.log('[SW] Registered at:', swUrl, 'scope:', reg.scope);
-        })
-        .catch(err => {
-          console.error('[SW] Registration failed:', err);
-        });
-    }
   </script>
   <script src="./src/js/animation-utils.js"></script>
   <script src="./src/js/offline-sync.js"></script>
   <script src="./src/js/app.js"></script>
   <script src="./src/js/live-update.js"></script>
+  <script src="./src/js/avatars.js"></script>
   <script src="./src/js/md3e-enhance.js" defer loading="lazy"></script>
   <script>
     window.addEventListener("message", (e) => {
@@ -513,8 +493,8 @@
           if (!hex) return;
           localStorage.setItem('md3e-seed', hex);
 
-          const wallpaperDisabled = localStorage.getItem('notesApp_wallpaper_disabled') === 'true';
-          const wallpaperId = localStorage.getItem('notesApp_wallpaper') || 'w1';
+          const wallpaperDisabled = localStorage.getItem('notozApp_wallpaper_disabled') === 'true';
+          const wallpaperId = localStorage.getItem('notozApp_wallpaper') || 'w1';
           const wallpaperUrl = wallpaperToUrl(wallpaperId);
           const useWallpaper = !wallpaperDisabled && wallpaperUrl && document.documentElement.getAttribute('data-ui') === 'md3e';
 
@@ -524,8 +504,8 @@
           break;
         }
         case "WALLPAPER_CHANGED": {
-          const wallpaper = e.data.wallpaper || localStorage.getItem('notesApp_wallpaper') || 'w1';
-          const wallpaperDisabled = e.data.disabled === true || localStorage.getItem('notesApp_wallpaper_disabled') === 'true';
+          const wallpaper = e.data.wallpaper || localStorage.getItem('notozApp_wallpaper') || 'w1';
+          const wallpaperDisabled = e.data.disabled === true || localStorage.getItem('notozApp_wallpaper_disabled') === 'true';
           const wallpaperValue = wallpaperDisabled
             ? 'none'
             : (wallpaperMap[wallpaper] ? `url('${wallpaperMap[wallpaper]}')` : (wallpaper.startsWith('http://') || wallpaper.startsWith('https://') ? `url('${wallpaper}')` : 'none'));

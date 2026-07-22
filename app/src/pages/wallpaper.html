@@ -7,7 +7,7 @@
 <link rel="icon" type="image/png" href="../assets/icons/logo.png">
 <link rel="apple-touch-icon" href="../assets/icons/logo.png">
 <!-- Must run before CSS so data-ui / data-theme are set before any selector matches -->
-<script>(function(){const r=document.documentElement;const ui=localStorage.getItem('ui-theme')||'ios';r.setAttribute('data-ui',ui);const stored=localStorage.getItem('notesApp_theme');const mode=(stored==='system'||!stored)?((window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):stored;r.setAttribute('data-theme',mode);if(ui==='md3e'){const hex=localStorage.getItem('md3e-seed');if(hex){const v=hex.replace('#','');r.style.setProperty('--md-seed',`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+<script>(function(){const r=document.documentElement;const ui=localStorage.getItem('ui-theme')||'ios';r.setAttribute('data-ui',ui);const stored=localStorage.getItem('notozApp_theme');const mode=(stored==='system'||!stored)?((window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):stored;r.setAttribute('data-theme',mode);if(ui==='md3e'){const hex=localStorage.getItem('md3e-seed');if(hex){const v=hex.replace('#','');r.style.setProperty('--md-seed',`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
 
 <!-- Shared design tokens -->
 <link rel="stylesheet" href="../css/settings.css">
@@ -635,8 +635,8 @@ html[data-ui="nothing"] .wallpaper-card.selected::after {
 /* =====================================================
    CONSTANTS
 ===================================================== */
-const WALLPAPER_KEY         = 'notesApp_wallpaper';
-const WALLPAPER_DISABLE_KEY = 'notesApp_wallpaper_disabled';
+const WALLPAPER_KEY         = 'notozApp_wallpaper';
+const WALLPAPER_DISABLE_KEY = 'notozApp_wallpaper_disabled';
 
 const $board   = document.getElementById('wallpaperBoard');
 const $status  = document.getElementById('wallpaperStatus');
@@ -669,7 +669,7 @@ function initializeTheme() {
   const ui   = localStorage.getItem('ui-theme') || 'ios';
   root.setAttribute('data-ui', ui);
 
-  const mode = localStorage.getItem('notesApp_theme');
+  const mode = localStorage.getItem('notozApp_theme');
   if (mode) root.setAttribute('data-theme', mode);
 
   if (ui === 'md3e') {
@@ -886,7 +886,7 @@ buildWallpaperBoard();
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
 
   const applyFromSystem = () => {
-    if (localStorage.getItem('notesApp_theme') !== 'system') return;
+    if (localStorage.getItem('notozApp_theme') !== 'system') return;
     document.documentElement.setAttribute(
       'data-theme',
       mq.matches ? 'dark' : 'light'

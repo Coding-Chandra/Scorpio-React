@@ -19,7 +19,7 @@
 // 1. INDEXEDDB SETUP (With Stores for Notes, Sync Queue, and Metadata)
 // =====================================================
 
-const DB_NAME = 'notesApp';
+const DB_NAME = 'notozApp';
 const DB_VERSION = 1;
 
 // Store names

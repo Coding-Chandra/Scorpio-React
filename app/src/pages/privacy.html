@@ -12,7 +12,7 @@
       const root = document.documentElement;
       const ui = localStorage.getItem("ui-theme") || "ios";
       root.setAttribute("data-ui", ui);
-      const mode = localStorage.getItem("notesApp_theme");
+      const mode = localStorage.getItem("notozApp_theme");
       if (mode) root.setAttribute("data-theme", mode);
       if (ui === "md3e") {
         const hex = localStorage.getItem("md3e-seed");
@@ -313,7 +313,7 @@
     };
 
     // 1. Check local storage (for solo view)
-    updateTheme(localStorage.getItem('notesApp_theme') || 'dark');
+    updateTheme(localStorage.getItem('notozApp_theme') || 'light');
 
     // 2. Catch the message from account.html (for iframe view)
     window.addEventListener('message', (e) => {
@@ -324,7 +324,7 @@
 
     // 3. Sync if user changes theme in another tab
     window.addEventListener('storage', (e) => {
-        if (e.key === 'notesApp_theme') updateTheme(e.newValue);
+        if (e.key === 'notozApp_theme') updateTheme(e.newValue);
     });
 </script>
 </body>

@@ -12,7 +12,7 @@
       const root = document.documentElement;
       const ui = localStorage.getItem("ui-theme") || "ios";
       root.setAttribute("data-ui", ui);
-      const mode = localStorage.getItem("notesApp_theme");
+      const mode = localStorage.getItem("notozApp_theme");
       if (mode) root.setAttribute("data-theme", mode);
       if (ui === "md3e") {
         const hex = localStorage.getItem("md3e-seed");
@@ -291,12 +291,12 @@
     const updateTheme = (t) => {
         if (t) document.documentElement.setAttribute('data-theme', t);
     };
-    updateTheme(localStorage.getItem('notesApp_theme') || 'dark');
+    updateTheme(localStorage.getItem('notozApp_theme') || 'light');
     window.addEventListener('message', (e) => {
         if (e.data?.type === 'INIT_THEME') updateTheme(e.data.theme);
     });
     window.addEventListener('storage', (e) => {
-        if (e.key === 'notesApp_theme') updateTheme(e.newValue);
+        if (e.key === 'notozApp_theme') updateTheme(e.newValue);
     });
 </script>
 </body>

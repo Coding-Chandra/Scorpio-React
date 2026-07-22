@@ -910,3 +910,17 @@ html[data-ui="md3e"] .notifToggle[data-checked="true"] .notifThumb {
   height: 24px;
   background: var(--toggle-thumb);
 }
+
+.row.clickable {
+  -webkit-tap-highlight-color: transparent; /* Removes the blue highlight on mobile */
+  outline: none;                            /* Removes the blue focus border */
+}
+
+.row.clickable:active {
+  background-color: transparent;            /* Replaces the blue flash with nothing */
+}
+
+/* Optional: remove blue outline on keyboard focus */
+.row.clickable:focus-visible {
+  outline: none; 
+}
