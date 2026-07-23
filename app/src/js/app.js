@@ -3796,6 +3796,30 @@ await _originalInit.apply(this, arguments);
 
 this.initializeRealtimeSync();
 
+// Handle shortcut URL parameters (e.g., ?action=new-note)
+this.handleActionParams();
+
+};
+
+/**
+ * Handle URL action parameters from shortcuts.
+ * Detects ?action=new-note and triggers creating a new note,
+ * then cleans up the URL to prevent re-triggering on refresh.
+ */
+app.handleActionParams = function () {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+
+    if (action === 'new-note') {
+        // Small delay to ensure app is fully initialized
+        setTimeout(() => {
+            this.createNewNote();
+        }, 500);
+
+        // Clean up the URL without reloading the page
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
 };
 
 // Initialize app
