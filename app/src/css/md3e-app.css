@@ -251,6 +251,7 @@
 :root[data-ui="md3e"] .dialog-panel,
 :root[data-ui="md3e"] .dropdown,
 :root[data-ui="md3e"] .menu,
+:root[data-ui="md3e"] .multi-select-bar,
 :root[data-ui="md3e"] .dropdown-menu,
 :root[data-ui="md3e"] .popover {
   border-radius: 16px;
@@ -265,6 +266,8 @@
     );
 }
 
+:root[data-ui="md3e"] .multi-select-bar
+
 :root[data-ui="md3e"][data-theme="dark"]
 .selection-toolbar,
 :root[data-ui="md3e"][data-theme="dark"]
@@ -274,7 +277,9 @@
 :root[data-ui="md3e"][data-theme="dark"]
 .menu,
 :root[data-ui="md3e"][data-theme="dark"]
-.popover {
+.popover,
+:root[data-ui="md3e"][data-theme="dark"]
+.multi-select-bar {
   background-color:
     color-mix(
       in srgb,

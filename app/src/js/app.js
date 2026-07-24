@@ -3225,31 +3225,7 @@ function navigateToSettings() {
 }
 
 // Handle window resize / viewport height for mobile
-(function () {
-    function setVh() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', vh + 'px');
-        const keyboardHeight = Math.max(0, window.outerHeight - window.innerHeight);
-        document.documentElement.style.setProperty('--keyboard-height', keyboardHeight + 'px');
-        document.documentElement.style.setProperty('--viewport-height', window.innerHeight + 'px');
-    }
 
-    setVh();
-    window.addEventListener('resize', setVh);
-    window.addEventListener('orientationchange', () => { setTimeout(setVh, 100); });
-    document.addEventListener('focusin', () => { setTimeout(setVh, 50); });
-    document.addEventListener('focusout', () => { setTimeout(setVh, 50); });
-
-    const scrollLock = () => { document.body.style.overflow = 'hidden'; };
-    const scrollUnlock = () => { document.body.style.overflow = ''; };
-
-    document.addEventListener('focusin', (e) => {
-        if (e.target.matches('input, textarea, [contenteditable="true"]')) {
-            scrollLock();
-        }
-    });
-    document.addEventListener('focusout', scrollUnlock);
-})();
 
 // ============================================================================
 // 13. ANDROID BACK BUTTON HANDLER 

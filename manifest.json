@@ -1,7 +1,7 @@
 {
-  "name": "Notoz",
+  "name": "Notoz: A Privacy Focused Note Taking Web App",
   "short_name": "Notoz",
-  "description": "A PWA for secure, encrypted note-taking.",
+  "description": "A Web App for secure, encrypted note-taking.",
   "start_url": "/app/",
   "scope": "/",
   "display": "standalone",

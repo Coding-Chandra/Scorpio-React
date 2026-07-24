@@ -1,42 +1,42 @@
-const CACHE_NAME = 'notoj-app-v1.12.10';
+const CACHE_NAME = 'notoj-app-v1.22.00';
 const BASE = self.registration.scope;
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/app/index.html',
-  '/app/settings.html',
-  '/app/src/pages/theme.html',
-  '/app/src/pages/profile.html',
+  './',
+  'index.html',
+  'app/index.html',
+  'app/settings.html',
+  'app/src/pages/theme.html',
+  'app/src/pages/profile.html',
 
   // CSS
-  '/app/src/css/app.css',
-  '/app/src/css/md3e-app.css',
-  '/app/src/css/nthng.css',
-  '/app/src/css/settings.css',
-  '/app/src/css/profile.css',
-  '/src/css/login.css',
+  'app/src/css/app.css',
+  'app/src/css/md3e-app.css',
+  'app/src/css/nthng.css',
+  'app/src/css/settings.css',
+  'app/src/css/profile.css',
+  'src/css/login.css',
 
   // JS
-  '/app/src/js/app.js',
-  '/app/src/js/settings.js',
-  '/app/src/js/profile.js',
-  '/app/src/js/md3e-enhance.js',
-  '/app/src/js/cache-update.js',
-  '/app/src/js/offline-sync.js',
-  '/src/js/login.js',
+  'app/src/js/app.js',
+  'app/src/js/settings.js',
+  'app/src/js/profile.js',
+  'app/src/js/md3e-enhance.js',
+  'app/src/js/cache-update.js',
+  'app/src/js/offline-sync.js',
+  'src/js/login.js',
 
   // Fonts
-  '/app/src/assets/fonts/SFR.ttf',
-  '/app/src/assets/fonts/Ndot-57-Aligned.otf',
-  '/app/src/assets/fonts/NType82-Headline.otf',
-  '/app/src/assets/fonts/NType82-Regular.otf',
-  '/app/src/assets/fonts/UbuntuMono[wght].ttf',
-  '/src/assets/fonts/SFR.ttf',
+  'app/src/assets/fonts/SFR.ttf',
+  'app/src/assets/fonts/Ndot-57-Aligned.otf',
+  'app/src/assets/fonts/NType82-Headline.otf',
+  'app/src/assets/fonts/NType82-Regular.otf',
+  'app/src/assets/fonts/UbuntuMono[wght].ttf',
+  'src/assets/fonts/SFR.ttf',
 
   // Icons
-  '/app/src/assets/icons/logo.png',
-  '/src/assets/icons/logo.png',
-  '/src/assets/icons/logo.svg',
+  'app/src/assets/icons/logo.png',
+  'src/assets/icons/logo.png',
+  'src/assets/icons/logo.svg',
 ].map(p => new URL(p, BASE).toString());
 
 // ============================================================================
@@ -118,8 +118,8 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Offline fallback for navigation
         if (event.request.mode === 'navigate') {
-          return caches.match(new URL('/app/index.html', BASE).toString())
-            || caches.match(new URL('/index.html', BASE).toString());
+          return caches.match(new URL('app/index.html', BASE).toString())
+            || caches.match(new URL('index.html', BASE).toString());
         }
       });
     })

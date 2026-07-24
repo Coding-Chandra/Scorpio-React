@@ -187,6 +187,11 @@
     </aside>
 
     <section id="notes-list-pane" class="pane glass-panel" user-select="none">
+      <div class="notes-header-row" style="display: none;">
+        <span id="activeFolderName" style="font-weight:700; font-size:20px; display: none;">All Notes</span>
+      </div>
+      <div class="notes-scroll-area" id="notesListContainer"></div>
+
       <div class="list-header">
         <input type="text" id="searchInput" class="search-bar" placeholder=" 🔍︎ Search" oninput="app.handleSearch(this.value)">
         <div style="display: flex; align-items: flex-end; gap: 2px;">
@@ -199,12 +204,9 @@
           </button>
         </div>
       </div>
-      <div class="notes-header-row" style="display: none;">
-        <span id="activeFolderName" style="font-weight:700; font-size:20px; display: none;">All Notes</span>
-      </div>
-      <div class="notes-scroll-area" id="notesListContainer"></div>
 
       <div id="multiSelectBar" class="multi-select-bar">
+        <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()" style="overflow: hidden;">Done</button>
         <span id="selectedCountLabel" class="multi-select-label">0 Selected</span>
         <button class="multi-select-delete-btn" onclick="app.deleteSelectedNotes()">Delete</button>
       </div>
@@ -312,23 +314,6 @@
     <button type="button" onclick="toggleHighlight()" title="Highlight">
       <span class="highlight-dot"></span>
     </button>
-
-    <div class="selection-toolbar-divider"></div>
-
-    <div class="selection-toolbar-color-group">
-      <button type="button" onclick="setSelectionColor('#000000')" title="Black">
-        <span class="color-dot" style="background:#000000;"></span>
-      </button>
-      <button type="button" onclick="setSelectionColor('#007aff')" title="Blue">
-        <span class="color-dot" style="background:#007aff;"></span>
-      </button>
-      <button type="button" onclick="setSelectionColor('#ff3b30')" title="Red">
-        <span class="color-dot" style="background:#ff3b30;"></span>
-      </button>
-      <button type="button" onclick="setSelectionColor('#8e8e93')" title="Gray">
-        <span class="color-dot" style="background:#8e8e93;"></span>
-      </button>
-    </div>
   </div>
 
   <!-- Account dropdown (user info + theme + sign out + settings) -->
