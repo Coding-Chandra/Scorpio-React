@@ -166,7 +166,7 @@ html[data-theme="dark"] .note-item:active::before {
   font-weight: 600;
 }
 
-.multi-select-delete-btn {
+.multi-select-delete-btn, .multi-select-done-btn {
   font-weight: 600;
 }
 
@@ -175,7 +175,12 @@ html[data-theme="dark"] .note-item:active::before {
   box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
 }
 
-.multi-select-delete-btn:active {
+.multi-select-done-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgb(0, 122, 255, 0.3);
+}
+
+.multi-select-delete-btn:active, .multi-select-delete-btn:active {
   transform: scale(0.95);
 }
 

@@ -54,7 +54,7 @@
       rgb(var(--md-seed)) 1%
     );
 
-  --editor-bg-glass: rgba(255, 255, 255, 0.80);
+  --editor-bg-glass: rgba(255, 255, 255, 0.6);
   --list-bg-glass: rgba(255, 255, 255, 0.76);
   --sidebar-bg-glass: rgba(255, 255, 255, 0.72);
 
@@ -108,7 +108,7 @@
       rgb(var(--md-seed)) 4%
     );
 
-  --editor-bg-glass: rgba(22, 22, 24, 0.84);
+  --editor-bg-glass: rgba(22, 22, 24, 0.6);
   --list-bg-glass: rgba(20, 20, 22, 0.78);
   --sidebar-bg-glass: rgba(18, 18, 20, 0.72);
   --md-surface-glass: rgba(18, 18, 20, 0.72);
@@ -245,6 +245,40 @@
 /* -----------------------------------------------------
    10. Popups & toolbars (FIXED) V2
 ----------------------------------------------------- */
+:root[data-ui="md3e"] .search-bar{
+  background-color: transparent
+}
+
+
+:root[data-ui="md3e"] .list-header{
+  background-color:
+    color-mix(
+      in srgb,
+      var(--editor-bg-glass) 70%,
+      rgba(var(--md-seed), 1.48)
+    );
+    backdrop-filter: blur(3px) saturate(2);
+    padding: 6px 10px;
+}
+
+:root[data-ui="md3e"] .sidebar-actions{
+  background-color:
+    color-mix(
+      in srgb,
+      var(--editor-bg-glass) 70%,
+      rgba(var(--md-seed), 1.48)
+    );
+}
+
+:root[data-ui="md3e"] .toolbar{
+  position: absolute;
+  left: 2vh;
+  right: 2vh;
+  bottom: 13vh;
+  border-radius: 22px;
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 70%, rgba(var(--md-seed), 1.48));
+  backdrop-filter: blur(3px) saturate(2);
+}
 
 :root[data-ui="md3e"] .selection-toolbar,
 :root[data-ui="md3e"] #appDialogOverlay .dialog,
