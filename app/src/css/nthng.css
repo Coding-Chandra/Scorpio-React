@@ -89,6 +89,8 @@
   --bg-card: #FFFFFF;
   --bg-elevated: #F2F2F2;
 
+  --bg-card-t: rgba(255, 255, 255, 0.6);
+
   --text-main: #000000;
   --text-dim: rgba(0,0,0,0.55);
 
@@ -327,7 +329,9 @@ border-top: none;
 
 /* Focus — animated dot underline */
 :root[data-ui="nothing"] .toolbar{
-  background: var(--bg-card);
+  background: var(--bg-card-t);
+  backdrop-filter: blur(5px) saturate(1.5);
+  border: 0.5px solid var(--border-color);
 }
 
 :root[data-ui="nothing"] .note-item.active,

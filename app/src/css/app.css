@@ -887,12 +887,16 @@
         }
 
         .toolbar {
-            padding: 8px 20px;
+            position: absolute;
             display: flex !important;
             gap: 12px;
             align-items: center;
             border-bottom: 1px solid transparent;
             background: transparent;
+            left: 2vh;
+            right: 2vh;
+            bottom: 14vh;
+            border-radius: 24px;
         }
         .toolbar:hover { border-bottom-color: rgba(255,255,255,0.4); }
         [data-theme="dark"] .toolbar:hover {
@@ -1475,19 +1479,18 @@
                 padding: 0px 10px;
                 display: flex !important;
                 align-items: center;
-                background: rgba(248,248,250,0.96);
+                background: rgba(248,248,250,0.6);
                 backdrop-filter: blur(20px) saturate(1.2);
                 -webkit-backdrop-filter: blur(20px) saturate(1.2);
                 z-index: 180;
-                justify-content: flex-start;
-                gap: 10px;
+                justify-content: space-evenly;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 white-space: nowrap;
             }
 
             [data-theme="dark"] .toolbar {
-                background: rgba(28,28,30,0.96);
+                background: rgba(28,28,30,0.75);
                 border-top-color: rgba(255,255,255,0.12);
             }
 
