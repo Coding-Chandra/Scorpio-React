@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notoj-app-v1.52.32';
+const CACHE_NAME = 'notoj-app-v1.71.0';
 const BASE = self.registration.scope;
 const urlsToCache = [
   './',
@@ -37,6 +37,19 @@ const urlsToCache = [
   'app/src/assets/icons/logo.png',
   'src/assets/icons/logo.png',
   'src/assets/icons/logo.svg',
+
+  // Wallpapers
+  // IMD wallpapers
+  'app/src/assets/wallpapers/imd/imd1.jpg',
+  'app/src/assets/wallpapers/imd/imd2.jpg',
+  'app/src/assets/wallpapers/imd/imd3.jpg',
+  'app/src/assets/wallpapers/imd/imd4.jpg',
+  // Nothing wallpapers
+  'app/src/assets/wallpapers/n/nos1.jpg',
+  'app/src/assets/wallpapers/n/nos2.jpg',
+  'app/src/assets/wallpapers/n/nos3.jpg',
+  'app/src/assets/wallpapers/n/nos4.jpg'
+
 ].map(p => new URL(p, BASE).toString());
 
 // ============================================================================

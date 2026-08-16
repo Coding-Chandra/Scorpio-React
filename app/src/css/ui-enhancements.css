@@ -1,6 +1,8 @@
 /* =====================================================
    UI ENHANCEMENTS & VISUAL IMPROVEMENTS
    For: Notoz
+   No More In Use
+   Can be used elsewhere
    ===================================================== */
 
 /* =====================================================
@@ -71,7 +73,6 @@ button:disabled {
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
-  animation: listItemSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transition: all 0.2s ease-out;
 }
 
@@ -188,10 +189,6 @@ html[data-theme="dark"] .note-item:active::before {
    8. SIDEBAR ENHANCEMENTS
    ===================================================== */
 
-#sidebar {
-  animation: drawerSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
 .sidebar-header {
   padding: 16px 0;
   border-bottom: 1px solid var(--sep);
@@ -246,15 +243,9 @@ html[data-theme="dark"] .note-item:active::before {
 
 /* =====================================================
    10. EDITOR AREA ENHANCEMENTS
+   removed due to conflicts with existing styles
    ===================================================== */
-
-#editor-pane {
-  animation: pageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-.editor-meta-info span {
-  animation: textSlideIn 0.3s ease-out forwards;
-}
+   
 
 /* =====================================================
    11. TOOLBAR ENHANCEMENTS
@@ -264,7 +255,6 @@ html[data-theme="dark"] .note-item:active::before {
   border-bottom: 1px solid var(--sep);
   animation: pageSlideIn 0.3s ease-out forwards;
 }
-
 
 .toolbar button:hover {
   border-color: var(--accent);

@@ -196,7 +196,7 @@
         <input type="text" id="searchInput" class="search-bar" placeholder=" 🔍︎ Search" oninput="app.handleSearch(this.value)">
         <div style="display: flex; align-items: flex-end; gap: 2px;">
           <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()">Edit</button>
-          <button class="icon-btn new-note-btn" onclick="app.createNewNote()" title="New Note">
+          <button class="icon-btn new-note-btn" onclick="app.createNewNote()" title="New Note" aria-label="New Note">
             <svg viewBox="0 0 24 24">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -213,6 +213,7 @@
     </section>
 
     <main id="editor-pane" class="pane glass-panel-strong">
+      <div class="editor-glass-layer" aria-hidden="true"></div>
       <div id="editorEmptyState" class="empty-state">
         <svg class="empty-icon" viewBox="0 0 24 24">
           <path
@@ -250,17 +251,6 @@
               <path d="M8 16l3.2-3.2a1 1 0 0 1 1.4 0L16 16l2.5-2.5a1 1 0 0 1 1.4 0L21 14.6" stroke-linecap="round"
                 stroke-linejoin="round"></path>
             </svg>
-          </button>
-
-          <div style="flex:1"></div>
-
-          <!-- Editor toolbar -->
-          <button id="undoBtn" class="icon-btn" title="Undo (Ctrl+Z)" onclick="app.performUndo()">
-              <svg viewBox="0 0 24 24" width="24" height="24" ><path d="M8 19q-.425 0-.712-.288T7 18t.288-.712T8 17h6.1q1.575 0 2.738-1T18 13.5 16.838 11 14.1 10H7.8l1.9 1.9q.275.275.275.7t-.275.7-.7.275-.7-.275L4.7 9.7q-.15-.15-.213-.325T4.426 9t.063-.375T4.7 8.3l3.6-3.6q.275-.275.7-.275t.7.275.275.7-.275.7L7.8 8h6.3q2.425 0 4.163 1.575T20 13.5t-1.737 3.925T14.1 19z"/></svg>
-          </button>
-
-          <button id="redoBtn" class="icon-btn" title="Redo (Ctrl+Y)" onclick="app.performRedo()">
-              <svg viewBox="0 0 24 24" width="24" height="24"><path d="M16.2 10H9.9q-1.575 0-2.738 1T6 13.5 7.163 16 9.9 17H16q.425 0 .713.288T17 18t-.288.713T16 19H9.9q-2.425 0-4.163-1.575T4 13.5t1.738-3.925T9.9 8h6.3l-1.9-1.9q-.275-.275-.275-.7t.275-.7.7-.275.7.275l3.6 3.6q.15.15.213.325t.062.375-.062.375-.213.325l-3.6 3.6q-.275.275-.7.275t-.7-.275-.275-.7.275-.7z"/></svg>
           </button>
 
           <button onclick="app.cyclePaperStyle()" title="Toggle: Blank → Lines → Grid" id="styleBtn" class="icon-btn">
@@ -317,7 +307,7 @@
   </div>
 
   <!-- Account dropdown (user info + theme + sign out + settings) -->
-  <div id="accountDropdown" class="dropdown-menu account-dropdown" role="menu" aria-hidden="true">
+  <div id="accountDropdown" class="dropdown-menu account-dropdown direction-down" role="menu" aria-hidden="true">
     <div class="account-dropdown-inner">
       <div class="account-dropdown-header">
         <div class="account-info">
@@ -349,7 +339,7 @@
   </div>
 
 
-  <div id="textStyleDropdown" class="dropdown-menu" role="menu" aria-hidden="true">
+  <div id="textStyleDropdown" class="dropdown-menu direction-up" role="menu" aria-hidden="true">
     <div class="row">
       <button class="btn" onclick="app.applyTextStyle('title')">Title</button>
       <button class="btn" onclick="app.applyTextStyle('heading')">Heading</button>
@@ -358,7 +348,7 @@
     </div>
   </div>
 
-  <div id="shareDropdown" class="dropdown-menu" role="dialog" aria-hidden="true">
+  <div id="shareDropdown" class="dropdown-menu direction-up" role="dialog" aria-hidden="true">
     <div class="row">
       <button class="btn" onclick="app.shareCopy()">Copy</button>
       <button class="btn" onclick="app.systemShare()">Share</button>
@@ -367,7 +357,7 @@
     </div>
   </div>
 
-  <div id="noteActionsMenu" class="dropdown-menu" role="menu" aria-hidden="true">
+  <div id="noteActionsMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">
     <div class="row">
       <button class="btn" onclick="app.requestDeleteActiveNoteFromMenu()">Delete Note</button>
       <button class="btn" id="editorPinBtn" onclick="app.togglePin()" title="Pin/Unpin">Pin/Unpin
@@ -380,7 +370,7 @@
     </div>
   </div>
 
-  <div id="folderActionsMenu" class="dropdown-menu" role="menu" aria-hidden="true">
+  <div id="folderActionsMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">
     <div class="row">
       <button class="btn" onclick="app.promptRenamePendingFolder()">Rename Folder</button>
       <button class="btn" onclick="app.requestDeletePendingFolder()">Delete Folder</button>

@@ -579,51 +579,231 @@ class UndoRedoManager {
 
 const AppDialog = {
     overlay: document.getElementById('appDialogOverlay'),
+    panel: document.querySelector('#appDialogOverlay .dialog-panel'),
     titleEl: document.getElementById('dialogTitle'),
     msgEl: document.getElementById('dialogMessage'),
     inputEl: document.getElementById('dialogInput'),
     cancelBtn: document.getElementById('dialogCancelBtn'),
     confirmBtn: document.getElementById('dialogConfirmBtn'),
     currentOptions: null,
+    currentSource: null,
+    lastSourceEl: null,
+    lastPointerSource: null,
+    activeAnimation: null,
 
-    open(opts) {
-        this.currentOptions = opts || {};
-        this.titleEl.textContent = opts.title || '';
+    resolveSource(trigger) {
+        const element = trigger && typeof trigger === 'object' && 'getBoundingClientRect' in trigger
+            ? trigger
+            : null;
 
-        if (opts.message) {
-            this.msgEl.textContent = opts.message;
+        const sourceEl = element || this.lastPointerSource || this.lastSourceEl;
+        if (sourceEl && typeof sourceEl.getBoundingClientRect === 'function') {
+            const rect = sourceEl.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                element: sourceEl
+            };
+        }
+
+        if (this.panel) {
+            const rect = this.panel.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                element: null
+            };
+        }
+
+        return {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+            width: 0,
+            height: 0,
+            element: null
+        };
+    },
+
+    setSource(trigger) {
+        const source = this.resolveSource(trigger);
+        this.currentSource = source;
+        if (source.element) {
+            this.lastSourceEl = source.element;
+        }
+        return source;
+    },
+
+    getTransformFromSource(source, rect) {
+        if (!rect) {
+            rect = this.panel ? this.panel.getBoundingClientRect() : null;
+        }
+        if (!rect) return { originX: 50, originY: 50, start: 'translate(0px, 0px) scale(0.08, 0.06)' };
+
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = source.x - centerX;
+        const deltaY = source.y - centerY;
+        const originX = ((source.x - rect.left) / Math.max(rect.width, 1)) * 100;
+        const originY = ((source.y - rect.top) / Math.max(rect.height, 1)) * 100;
+
+        return {
+            originX: Math.max(0, Math.min(100, originX)),
+            originY: Math.max(0, Math.min(100, originY)),
+            start: `translate(${deltaX}px, ${deltaY}px) scale(0.08, 0.06)`,
+            end: 'translate(0px, 0px) scale(1, 1)',
+            mid1: `translate(${deltaX * 0.18}px, ${deltaY * 0.18}px) scale(0.45, 0.30)`,
+            mid2: `translate(${deltaX * 0.05}px, ${deltaY * 0.05}px) scale(0.92, 0.96)`,
+            mid3: `translate(${deltaX * 0.02}px, ${deltaY * 0.02}px) scale(1.02, 1.01)`
+        };
+    },
+
+    cancelActiveAnimation() {
+        if (!this.panel) return;
+        const animations = this.panel.getAnimations ? this.panel.getAnimations() : [];
+        animations.forEach((animation) => {
+            try {
+                animation.cancel();
+            } catch (error) {
+                // Ignore cancel errors from older browsers.
+            }
+        });
+        this.activeAnimation = null;
+    },
+
+    playAnimation(keyframes, duration, easing) {
+        if (!this.panel) return;
+
+        const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const finalDuration = reducedMotion ? Math.min(duration, 120) : duration;
+        const finalEasing = reducedMotion ? 'ease-out' : easing;
+
+        this.cancelActiveAnimation();
+        this.panel.style.willChange = 'transform';
+        this.panel.style.transformOrigin = 'center center';
+
+        const animation = this.panel.animate(keyframes, {
+            duration: finalDuration,
+            easing: finalEasing,
+            fill: 'forwards'
+        });
+
+        this.activeAnimation = animation;
+
+        animation.onfinish = () => {
+            this.panel.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+        animation.oncancel = () => {
+            this.panel.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+    },
+
+    open(opts = {}) {
+        const options = opts || {};
+        this.currentOptions = options;
+        const trigger = options.trigger || options.sourceEl || this.lastPointerSource || null;
+        const source = this.setSource(trigger);
+
+        this.titleEl.textContent = options.title || '';
+
+        if (options.message) {
+            this.msgEl.textContent = options.message;
             this.msgEl.style.display = 'block';
         } else {
             this.msgEl.style.display = 'none';
         }
 
-        if (opts.showInput) {
+        if (options.showInput) {
             this.inputEl.style.display = 'block';
-            this.inputEl.placeholder = opts.placeholder || '';
-            this.inputEl.value = opts.defaultValue || '';
+            this.inputEl.placeholder = options.placeholder || '';
+            this.inputEl.value = options.defaultValue || '';
             setTimeout(() => this.inputEl.focus(), 10);
         } else {
             this.inputEl.style.display = 'none';
             this.inputEl.value = '';
         }
 
-        this.confirmBtn.textContent = opts.confirmLabel || 'OK';
-        if (opts.destructive) {
+        this.confirmBtn.textContent = options.confirmLabel || 'OK';
+        if (options.destructive) {
             this.confirmBtn.classList.add('destructive');
         } else {
             this.confirmBtn.classList.remove('destructive');
         }
 
+        const rect = this.panel ? this.panel.getBoundingClientRect() : null;
+        const motion = this.getTransformFromSource(source, rect);
+
+        if (this.panel) {
+            this.panel.style.transformOrigin = `${motion.originX}% ${motion.originY}%`;
+            this.panel.style.transform = motion.start;
+        }
+
         this.overlay.classList.add('show');
+
+        requestAnimationFrame(() => {
+            const rectAfterShow = this.panel ? this.panel.getBoundingClientRect() : null;
+            const motionAfterShow = this.getTransformFromSource(source, rectAfterShow);
+            if (this.panel) {
+                this.panel.style.transformOrigin = `${motionAfterShow.originX}% ${motionAfterShow.originY}%`;
+            }
+            this.playAnimation([
+                { transform: motionAfterShow.start },
+                { transform: motionAfterShow.mid1 },
+                { transform: motionAfterShow.mid2 },
+                { transform: motionAfterShow.mid3 },
+                { transform: motionAfterShow.end }
+            ], 620, 'cubic-bezier(.22, 1.12, .28, 1)');
+        });
     },
 
     close() {
-        this.overlay.classList.remove('show');
-        this.currentOptions = null;
+        if (!this.overlay || !this.overlay.classList.contains('show')) return;
+
+        const source = this.setSource(this.currentSource?.element || this.lastSourceEl || null);
+        const rect = this.panel ? this.panel.getBoundingClientRect() : null;
+        const motion = this.getTransformFromSource(source, rect);
+
+        if (this.panel) {
+            this.panel.style.transformOrigin = `${motion.originX}% ${motion.originY}%`;
+            this.panel.style.transform = motion.end;
+        }
+
+        this.playAnimation([
+            { transform: motion.end },
+            { transform: motion.mid3 },
+            { transform: motion.mid2 },
+            { transform: motion.mid1 },
+            { transform: `translate(${(source.x - (rect ? rect.left + rect.width / 2 : 0))}px, ${(source.y - (rect ? rect.top + rect.height / 2 : 0))}px) scale(0.08, 0.06)` }
+        ], 520, 'cubic-bezier(.22, 1.12, .28, 1)');
+
+        setTimeout(() => {
+            this.overlay.classList.remove('show');
+            this.currentOptions = null;
+            this.currentSource = null;
+            if (this.panel) {
+                this.panel.style.transform = 'none';
+                this.panel.style.transformOrigin = 'center center';
+            }
+        }, 520);
     },
 
     init() {
         if (!this.overlay) return;
+
+        document.addEventListener('pointerdown', (event) => {
+            const target = event.target;
+            const sourceEl = target && typeof target.closest === 'function'
+                ? target.closest('button, [role="button"], [data-dialog-trigger], .btn, .action-btn, .toolbar-button')
+                : null;
+            if (sourceEl) {
+                this.lastPointerSource = sourceEl;
+            }
+        }, { passive: true });
 
         this.cancelBtn.addEventListener('click', () => {
             if (this.currentOptions?.onCancel) this.currentOptions.onCancel();
@@ -675,6 +855,7 @@ const app = {
     ui: {
         isMobile: false,
         mobileView: 'folders',
+        mobileViewDirection: 'right',
         theme: 'light',
         multiSelect: false,
         selectedNoteIds: new Set(),
@@ -1034,8 +1215,7 @@ const app = {
                 this.renderNotesList();
                 this.renderEditor();
                 if (this.ui.isMobile) {
-                    this.ui.mobileView = 'editor';
-                    this.updateLayout();
+                    this.goToMobileView('editor');
                 }
                 document.getElementById('noteContentInput')?.focus();
             } catch (e) {
@@ -1082,8 +1262,7 @@ const app = {
         }
 
         if (this.ui.isMobile) {
-            this.ui.mobileView = 'editor';
-            this.updateLayout();
+            this.goToMobileView('editor');
         }
 
         document.getElementById('noteContentInput')?.focus();
@@ -1608,8 +1787,7 @@ app.renderNotesList = function (animate = true) {
                 }
 
                 if (this.ui.isMobile) {
-                    this.ui.mobileView = 'editor';
-                    this.updateLayout();
+                    this.goToMobileView('editor');
                 }
             };
         }
@@ -1787,7 +1965,14 @@ app.renderMobileNav = function () {
                 </button>
             </div>
             <div class="mobile-nav-title">${Utils.escapeHtml(folderName)}</div>
-            <div class="mobile-nav-right"></div>
+            <div class="mobile-nav-right">
+                <button class="mobile-nav-new-note" onclick="app.createNewNote()" title="New Note" aria-label="New Note">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                </button>
+            </div>
         `;
     } else if (this.ui.mobileView === 'editor') {
         const note = this.getActiveNote();
@@ -1801,7 +1986,12 @@ app.renderMobileNav = function () {
             </div>
             <div class="mobile-nav-title">${Utils.escapeHtml(title)} <div class="editor-meta-info" id="mobileEditorDateDisplay">${note ? Utils.formatDateTime(note.updated_at) : ''}</div></div>
             <div class="mobile-nav-right">
-                <button class="mobile-nav-text-btn" onclick="app.doneEditingMobile()">Done</button>
+                <button class="mobile-nav-undo" onclick="app.performUndo()" title="Undo (Ctrl+Z)" aria-label="Undo">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 19q-.425 0-.712-.288T7 18t.288-.712T8 17h6.1q1.575 0 2.738-1T18 13.5 16.838 11 14.1 10H7.8l1.9 1.9q.275.275.275.7t-.275.7-.7.275-.7-.275L4.7 9.7q-.15-.15-.213-.325T4.426 9t.063-.375T4.7 8.3l3.6-3.6q.275-.275.7-.275t.7.275.275.7-.275.7L7.8 8h6.3q2.425 0 4.163 1.575T20 13.5t-1.737 3.925T14.1 19z"/></svg>
+                </button>
+                <button class="mobile-nav-redo" onclick="app.performRedo()" title="Redo (Ctrl+Y)" aria-label="Redo">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.2 10H9.9q-1.575 0-2.738 1T6 13.5 7.163 16 9.9 17H16q.425 0 .713.288T17 18t-.288.713T16 19H9.9q-2.425 0-4.163-1.575T4 13.5t1.738-3.925T9.9 8h6.3l-1.9-1.9q-.275-.275-.275-.7t.275-.7.7-.275.7.275l3.6 3.6q.15.15.213.325t.062.375-.062.375-.213.325l-3.6 3.6q-.275.275-.7.275t-.7-.275-.275-.7.275-.7z"/></svg>
+                </button>
             </div>
         `;
     }
@@ -2270,19 +2460,55 @@ app.toggleDropdown = function (e, dropdownId, triggerId) {
     const trigger = document.getElementById(triggerId);
     if (!dropdown || !trigger) return;
 
-    const isOpen = dropdown.classList.contains('open');
-    this.closeDropdown(dropdownId);
-    if (!isOpen) {
-        const rect = trigger.getBoundingClientRect();
-        dropdown.style.top = (rect.bottom + 8) + 'px';
-        dropdown.style.left = Math.max(8, rect.left - 40) + 'px';
-        dropdown.classList.add('open');
+    const isOpen = dropdown.classList.contains('open') || dropdown.classList.contains('is-open');
+    if (isOpen) {
+        this.closeDropdown(dropdownId);
+        trigger.setAttribute('aria-expanded', 'false');
+        return;
     }
+
+    const rect = trigger.getBoundingClientRect();
+    const gap = 8;
+    const menuWidth = dropdown.offsetWidth || 190;
+    const menuHeight = dropdown.offsetHeight || 180;
+
+    const left = Math.min(
+        Math.max(rect.left - 40, 8),
+        window.innerWidth - menuWidth - 8
+    );
+
+    const fitsBelow = rect.bottom + menuHeight + gap <= window.innerHeight;
+    const fitsAbove = rect.top - menuHeight - gap >= 0;
+    const openAbove = !fitsBelow && fitsAbove;
+
+    dropdown.style.left = left + 'px';
+    dropdown.style.top = 'auto';
+    dropdown.style.bottom = 'auto';
+    dropdown.classList.remove('direction-up', 'direction-down');
+    dropdown.classList.add(openAbove ? 'direction-up' : 'direction-down');
+
+    if (openAbove) {
+        dropdown.style.bottom = (window.innerHeight - rect.top + gap) + 'px';
+        dropdown.style.setProperty('--origin-x', '50%');
+        dropdown.style.setProperty('--origin-y', '100%');
+    } else {
+        dropdown.style.top = (rect.bottom + gap) + 'px';
+        dropdown.style.setProperty('--origin-x', '50%');
+        dropdown.style.setProperty('--origin-y', '0%');
+    }
+
+    dropdown.classList.add('open', 'is-open');
+    dropdown.setAttribute('aria-expanded', 'true');
+    trigger.setAttribute('aria-expanded', 'true');
 };
 
 app.closeDropdown = function (dropdownId) {
     const dropdown = document.getElementById(dropdownId);
-    if (dropdown) dropdown.classList.remove('open');
+    if (dropdown) {
+        dropdown.classList.remove('open', 'is-open');
+        dropdown.classList.remove('direction-up', 'direction-down');
+        dropdown.setAttribute('aria-expanded', 'false');
+    }
 };
 
 app.handleDropdownClose = function (dropdownId, triggerId, e) {
@@ -2290,7 +2516,10 @@ app.handleDropdownClose = function (dropdownId, triggerId, e) {
     const trigger = document.getElementById(triggerId);
     if (!dropdown || !trigger) return;
     if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
-        dropdown.classList.remove('open');
+        dropdown.classList.remove('open', 'is-open');
+        dropdown.classList.remove('direction-up', 'direction-down');
+        dropdown.setAttribute('aria-expanded', 'false');
+        trigger.setAttribute('aria-expanded', 'false');
     }
 };
 
@@ -2298,7 +2527,9 @@ app.handleMenuCloseOnly = function (menuId, e) {
     const menu = document.getElementById(menuId);
     if (!menu) return;
     if (!menu.contains(e.target)) {
-        menu.classList.remove('open');
+        menu.classList.remove('open', 'is-open');
+        menu.classList.remove('direction-up', 'direction-down');
+        menu.setAttribute('aria-expanded', 'false');
     }
 };
 
@@ -2318,6 +2549,37 @@ app.toggleShareDropdownFromMobile = function (e) {
 // 8.1 NOTE ACTIONS MENU (With Dynamic Pin/Unpin Text and Icon, and Context Menu Support)
 // ========================================================================
 
+app.positionMenuByDirection = function (menu, x, y) {
+    if (!menu) return;
+
+    const margin = 8;
+    const gap = 10;
+    const menuWidth = menu.offsetWidth || 180;
+    const menuHeight = menu.offsetHeight || 160;
+    const canOpenBelow = y + menuHeight + gap <= window.innerHeight - margin;
+    const canOpenAbove = y - menuHeight - gap >= margin;
+    const openAbove = !canOpenBelow && canOpenAbove;
+
+    menu.classList.remove('direction-up', 'direction-down');
+    menu.classList.add(openAbove ? 'direction-up' : 'direction-down');
+
+    let left = x - menuWidth / 2;
+    if (left < margin) left = margin;
+    if (left + menuWidth > window.innerWidth - margin) left = window.innerWidth - menuWidth - margin;
+
+    if (openAbove) {
+        menu.style.top = 'auto';
+        menu.style.bottom = (window.innerHeight - y + gap) + 'px';
+    } else {
+        menu.style.bottom = 'auto';
+        menu.style.top = (y + gap) + 'px';
+    }
+
+    menu.style.left = left + 'px';
+    menu.style.setProperty('--origin-x', '50%');
+    menu.style.setProperty('--origin-y', openAbove ? '100%' : '0%');
+};
+
 app.openNoteActionsMenu = function (ev, noteId) {
     this.activeNoteId = noteId;
     const menu = document.getElementById('noteActionsMenu');
@@ -2332,18 +2594,9 @@ app.openNoteActionsMenu = function (ev, noteId) {
     const x = ev.clientX || (ev.touches?.[0]?.clientX) || 20;
     const y = ev.clientY || (ev.touches?.[0]?.clientY) || 20;
 
-    menu.style.top = (y + 10) + 'px';
-    menu.style.left = (x - 80) + 'px';
-    menu.classList.add('open');
-
-    const rect = menu.getBoundingClientRect();
-    const margin = 8;
-    let left = rect.left;
-    const maxLeft = window.innerWidth - rect.width - margin;
-
-    if (left < margin) left = margin;
-    if (left > maxLeft) left = maxLeft;
-    menu.style.left = left + 'px';
+    this.positionMenuByDirection(menu, x, y);
+    menu.classList.add('open', 'is-open');
+    menu.setAttribute('aria-expanded', 'true');
 };
 
 app.requestDeleteActiveNoteFromMenu = function () {
@@ -2364,9 +2617,9 @@ app.openFolderActionsMenu = function (ev, folderId) {
     const x = ev.clientX || (ev.touches?.[0]?.clientX) || 20;
     const y = ev.clientY || (ev.touches?.[0]?.clientY) || 20;
 
-    menu.style.top = (y + 10) + 'px';
-    menu.style.left = Math.max(8, x - 80) + 'px';
-    menu.classList.add('open');
+    this.positionMenuByDirection(menu, x, y);
+    menu.classList.add('open', 'is-open');
+    menu.setAttribute('aria-expanded', 'true');
 };
 
 app.createNewFolderAndCloseMenu = function () {
@@ -2475,6 +2728,19 @@ app.handleResize = function () {
     this.updateLayout();
 };
 
+app.getMobileViewDirection = function (fromView, toView) {
+    const map = {
+        'folders->notes': 'right',
+        'notes->folders': 'left',
+        'notes->editor': 'up',
+        'editor->notes': 'down',
+        'folders->editor': 'up',
+        'editor->folders': 'left'
+    };
+
+    return map[`${fromView}->${toView}`] || 'up';
+};
+
 app.updateLayout = function () {
     const sidebar = document.getElementById('sidebar');
     const notesPane = document.getElementById('notes-list-pane');
@@ -2487,9 +2753,9 @@ app.updateLayout = function () {
         notesPane.style.display = 'flex';
         editorPane.style.display = 'flex';
 
-        this.animateEl(sidebar);
-        this.animateEl(notesPane);
-        this.animateEl(editorPane);
+        this.animateEl(sidebar, 'up');
+        this.animateEl(notesPane, 'up');
+        this.animateEl(editorPane, 'up');
     } else {
         if (mobileNav) mobileNav.style.display = 'flex';
 
@@ -2497,9 +2763,9 @@ app.updateLayout = function () {
         notesPane.style.display = (this.ui.mobileView === 'notes') ? 'flex' : 'none';
         editorPane.style.display = (this.ui.mobileView === 'editor') ? 'flex' : 'none';
 
-        if (this.ui.mobileView === 'folders') this.animateEl(sidebar);
-        if (this.ui.mobileView === 'notes') this.animateEl(notesPane);
-        if (this.ui.mobileView === 'editor') this.animateEl(editorPane);
+        if (this.ui.mobileView === 'folders') this.animateEl(sidebar, this.ui.mobileViewDirection);
+        if (this.ui.mobileView === 'notes') this.animateEl(notesPane, this.ui.mobileViewDirection);
+        if (this.ui.mobileView === 'editor') this.animateEl(editorPane, this.ui.mobileViewDirection);
 
         this.renderMobileNav();
     }
@@ -2507,11 +2773,11 @@ app.updateLayout = function () {
     this.updateMultiSelectUI();
 };
 
-app.animateEl = function (el) {
+app.animateEl = function (el, direction = 'up') {
     if (!el) return;
-    el.classList.remove('pane-animated');
+    el.classList.remove('pane-animated', 'pane-animate-from-top', 'pane-animate-from-bottom', 'pane-animate-from-left', 'pane-animate-from-right');
     void el.offsetWidth;
-    el.classList.add('pane-animated');
+    el.classList.add('pane-animated', `pane-animate-from-${direction}`);
 };
 
 // ========================================================================
@@ -2520,6 +2786,10 @@ app.animateEl = function (el) {
 // ========================================================================
 
 app.goToMobileView = function (view) {
+    const previousView = this.ui.mobileView;
+    if (previousView === view) return;
+
+    this.ui.mobileViewDirection = this.getMobileViewDirection(previousView, view);
     this.ui.mobileView = view;
     this.updateLayout();
 };
@@ -2541,8 +2811,7 @@ function setActiveFolder(id) {
     app.renderNotesList();
     app.renderEditor();
     if (app.ui.isMobile) {
-        app.ui.mobileView = 'notes';
-        app.updateLayout();
+        app.goToMobileView('notes');
     }
 }
 app.setActiveFolder = setActiveFolder;
@@ -2612,8 +2881,12 @@ app.handleSearch = function (val) {
     this.renderNotesList();
 
     const results = document.querySelectorAll('.note-item');
-    if (results.length > 0 && window.AppAnimations) {
-        AppAnimations.animateSearchResults(results);
+    if (results.length > 0) {
+        results.forEach((el, index) => {
+            el.style.animation = 'none';
+            void el.offsetWidth;
+            el.style.animation = `listItemSlideIn 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 18}ms both`;
+        });
     }
 };
 
