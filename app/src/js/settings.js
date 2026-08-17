@@ -109,38 +109,206 @@ window.closePortal = () => {
     }
 };
 
-// --- Modal Control ---
+// --- Modal Control with Dialog Ripple Animation ---
 const overlay = document.getElementById('custom-modal-overlay');
 const confirmBtn = document.getElementById('modal-confirm-btn');
 const inputContainer = document.getElementById('modal-input-container');
 
-window.closeCustomModal = () => {
-    const modalBox = overlay.querySelector('.modal-box');
-    if (modalBox) {
-        animate(modalBox, 'modalScaleIn', 200, () => {
-            overlay.style.display = 'none';
+// Enhanced Dialog Controller (Similar to AppDialog in app.js)
+const SettingsDialog = {
+    overlay: overlay,
+    get modalBox() {
+        return this.overlay ? this.overlay.querySelector('.modal-box') : null;
+    },
+    lastSourceEl: null,
+    activeAnimation: null,
+
+    resolveSource(trigger) {
+        const element = trigger && typeof trigger === 'object' && 'getBoundingClientRect' in trigger
+            ? trigger
+            : null;
+
+        const sourceEl = element || this.lastSourceEl;
+        if (sourceEl && typeof sourceEl.getBoundingClientRect === 'function') {
+            const rect = sourceEl.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                element: sourceEl
+            };
+        }
+
+        if (this.modalBox) {
+            const rect = this.modalBox.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                element: null
+            };
+        }
+
+        return {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+            width: 0,
+            height: 0,
+            element: null
+        };
+    },
+
+    setSource(trigger) {
+        const source = this.resolveSource(trigger);
+        if (trigger && typeof trigger.getBoundingClientRect === 'function') {
+            this.lastSourceEl = trigger;
+        }
+        return source;
+    },
+
+    getTransformFromSource(source, rect) {
+        if (!rect && this.modalBox) {
+            rect = this.modalBox.getBoundingClientRect();
+        }
+        if (!rect) return { originX: 50, originY: 50, start: 'translate(0px, 0px) scale(0.08, 0.06)' };
+
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = source.x - centerX;
+        const deltaY = source.y - centerY;
+        const originX = ((source.x - rect.left) / Math.max(rect.width, 1)) * 100;
+        const originY = ((source.y - rect.top) / Math.max(rect.height, 1)) * 100;
+
+        return {
+            originX: Math.max(0, Math.min(100, originX)),
+            originY: Math.max(0, Math.min(100, originY)),
+            start: `translate(${deltaX}px, ${deltaY}px) scale(0.08, 0.06)`,
+            end: 'translate(0px, 0px) scale(1, 1)',
+            mid1: `translate(${deltaX * 0.18}px, ${deltaY * 0.18}px) scale(0.45, 0.30)`,
+            mid2: `translate(${deltaX * 0.05}px, ${deltaY * 0.05}px) scale(0.92, 0.96)`,
+            mid3: `translate(${deltaX * 0.02}px, ${deltaY * 0.02}px) scale(1.02, 1.01)`
+        };
+    },
+
+    cancelActiveAnimation() {
+        if (!this.modalBox) return;
+        const animations = this.modalBox.getAnimations ? this.modalBox.getAnimations() : [];
+        animations.forEach((animation) => {
+            try {
+                animation.cancel();
+            } catch (error) {
+                // Ignore cancel errors from older browsers.
+            }
+        });
+        this.activeAnimation = null;
+    },
+
+    playAnimation(keyframes, duration, easing) {
+        if (!this.modalBox) return;
+
+        const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const finalDuration = reducedMotion ? Math.min(duration, 120) : duration;
+        const finalEasing = reducedMotion ? 'ease-out' : easing;
+
+        this.cancelActiveAnimation();
+        this.modalBox.style.willChange = 'transform';
+        this.modalBox.style.transformOrigin = 'center center';
+
+        const animation = this.modalBox.animate(keyframes, {
+            duration: finalDuration,
+            easing: finalEasing,
+            fill: 'forwards'
+        });
+
+        this.activeAnimation = animation;
+
+        animation.onfinish = () => {
+            this.modalBox.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+        animation.oncancel = () => {
+            this.modalBox.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+    },
+
+    openWithAnimation(source) {
+        if (!this.overlay || !this.modalBox) return;
+
+        const sourceObj = this.setSource(source);
+        const rect = this.modalBox.getBoundingClientRect();
+        const motion = this.getTransformFromSource(sourceObj, rect);
+
+        this.modalBox.style.transformOrigin = `${motion.originX}% ${motion.originY}%`;
+        this.modalBox.style.transform = motion.start;
+
+        this.overlay.classList.add('show');
+
+        requestAnimationFrame(() => {
+            const rectAfterShow = this.modalBox.getBoundingClientRect();
+            const motionAfterShow = this.getTransformFromSource(sourceObj, rectAfterShow);
+            this.modalBox.style.transformOrigin = `${motionAfterShow.originX}% ${motionAfterShow.originY}%`;
+            
+            this.playAnimation([
+                { transform: motionAfterShow.start },
+                { transform: motionAfterShow.mid1 },
+                { transform: motionAfterShow.mid2 },
+                { transform: motionAfterShow.mid3 },
+                { transform: motionAfterShow.end }
+            ], 620, 'cubic-bezier(.22, 1.12, .28, 1)');
+        });
+    },
+
+    closeWithAnimation() {
+        if (!this.overlay || !this.overlay.classList.contains('show') || !this.modalBox) return;
+
+        const sourceObj = this.setSource(this.lastSourceEl);
+        const rect = this.modalBox.getBoundingClientRect();
+        const motion = this.getTransformFromSource(sourceObj, rect);
+
+        this.modalBox.style.transformOrigin = `${motion.originX}% ${motion.originY}%`;
+        this.modalBox.style.transform = motion.end;
+
+        this.playAnimation([
+            { transform: motion.end },
+            { transform: motion.mid3 },
+            { transform: motion.mid2 },
+            { transform: motion.mid1 },
+            { transform: `translate(${(sourceObj.x - (rect ? rect.left + rect.width / 2 : 0))}px, ${(sourceObj.y - (rect ? rect.top + rect.height / 2 : 0))}px) scale(0.08, 0.06)` }
+        ], 520, 'cubic-bezier(.22, 1.12, .28, 1)');
+
+        setTimeout(() => {
+            this.overlay.classList.remove('show');
+            this.overlay.style.display = 'none';
+            if (this.modalBox) {
+                this.modalBox.style.transform = '';
+                this.modalBox.style.transformOrigin = 'center center';
+            }
             inputContainer.innerHTML = '';
-        }, true); // reverse animation
-    } else {
-        overlay.style.display = 'none';
-        inputContainer.innerHTML = '';
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Confirm';
+            confirmBtn.style.background = '';
+        }, 520);
     }
 };
 
-window.openModal = (title, message, btnText, btnColor, actionFn) => {
+window.closeCustomModal = () => {
+    SettingsDialog.closeWithAnimation();
+};
+
+window.openModal = (title, message, btnText, btnColor, actionFn, sourceEl) => {
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-message').innerText = message;
     confirmBtn.innerText = btnText;
     confirmBtn.style.background = btnColor;
     confirmBtn.style.color = "white";
     confirmBtn.disabled = false;
-    overlay.style.display = 'flex';
+    overlay.style.display = 'flex'; // Ensure display is set before animation
     
-    // Animate modal entrance
-    const modalBox = overlay.querySelector('.modal-box');
-    if (modalBox) {
-        animate(modalBox, 'modalScaleIn', 300);
-    }
+    // Use ripple animation from source element
+    SettingsDialog.openWithAnimation(sourceEl || SettingsDialog.lastSourceEl);
     
     confirmBtn.onclick = async () => {
         confirmBtn.disabled = true;
@@ -148,6 +316,14 @@ window.openModal = (title, message, btnText, btnColor, actionFn) => {
         await actionFn();
     };
 };
+
+// Track which button triggered the modal
+document.addEventListener('click', (e) => {
+    const button = e.target.closest('[onclick*="Modal"], .clickable, .settings-action-btn, button');
+    if (button) {
+        SettingsDialog.lastSourceEl = button;
+    }
+});
 
 // --- Actions ---
 window.showSignOutModal = () => {
@@ -160,7 +336,7 @@ window.showSignOutModal = () => {
             return;
         }
         window.location.href = '../index.html';
-    });
+    }, SettingsDialog.lastSourceEl);
 };
 
 // Triple Step Delete with animations
@@ -168,11 +344,12 @@ window.showDeleteModal = () => {
     openModal("Step 1 of 3", "Are you sure you want to delete your account?", "Continue", "var(--text-dim)", async () => {
         openModal("Step 2 of 3", "WARNING: All encrypted notes will be lost forever. Proceed?", "I Understand", "var(--accent1)", async () => {
             showPasswordGate();
-        });
-    });
+        }, SettingsDialog.lastSourceEl);
+    }, SettingsDialog.lastSourceEl);
 };
 
 const showPasswordGate = () => {
+    // Update UI directly
     document.getElementById('modal-title').innerText = "Final Step";
     document.getElementById('modal-message').innerText = "Enter your password to confirm deletion.";
     inputContainer.innerHTML = `<input type="password" id="final-pass" placeholder="Password" style="width: 85%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid var(--sep); background: rgba(128,128,128,0.1); color: var(--text-main); outline: none; animation: inputFocus 0.3s ease-out;">`;
@@ -180,14 +357,23 @@ const showPasswordGate = () => {
     confirmBtn.style.background = "var(--accent1)";
     confirmBtn.disabled = false;
 
+    // Focus password input
+    setTimeout(() => {
+        const passInput = document.getElementById('final-pass');
+        if (passInput) passInput.focus();
+    }, 100);
+
     confirmBtn.onclick = async () => {
         const pass = document.getElementById('final-pass').value;
         if(!pass) return alert("Password required");
         
+        confirmBtn.disabled = true;
         confirmBtn.innerText = "Verifying...";
         const { error: authError } = await supabase.auth.signInWithPassword({ email: currentUser.email, password: pass });
 
         if (authError) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = "Delete Permanently";
             alert("Incorrect password. Deletion cancelled.");
             closeCustomModal();
             return;
@@ -199,25 +385,17 @@ const showPasswordGate = () => {
             
             confirmBtn.innerText = "✓ Deleted!";
             confirmBtn.style.background = "var(--accent)";
+            confirmBtn.disabled = true;
             
-            // Success animation
-            const modalBox = document.querySelector('.modal-box');
-            if (modalBox) {
-                animate(modalBox, 'celebration', 400, () => {
-                    setTimeout(async () => {
-                        await supabase.auth.signOut();
-                        localStorage.clear();
-                        window.location.href = './index.html';
-                    }, 500);
-                });
-            } else {
-                setTimeout(async () => {
-                    await supabase.auth.signOut();
-                    localStorage.clear();
-                    window.location.href = './index.html';
-                }, 500);
-            }
+            // Success animation then cleanup
+            setTimeout(async () => {
+                await supabase.auth.signOut();
+                localStorage.clear();
+                window.location.href = './index.html';
+            }, 1500);
         } catch (err) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = "Delete Permanently";
             alert(err.message);
             closeCustomModal();
         }

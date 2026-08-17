@@ -6,62 +6,100 @@
 const AdvancedAvatarGenerator = {
     // Meaningful emoji categories
     emojiCategories: {
-        nature: {
-            name: 'Nature',
-            emojis: ['🌿', '🌲', '🌳', '🌴', '🌵', '🌾', '🌻', '🌺', '🌸', '🌼', '🌷', '🌹']
-        },
-        animals: {
-            name: 'Animals',
-            emojis: ['🦁', '🐯', '🐻', '🐼', '🐨', '🦊', '🐺', '🐮', '🐷', '🐸', '🦅', '🦋']
-        },
-        celestial: {
-            name: 'Celestial',
-            emojis: ['⭐', '✨', '🌟', '💫', '🌙', '☀️', '🌤️', '⛅', '🌈', '☄️', '🌠', '🔭']
-        },
-        energy: {
-            name: 'Energy & Power',
-            emojis: ['🔥', '⚡', '💥', '✨', '💎', '🚀', '⚔️', '🎯', '🏆', '👑', '💪', '🎪']
-        },
-        creativity: {
-            name: 'Creativity',
-            emojis: ['🎨', '🎭', '🎪', '🎬', '🎸', '🎹', '🎺', '🖌️', '✏️', '🖍️', '🖊️', '✒️']
-        },
-        technology: {
-            name: 'Technology',
-            emojis: ['💻', '🖥️', '📱', '⌨️', '🖱️', '🔧', '🔨', '⚙️', '🛠️', '🔬', '🔭', '💡']
-        },
-        growth: {
-            name: 'Growth & Learning',
-            emojis: ['📚', '📖', '📝', '✍️', '🧠', '💡', '🎓', '🏅', '📈', '🌱', '🌿', '🔑']
-        },
-        vibes: {
-            name: 'Vibes',
-            emojis: ['😎', '🤓', '🥳', '😊', '🤗', '💪', '🎉', '✌️', '🙌', '👏', '🔮', '💫']
-        },
-        objects: {
-            name: 'Objects',
-            emojis: ['📚', '🎒', '🧳', '🎁', '🎀', '🎪', '🎢', '🎡', '🎠', '🎭', '🎬', '🎤']
-        }
+    nature: {
+        name: 'Nature',
+        emojis: [
+            '🌿', '🍃', '🌱', '🌵', '🌻', '🌸',
+            '🌹', '🌷', '🍀', '🍁', '🌲', '🌴'
+        ]
     },
+
+    animals: {
+        name: 'Animals',
+        emojis: [
+            '🐶', '🐱', '🐻', '🐼', '🦊', '🐨',
+            '🐰', '🐯', '🦁', '🐸', '🐵', '🐺'
+        ]
+    },
+
+    celestial: {
+        name: 'Celestial',
+        emojis: [
+            '🌙', '☀️', '⭐', '🌟', '✨', '💫',
+            '🌌', '🌈', '🪐', '☄️', '🌠', '🔮'
+        ]
+    },
+
+    energy: {
+        name: 'Energy',
+        emojis: [
+            '🔥', '⚡', '💥', '🚀', '💎', '🎯',
+            '🏆', '👑', '💪', '🦾', '🔋', '🌪️'
+        ]
+    },
+
+    creativity: {
+        name: 'Creative',
+        emojis: [
+            '🎨', '🖌️', '🎭', '🎬', '🎸', '🎹',
+            '🎧', '📷', '🎤', '✏️', '🧩', '🎵'
+        ]
+    },
+
+    technology: {
+        name: 'Tech',
+        emojis: [
+            '💻', '🖥️', '📱', '⌨️', '🖱️', '🤖',
+            '⚙️', '🔧', '🛠️', '💡', '🔌', '💾'
+        ]
+    },
+
+    learning: {
+        name: 'Learning',
+        emojis: [
+            '📚', '📖', '🧠', '🎓', '🔬', '🔭',
+            '💡', '📝', '✍️', '📐', '🧮', '📊'
+        ]
+    },
+
+    vibes: {
+        name: 'Vibes',
+        emojis: [
+            '😎', '🤓', '🤩', '🥳', '😊', '😌',
+            '🤗', '😈', '🫶', '🙌', '✌️', '❤️'
+        ]
+    },
+
+    lifestyle: {
+        name: 'Lifestyle',
+        emojis: [
+            '☕', '🍕', '🎮', '🏋️', '⚽', '🏀',
+            '🎧', '✈️', '🚗', '🏠', '🛹', '🎒'
+        ]
+    }
+},
 
     // Color palettes for initials/gradients
     colorPalettes: [
-        { name: 'Coral Sunset', start: '#FF6B6B', end: '#FF8E72' },
-        { name: 'Ocean Breeze', start: '#4ECDC4', end: '#44A08D' },
-        { name: 'Mint Fresh', start: '#95E1D3', end: '#38ADA9' },
-        { name: 'Dreamy Pink', start: '#F38181', end: '#AA96DA' },
-        { name: 'Cotton Candy', start: '#FCBAD3', end: '#A6C0FE' },
-        { name: 'Aurora', start: '#A8EDEA', end: '#FED6E3' },
-        { name: 'Spicy Orange', start: '#FF9A56', end: '#FF6348' },
-        { name: 'Royal Violet', start: '#667EEA', end: '#764BA2' },
-        { name: 'Rose Garden', start: '#F093FB', end: '#F5576C' },
-        { name: 'Sky Blue', start: '#4FACFE', end: '#00F2FE' },
-        { name: 'Minty Green', start: '#43E97B', end: '#38F9D7' },
-        { name: 'Sunny Yellow', start: '#FA709A', end: '#FEE140' },
-        { name: 'Deep Space', start: '#30CFD0', end: '#330867' },
-        { name: 'Earthy', start: '#A8E6CF', end: '#FFD3B6' },
-        { name: 'Peachy', start: '#FF9671', end: '#FFC75F' }
-    ],
+    // ☀️ Light-friendly
+    { name: 'Coral', start: '#FF8A80', end: '#FFB199' },
+    { name: 'Mint', start: '#7DDCC8', end: '#A8E6CF' },
+    { name: 'Powder Blue', start: '#82B1FF', end: '#A7D8FF' },
+    { name: 'Lavender', start: '#B39DDB', end: '#D1C4E9' },
+    { name: 'Peach', start: '#FFB07C', end: '#FFD3A5' },
+    // ◐ Universal — Light & Dark
+    { name: 'Ocean', start: '#4DB6AC', end: '#64B5F6' },
+    { name: 'Rose', start: '#EC7090', end: '#B58CFF' },
+    { name: 'Teal', start: '#26A69A', end: '#80CBC4' },
+    { name: 'Indigo', start: '#667EEA', end: '#8B9CF6' },
+    { name: 'Amber', start: '#F6A65B', end: '#FFD166' },
+    // 🌙 Dark-friendly
+    { name: 'Midnight', start: '#315C9B', end: '#182848' },
+    { name: 'Deep Teal', start: '#167D78', end: '#123F3B' },
+    { name: 'Plum', start: '#6B4FA1', end: '#2E1B47' },
+    { name: 'Burgundy', start: '#963F58', end: '#401C2A' },
+    { name: 'Deep Amber', start: '#B86B32', end: '#4A2A18' }
+],
 
     /**
      * Get all emojis flattened for easy access
@@ -205,12 +243,16 @@ const AdvancedAvatarGenerator = {
         modal.id = 'gradientPickerModal';
         modal.className = 'gradient-picker-modal';
         modal.innerHTML = `
-            <div class="gradient-picker-content">
-                <div class="gradient-picker-header">
-                    <h2>Choose Avatar Gradient</h2>
-                    <button type="button" class="gradient-picker-close" onclick="document.getElementById('gradientPickerModal').remove()">✕</button>
+            <div class="gradient-picker-overlay">
+                <div class="gradient-picker-content">
+                    <div class="gradient-picker-header">
+                        <h2>Choose Avatar Gradient</h2>
+                        <button type="button" class="gradient-picker-close" onclick="window.AdvancedAvatarGenerator.closeGradientPickerModal()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    ${this.createGradientPickerHTML()}
                 </div>
-                ${this.createGradientPickerHTML()}
             </div>
         `;
         
@@ -219,21 +261,30 @@ const AdvancedAvatarGenerator = {
         
         // Close on backdrop click
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
+            if (e.target.id === 'gradientPickerModal' || e.target.classList.contains('gradient-picker-overlay')) {
+                AvatarPickerDialog.closeGradientPicker();
             }
         });
         
         document.body.appendChild(modal);
+        
+        // Trigger animation
+        const content = modal.querySelector('.gradient-picker-content');
+        if (content) {
+            AvatarPickerDialog.animatePickerOpen(content);
+        }
     },
 
     /**
-     * Select gradient (called from picker)
+     * Close gradient picker modal (for button click)
      */
+    closeGradientPickerModal() {
+        AvatarPickerDialog.closeGradientPicker();
+    },
     selectGradient(index) {
         const modal = document.getElementById('gradientPickerModal');
         if (modal) {
-            modal.remove();
+            AvatarPickerDialog.closeGradientPicker();
         }
         // Dispatch custom event that profile page can listen to
         window.dispatchEvent(new CustomEvent('gradientSelected', { detail: { index, gradient: this.colorPalettes[index] } }));
@@ -278,12 +329,16 @@ const AdvancedAvatarGenerator = {
         modal.id = 'emojiPickerModal';
         modal.className = 'emoji-picker-modal';
         modal.innerHTML = `
-            <div class="emoji-picker-content">
-                <div class="emoji-picker-header">
-                    <h2>Choose Avatar Emoji</h2>
-                    <button type="button" class="emoji-picker-close" onclick="document.getElementById('emojiPickerModal').remove()">✕</button>
+            <div class="emoji-picker-overlay">
+                <div class="emoji-picker-content">
+                    <div class="emoji-picker-header">
+                        <h2>Choose Avatar Emoji</h2>
+                        <button type="button" class="emoji-picker-close" onclick="window.AdvancedAvatarGenerator.closeEmojiPicker()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    ${this.createEmojiPickerHTML()}
                 </div>
-                ${this.createEmojiPickerHTML()}
             </div>
         `;
         
@@ -292,12 +347,28 @@ const AdvancedAvatarGenerator = {
         
         // Close on backdrop click
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
+            if (e.target.id === 'emojiPickerModal' || e.target.classList.contains('emoji-picker-overlay')) {
+                this.closeEmojiPicker();
             }
         });
         
         document.body.appendChild(modal);
+        
+        // Trigger animation
+        const content = modal.querySelector('.emoji-picker-content');
+        if (content) {
+            AvatarPickerDialog.animatePickerOpen(content);
+        }
+    },
+
+    /**
+     * Close emoji picker with animation
+     */
+    closeEmojiPicker() {
+        const modal = document.getElementById('emojiPickerModal');
+        if (modal) {
+            AvatarPickerDialog.closeEmojiPicker();
+        }
     },
 
     /**
@@ -306,14 +377,112 @@ const AdvancedAvatarGenerator = {
     selectEmoji(emoji) {
         const modal = document.getElementById('emojiPickerModal');
         if (modal) {
-            modal.remove();
+            AvatarPickerDialog.closeEmojiPicker();
         }
         // Dispatch custom event that profile page can listen to
         window.dispatchEvent(new CustomEvent('emojiSelected', { detail: { emoji } }));
     }
 };
 
+// Avatar Picker Dialog Controller (for smooth animations)
+const AvatarPickerDialog = {
+    activeAnimation: null,
+
+    cancelActiveAnimation(element) {
+        if (!element) return;
+        const animations = element.getAnimations ? element.getAnimations() : [];
+        animations.forEach((animation) => {
+            try {
+                animation.cancel();
+            } catch (error) {
+                // Ignore cancel errors
+            }
+        });
+        this.activeAnimation = null;
+    },
+
+    playAnimation(element, keyframes, duration, easing) {
+        if (!element) return;
+
+        const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const finalDuration = reducedMotion ? Math.min(duration, 120) : duration;
+        const finalEasing = reducedMotion ? 'ease-out' : easing;
+
+        this.cancelActiveAnimation(element);
+        element.style.willChange = 'transform, opacity';
+
+        const animation = element.animate(keyframes, {
+            duration: finalDuration,
+            easing: finalEasing,
+            fill: 'forwards'
+        });
+
+        this.activeAnimation = animation;
+
+        animation.onfinish = () => {
+            element.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+        animation.oncancel = () => {
+            element.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+    },
+
+    animatePickerOpen(content) {
+        if (!content) return;
+        content.style.opacity = '0';
+        content.style.transform = 'scale(0.85) translateY(20px)';
+        
+        requestAnimationFrame(() => {
+            this.playAnimation(content, [
+                { opacity: '0', transform: 'scale(0.85) translateY(20px)' },
+                { opacity: '1', transform: 'scale(1) translateY(0)' }
+            ], 300, 'cubic-bezier(.22, 1.12, .28, 1)');
+        });
+    },
+
+    closeGradientPicker() {
+        const modal = document.getElementById('gradientPickerModal');
+        if (!modal) return;
+        
+        const content = modal.querySelector('.gradient-picker-content');
+        if (content) {
+            this.playAnimation(content, [
+                { opacity: '1', transform: 'scale(1) translateY(0)' },
+                { opacity: '0', transform: 'scale(0.85) translateY(20px)' }
+            ], 250, 'cubic-bezier(.22, 1.12, .28, 1)');
+            
+            setTimeout(() => {
+                modal.remove();
+            }, 250);
+        } else {
+            modal.remove();
+        }
+    },
+
+    closeEmojiPicker() {
+        const modal = document.getElementById('emojiPickerModal');
+        if (!modal) return;
+        
+        const content = modal.querySelector('.emoji-picker-content');
+        if (content) {
+            this.playAnimation(content, [
+                { opacity: '1', transform: 'scale(1) translateY(0)' },
+                { opacity: '0', transform: 'scale(0.85) translateY(20px)' }
+            ], 250, 'cubic-bezier(.22, 1.12, .28, 1)');
+            
+            setTimeout(() => {
+                modal.remove();
+            }, 250);
+        } else {
+            modal.remove();
+        }
+    }
+};
+
 // Export for use
 if (typeof window !== 'undefined') {
     window.AdvancedAvatarGenerator = AdvancedAvatarGenerator;
+    window.AvatarPickerDialog = AvatarPickerDialog;
 }

@@ -1,5 +1,6 @@
 // ============================================================================
 // PROJECT SCORPIO - NOTOZ (NOTES APP)
+// Mobile Web Version 
 // ============================================================================
 
 // ============================================================================
@@ -3771,19 +3772,21 @@ for (const serverNote of serverNotes) {
     const localTime = new Date(localNote.updated_at || 0).getTime();
 
     if (serverTime > localTime) {
-
+        _decryptCache.delete(serverNote.id);        // bust stale session cache
         Object.assign(localNote, serverNote);
-
+        localNote._decrypted = false;                // ciphertext just landed, flag it
+        localNote._previewDecrypted = false;
+        
         await this.saveSingleNoteToIndexedDB(serverNote);
-
-        this.updateNoteItemInList(serverNote.id);
-
-        this.queueNoteDecrypt(serverNote);
+        this.updateNoteItemInList(serverNote.id);      // shows '...' placeholder correctly now
 
         if (this.activeNoteId === serverNote.id) {
+            await DecryptQueue.priorityFull(serverNote.id); // full decrypt, not just preview
             this.renderEditor();
+        } else {
+            DecryptQueue.queuePreview(serverNote.id);
         }
-
+        
         updated++;
     }
 }

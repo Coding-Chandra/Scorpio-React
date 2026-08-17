@@ -9,29 +9,30 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    animation: modalBackdropFade 0.3s ease-out forwards;
-    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+    padding: 20px;
 }
 
-.gradient-picker-modal.hidden {
-    animation: modalBackdropFade 0.3s ease-out reverse forwards;
+.gradient-picker-overlay {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
 }
 
 .gradient-picker-content {
-    background: transparent;
-    border-radius: 16px;
-    backdrop-filter: saturate(4);
+    background: var(--glass-bg);
+    border: 0.5px solid var(--glass-border);
+    border-radius: 24px;
     padding: 24px;
-    max-width: 600px;
-    width: 90%;
     max-height: 85vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .gradient-picker-header {
@@ -40,7 +41,7 @@
     justify-content: space-between;
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0.5px solid var(--sep);
 }
 
 .gradient-picker-header h2 {
@@ -51,12 +52,11 @@
 }
 
 .gradient-picker-close {
-    background: none;
+    background: transparent;
     border: none;
-    font-size: 24px;
     color: var(--text-dim);
     cursor: pointer;
-    padding: 0;
+    padding: 8px;
     width: 32px;
     height: 32px;
     display: flex;
@@ -64,10 +64,17 @@
     justify-content: center;
     border-radius: 8px;
     transition: all 0.2s ease-out;
+    flex-shrink: 0;
+}
+
+.gradient-picker-close svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
 }
 
 .gradient-picker-close:hover {
-    background: var(--bg-input);
+    background: var(--bg-active);
     color: var(--text-main);
 }
 
@@ -78,7 +85,7 @@
 /* Gradient Grid */
 .gradient-picker {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 12px;
 }
 
@@ -86,26 +93,28 @@
     position: relative;
     width: 100%;
     aspect-ratio: 1;
-    border: 2px solid transparent;
-    border-radius: 12px;
+    border: 2px solid var(--sep);
+    border-radius: 16px;
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.2s ease-out;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
     background-clip: padding-box;
+    font-family: inherit;
+    padding: 0;
 }
 
 .gradient-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    border-color: var(--text-dim);
 }
 
 .gradient-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
 .gradient-btn::before {
@@ -117,10 +126,11 @@
     bottom: 0;
     background: rgba(255, 255, 255, 0);
     transition: background 0.2s ease-out;
+    pointer-events: none;
 }
 
 .gradient-btn:hover::before {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .gradient-name {
@@ -129,28 +139,17 @@
     color: white;
     font-size: 12px;
     font-weight: 600;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
     text-align: center;
     padding: 0 8px;
-    line-height: 1.2;
+    line-height: 1.3;
     pointer-events: none;
 }
 
 /* Focus ring for selected gradient */
 .gradient-btn:focus-visible {
     outline: none;
-}
-
-.gradient-btn:focus-visible::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border: 3px solid var(--accent);
-    border-radius: 12px;
-    pointer-events: none;
+    border-color: var(--accent);
 }
 
 /* ============================================
@@ -164,29 +163,30 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    animation: modalBackdropFade 0.3s ease-out forwards;
-    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-out;
+    padding: 20px;
 }
 
-.emoji-picker-modal.hidden {
-    animation: modalBackdropFade 0.3s ease-out reverse forwards;
+.emoji-picker-overlay {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
 }
 
 .emoji-picker-content {
-    background: transparent;
-    border-radius: 16px;
-    backdrop-filter: saturate(4);
+    background: var(--glass-bg);
+    border: 0.5px solid var(--glass-border);
+    border-radius: 24px;
     padding: 24px;
-    max-width: 500px;
-    width: 90%;
     max-height: 85vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .emoji-picker-header {
@@ -195,7 +195,7 @@
     justify-content: space-between;
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 0.5px solid var(--sep);
 }
 
 .emoji-picker-header h2 {
@@ -206,12 +206,11 @@
 }
 
 .emoji-picker-close {
-    background: none;
+    background: transparent;
     border: none;
-    font-size: 24px;
     color: var(--text-dim);
     cursor: pointer;
-    padding: 0;
+    padding: 8px;
     width: 32px;
     height: 32px;
     display: flex;
@@ -219,10 +218,17 @@
     justify-content: center;
     border-radius: 8px;
     transition: all 0.2s ease-out;
+    flex-shrink: 0;
+}
+
+.emoji-picker-close svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
 }
 
 .emoji-picker-close:hover {
-    background: var(--bg-input);
+    background: var(--bg-active);
     color: var(--text-main);
 }
 
@@ -260,22 +266,24 @@
 
 .emoji-btn {
     aspect-ratio: 1;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-input);
+    border: 1px solid var(--sep);
+    border-radius: 12px;
+    background: var(--bg-active);
     cursor: pointer;
     font-size: 32px;
-    transition: all 0.2s ease-out;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
+    font-family: inherit;
 }
 
 .emoji-btn:hover {
     background: var(--accent);
     border-color: var(--accent);
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .emoji-btn:active {
@@ -285,7 +293,7 @@
 .emoji-btn:focus-visible {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================

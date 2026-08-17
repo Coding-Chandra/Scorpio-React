@@ -608,7 +608,8 @@ window.promptExportNotes = () => {
     confirmBtn.onclick = async () => {
         await exportNotesToFile();
     };
-    document.getElementById('custom-modal-overlay').classList.remove('hidden');
+    document.getElementById('custom-modal-overlay').style.display = 'flex';
+    ProfileDialog.openWithAnimation(ProfileDialog.lastSourceEl);
 };
 
 async function exportNotesToFile() {
@@ -691,7 +692,8 @@ window.promptImportNotes = () => {
     confirmBtn.onclick = async () => {
         await importNotesFromFile();
     };
-    document.getElementById('custom-modal-overlay').classList.remove('hidden');
+    document.getElementById('custom-modal-overlay').style.display = 'flex';
+    ProfileDialog.openWithAnimation(ProfileDialog.lastSourceEl);
 };
 
 async function importNotesFromFile() {
@@ -791,18 +793,205 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-window.openModal = (title, message, buttonText, buttonColor, callback) => {
+window.openModal = (title, message, buttonText, buttonColor, callback, sourceEl) => {
     document.getElementById('modal-title').textContent = title;
     document.getElementById('modal-message').textContent = message;
     document.getElementById('modal-confirm-btn').textContent = buttonText;
     document.getElementById('modal-confirm-btn').style.background = buttonColor;
     document.getElementById('modal-confirm-btn').onclick = callback;
-    document.getElementById('custom-modal-overlay').classList.remove('hidden');
+    document.getElementById('custom-modal-overlay').style.display = 'flex';
+    
+    // Use ripple animation from source element
+    ProfileDialog.openWithAnimation(sourceEl || ProfileDialog.lastSourceEl);
 };
 
 window.closeCustomModal = () => {
-    document.getElementById('custom-modal-overlay').classList.add('hidden');
+    ProfileDialog.closeWithAnimation();
 };
+
+// Enhanced Dialog Controller for Profile (Similar to SettingsDialog in settings.js)
+const ProfileDialog = {
+    overlay: document.getElementById('custom-modal-overlay'),
+    get modalBox() {
+        return this.overlay ? this.overlay.querySelector('.modal-box') : null;
+    },
+    lastSourceEl: null,
+    activeAnimation: null,
+
+    resolveSource(trigger) {
+        const element = trigger && typeof trigger === 'object' && 'getBoundingClientRect' in trigger
+            ? trigger
+            : null;
+
+        const sourceEl = element || this.lastSourceEl;
+        if (sourceEl && typeof sourceEl.getBoundingClientRect === 'function') {
+            const rect = sourceEl.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                element: sourceEl
+            };
+        }
+
+        if (this.modalBox) {
+            const rect = this.modalBox.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2,
+                width: rect.width,
+                height: rect.height,
+                element: null
+            };
+        }
+
+        return {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
+            width: 0,
+            height: 0,
+            element: null
+        };
+    },
+
+    setSource(trigger) {
+        const source = this.resolveSource(trigger);
+        if (trigger && typeof trigger.getBoundingClientRect === 'function') {
+            this.lastSourceEl = trigger;
+        }
+        return source;
+    },
+
+    getTransformFromSource(source, rect) {
+        if (!rect && this.modalBox) {
+            rect = this.modalBox.getBoundingClientRect();
+        }
+        if (!rect) return { originX: 50, originY: 50, start: 'translate(0px, 0px) scale(0.08, 0.06)' };
+
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = source.x - centerX;
+        const deltaY = source.y - centerY;
+        const originX = ((source.x - rect.left) / Math.max(rect.width, 1)) * 100;
+        const originY = ((source.y - rect.top) / Math.max(rect.height, 1)) * 100;
+
+        return {
+            originX: Math.max(0, Math.min(100, originX)),
+            originY: Math.max(0, Math.min(100, originY)),
+            start: `translate(${deltaX}px, ${deltaY}px) scale(0.08, 0.06)`,
+            end: 'translate(0px, 0px) scale(1, 1)',
+            mid1: `translate(${deltaX * 0.18}px, ${deltaY * 0.18}px) scale(0.45, 0.30)`,
+            mid2: `translate(${deltaX * 0.05}px, ${deltaY * 0.05}px) scale(0.92, 0.96)`,
+            mid3: `translate(${deltaX * 0.02}px, ${deltaY * 0.02}px) scale(1.02, 1.01)`
+        };
+    },
+
+    cancelActiveAnimation() {
+        if (!this.modalBox) return;
+        const animations = this.modalBox.getAnimations ? this.modalBox.getAnimations() : [];
+        animations.forEach((animation) => {
+            try {
+                animation.cancel();
+            } catch (error) {
+                // Ignore cancel errors from older browsers.
+            }
+        });
+        this.activeAnimation = null;
+    },
+
+    playAnimation(keyframes, duration, easing) {
+        if (!this.modalBox) return;
+
+        const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const finalDuration = reducedMotion ? Math.min(duration, 120) : duration;
+        const finalEasing = reducedMotion ? 'ease-out' : easing;
+
+        this.cancelActiveAnimation();
+        this.modalBox.style.willChange = 'transform';
+        this.modalBox.style.transformOrigin = 'center center';
+
+        const animation = this.modalBox.animate(keyframes, {
+            duration: finalDuration,
+            easing: finalEasing,
+            fill: 'forwards'
+        });
+
+        this.activeAnimation = animation;
+
+        animation.onfinish = () => {
+            this.modalBox.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+        animation.oncancel = () => {
+            this.modalBox.style.willChange = 'auto';
+            this.activeAnimation = null;
+        };
+    },
+
+    openWithAnimation(source) {
+        if (!this.overlay || !this.modalBox) return;
+
+        const sourceObj = this.setSource(source);
+        const rect = this.modalBox.getBoundingClientRect();
+        const motion = this.getTransformFromSource(sourceObj, rect);
+
+        this.modalBox.style.transformOrigin = `${motion.originX}% ${motion.originY}%`;
+        this.modalBox.style.transform = motion.start;
+
+        this.overlay.classList.remove('hidden');
+
+        requestAnimationFrame(() => {
+            const rectAfterShow = this.modalBox.getBoundingClientRect();
+            const motionAfterShow = this.getTransformFromSource(sourceObj, rectAfterShow);
+            this.modalBox.style.transformOrigin = `${motionAfterShow.originX}% ${motionAfterShow.originY}%`;
+            
+            this.playAnimation([
+                { transform: motionAfterShow.start },
+                { transform: motionAfterShow.mid1 },
+                { transform: motionAfterShow.mid2 },
+                { transform: motionAfterShow.mid3 },
+                { transform: motionAfterShow.end }
+            ], 620, 'cubic-bezier(.22, 1.12, .28, 1)');
+        });
+    },
+
+    closeWithAnimation() {
+        if (!this.overlay || this.overlay.classList.contains('hidden') || !this.modalBox) return;
+
+        const sourceObj = this.setSource(this.lastSourceEl);
+        const rect = this.modalBox.getBoundingClientRect();
+        const motion = this.getTransformFromSource(sourceObj, rect);
+
+        this.modalBox.style.transformOrigin = `${motion.originX}% ${motion.originY}%`;
+        this.modalBox.style.transform = motion.end;
+
+        this.playAnimation([
+            { transform: motion.end },
+            { transform: motion.mid3 },
+            { transform: motion.mid2 },
+            { transform: motion.mid1 },
+            { transform: `translate(${(sourceObj.x - (rect ? rect.left + rect.width / 2 : 0))}px, ${(sourceObj.y - (rect ? rect.top + rect.height / 2 : 0))}px) scale(0.08, 0.06)` }
+        ], 520, 'cubic-bezier(.22, 1.12, .28, 1)');
+
+        setTimeout(() => {
+            this.overlay.classList.add('hidden');
+            this.overlay.style.display = 'none';
+            if (this.modalBox) {
+                this.modalBox.style.transform = '';
+                this.modalBox.style.transformOrigin = 'center center';
+            }
+        }, 520);
+    }
+};
+
+// Track which button triggered the modal
+document.addEventListener('click', (e) => {
+    const button = e.target.closest('[onclick*="Modal"], [onclick*="Export"], [onclick*="Import"], .clickable, .settings-action-btn, button');
+    if (button) {
+        ProfileDialog.lastSourceEl = button;
+    }
+});
 
 document.getElementById('custom-modal-overlay').addEventListener('click', (e) => {
     if (e.target === document.getElementById('custom-modal-overlay')) {

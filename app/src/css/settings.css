@@ -239,6 +239,10 @@ body::before {
   animation: fadeIn 0.2s ease-out;
 }
 
+#custom-modal-overlay.show {
+  display: flex;
+}
+
 #custom-modal-overlay.active {
   display: flex;
 }

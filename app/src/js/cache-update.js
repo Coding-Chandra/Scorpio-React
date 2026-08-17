@@ -296,6 +296,9 @@ window.showUpdateCacheModal = () => {
     return;
   }
 
+  // Get the button that triggered this modal for animation origin
+  const sourceEl = document.getElementById('updateCacheBtn');
+
   if (updateAvailable) {
 
     const sizeText = pendingUpdateSize?.totalBytes
@@ -309,7 +312,8 @@ window.showUpdateCacheModal = () => {
       'var(--accent)',
       async () => {
         await performUpdate();
-      }
+      },
+      sourceEl
     );
 
   } else {
@@ -321,7 +325,8 @@ window.showUpdateCacheModal = () => {
       'var(--accent)',
       async () => {
         await manualUpdateCheck();
-      }
+      },
+      sourceEl
     );
 
   }
