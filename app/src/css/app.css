@@ -193,23 +193,61 @@
 
         #mobileNavBar {
             display: none;
-            height: 10vh;
+            position: fixed;
+            top: max(14px, env(safe-area-inset-top));
+            left: 2vh;
+            right: 2vh;
+            height: 52px;
+            padding: 0 14px;
+            border-radius: 26px;
             user-select: none;
-            padding: 5px 15px 10px;
-            border-bottom: 0.5px solid rgba(0,0,0,0.12);
-            background: rgba(248,248,250,0.86);
-            backdrop-filter: blur(20px) saturate(1.2);
-            -webkit-backdrop-filter: blur(20px) saturate(1.2);
-            position: sticky;
-            top: 0;
             z-index: 200;
-            align-items: flex-end;
+            align-items: center;
             justify-content: space-between;
             font-size: 17px;
+            overflow: hidden;
+            isolation: isolate;
+            box-shadow:
+                inset 1px 1px 0 -1px rgba(255,255,255,0.75),
+                inset 0 0 4px 1px rgba(255,255,255,0.5),
+                0 8px 20px rgba(0,0,0,0.14);
+        }
+        #mobileNavBar::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            background: rgba(255,255,255,0.30);
+            backdrop-filter: blur(22px) saturate(1.4);
+            -webkit-backdrop-filter: blur(22px) saturate(1.4);
+        }
+        #mobileNavBar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.35) 100%);
+            filter: url(#notoz-liquid-refraction);
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+        #mobileNavBar > * {
+            position: relative;
+            z-index: 1;
         }
         [data-theme="dark"] #mobileNavBar {
-            border-bottom-color: rgba(255,255,255,0.12);
-            background: rgba(20,20,22,0.86);
+            box-shadow:
+                inset 1px 1px 0 -1px rgba(255,255,255,0.14),
+                inset 0 0 4px 1px rgba(255,255,255,0.08),
+                0 8px 20px rgba(0,0,0,0.4);
+        }
+        [data-theme="dark"] #mobileNavBar::before {
+            background: rgba(20,20,22,0.38);
+        }
+        [data-theme="dark"] #mobileNavBar::after {
+            background: linear-gradient(135deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.12) 100%);
         }
 
         .mobile-nav-left{
@@ -580,16 +618,31 @@
             align-items: center;
             overflow: hidden;
             isolation: isolate;
+            box-shadow:
+                inset 1px 1px 0 -1px rgba(255,255,255,0.7),
+                inset 0 0 4px 1px rgba(255,255,255,0.45),
+                0 8px 20px rgba(0,0,0,0.14);
         }
         .list-header::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            background: rgba(255, 255, 255, 0.24);
-            backdrop-filter: blur(18px) saturate(1.5);
-            -webkit-backdrop-filter: blur(18px) saturate(1.5);
+            background: rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(20px) saturate(1.5);
+            -webkit-backdrop-filter: blur(20px) saturate(1.5);
             z-index: 0;
+        }
+        .list-header::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.04) 45%, rgba(255,255,255,0.3) 100%);
+            filter: url(#notoz-liquid-refraction);
+            mix-blend-mode: overlay;
+            z-index: 0;
+            pointer-events: none;
         }
         .list-header > * {
             position: relative;
@@ -598,32 +651,43 @@
 
         :root[data-theme="dark"] .list-header{
             background: transparent;
+            box-shadow:
+                inset 1px 1px 0 -1px rgba(255,255,255,0.12),
+                inset 0 0 4px 1px rgba(255,255,255,0.08),
+                0 8px 20px rgba(0,0,0,0.4);
         }
         :root[data-theme="dark"] .list-header::before {
-            background: rgba(20, 20, 22, 0.42);
+            background: rgba(20, 20, 22, 0.46);
+        }
+        :root[data-theme="dark"] .list-header::after {
+            background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.1) 100%);
         }
             
         .search-bar {
             width: 100%;
-            padding: 6px 8px;
+            padding: 6px 8px 6px 32px; /* Added left padding for the search icon */
             border-radius: 18px;
             font-size: 15px;
             font-weight: 500;
             line-height: 1.4;
             color: #1d1d1f;
-            background: rgba(255, 255, 255, 0.18);
+            background-color: rgba(255, 255, 255, 0.18); /* Changed from background to background-color */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 17 48" height="48" width="17"><path fill="%238E8E93" d="m16.2294 29.9556-4.1755-4.0821a6.4711 6.4711 0 1 0 -1.2839 1.2625l4.2005 4.1066a.9.9 0 1 0 1.2588-1.287zm-14.5294-8.0017a5.2455 5.2455 0 1 1 5.2455 5.2527 5.2549 5.2549 0 0 1 -5.2455-5.2527z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            background-size: 14px 14px;
             border: 1px solid rgba(255,255,255,0.2);
             background-clip: padding-box;
             backdrop-filter: blur(10px) saturate(1.2);
             -webkit-backdrop-filter: blur(10px) saturate(1.2);
-            box-shadow:none;
+            box-shadow: none;
             outline: none;
             transition:
-                background .35s cubic-bezier(.22, 1, .36, 1),
-                box-shadow .35s cubic-bezier(.22, 1, .36, 1),
-                transform .25s ease,
-                border-color .35s ease,
-                color .25s ease;
+            background-color .35s cubic-bezier(.22, 1, .36, 1),
+            box-shadow .35s cubic-bezier(.22, 1, .36, 1),
+            transform .25s ease,
+            border-color .35s ease,
+            color .25s ease;
         }
             
         .search-bar::placeholder {
@@ -995,8 +1059,11 @@
             background: transparent;
             left: 2vh;
             right: 2vh;
-            bottom: 14vh;
+            bottom: 5.4vh;
             border-radius: 24px;
+        }
+        .toolbar-glass {
+            display: none;
         }
         .toolbar:hover { border-bottom-color: rgba(255,255,255,0.4); }
         [data-theme="dark"] .toolbar:hover {
@@ -1612,7 +1679,7 @@
 
             #notes-list-pane,
             #editor-pane {
-                height: calc(var(--vh) * 100 - 7vh);
+                height: calc(var(--vh) * 100);
                 border-right: none;
                 border-bottom: none;
             }
@@ -1643,35 +1710,85 @@
             }
 
             .toolbar {
-                height: 46px;
-                padding: 0px 10px;
+                height: 52px;
+                padding: 0;
                 display: flex !important;
-                align-items: center;
-                background: rgba(248,248,250,0.6);
-                backdrop-filter: blur(2px) saturate(1.5);
-                -webkit-backdrop-filter: blur(2px) saturate(1.5);
+                align-items: stretch;
+                background: transparent;
                 z-index: 180;
+                overflow: hidden;
+                isolation: isolate;
+                box-shadow:
+                    inset 1px 1px 0 -1px rgba(255,255,255,0.6),
+                    inset 0 0 4px 1px rgba(255,255,255,0.35),
+                    0 8px 20px rgba(0,0,0,0.14);
+            }
+
+            .toolbar-glass {
+                display: block;
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                z-index: 0;
+                background: rgba(248,248,250,0.62);
+                backdrop-filter: blur(14px) saturate(1.5);
+                -webkit-backdrop-filter: blur(14px) saturate(1.5);
+                pointer-events: none;
+            }
+
+            .toolbar-glass::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.3) 100%);
+                filter: url(#notoz-liquid-refraction);
+                mix-blend-mode: overlay;
+            }
+
+            [data-theme="dark"] .toolbar {
+                box-shadow:
+                    inset 1px 1px 0 -1px rgba(255,255,255,0.1),
+                    inset 0 0 4px 1px rgba(255,255,255,0.06),
+                    0 8px 20px rgba(0,0,0,0.4);
+            }
+
+            [data-theme="dark"] .toolbar-glass {
+                background: rgba(20,20,22,0.42);
+            }
+
+            [data-theme="dark"] .toolbar-glass::after {
+                background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.1) 100%);
+            }
+
+            .toolbar-scroll {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: center;
                 justify-content: space-evenly;
+                gap: 10px;
+                width: 100%;
+                padding: 0 10px;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 white-space: nowrap;
             }
 
-            [data-theme="dark"] .toolbar {
-                background: rgba(28,28,30,0.25);
-                border-top-color: rgba(255,255,255,0.25);
-            }
-
-            .toolbar::-webkit-scrollbar {
+            .toolbar-scroll::-webkit-scrollbar {
                 display: none;
             }
 
-            .toolbar button {
+            .toolbar-scroll button {
                 flex: 0 0 auto;
             }
 
             #editor-pane .editor-inputs {
-                padding: 0 7px 52px 7px;
+                padding: 76px 7px 1vh 7px;
+            }
+
+            #notes-list-pane .notes-scroll-area {
+                padding-top: 76px;
             }
 
             #notes-list-pane .new-note-fab {
@@ -1679,10 +1796,8 @@
             }
 
             .list-header {
-                border-top: 0.5px solid rgba(0,0,0,0.05);
-                border-bottom: 0.5px solid rgba(0,0,0,0.05);
                 display: flex;
-                align-items: flex-start;
+                align-items: center;
                 gap: 8px;
             }
             [data-theme="dark"] .list-header {
@@ -2371,4 +2486,513 @@ html[data-ui="nothing"][data-theme="dark"] .skeleton-note-item {
     background: #f5a623;
     margin-left: 6px;
     flex-shrink: 0;
+}
+/* ============================================================================
+   NOTOZ LIQUID GLASS — Navigation + Editor Toolbar
+   Based on the supplied Liquid Glass reference effect.
+   ============================================================================ */
+
+:root {
+    --lg-light: #ffffff34;
+    --lg-dark: #00000034;
+    --lg-glass: #bbbbbc34;
+    --lg-saturation: 165%;
+    --lg-reflex-light: 1;
+    --lg-reflex-dark: 1;
+}
+
+/* Mobile navigation / navigation menu bar */
+#mobileNavBar {
+    background: color-mix(in srgb, var(--lg-glass) 7%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--lg-light) 18%, transparent);
+    backdrop-filter: blur(7px) saturate(var(--lg-saturation));
+    -webkit-backdrop-filter: blur(7px) saturate(var(--lg-saturation));
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 12%), transparent),
+        inset 1.8px 3px 0 -2px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 90%), transparent),
+        inset -2px -2px 0 -2px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 78%), transparent),
+        inset -3px -8px 1px -6px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 55%), transparent),
+        inset -0.3px -1px 4px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 12%), transparent),
+        inset -1.5px 2.5px 0 -2px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 18%), transparent),
+        inset 0 3px 4px -2px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 18%), transparent),
+        0 8px 24px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 12%), transparent);
+}
+
+#mobileNavBar::before {
+    background: color-mix(in srgb, var(--lg-glass) 6%, transparent) !important;
+    backdrop-filter: blur(7px) saturate(var(--lg-saturation));
+    -webkit-backdrop-filter: blur(7px) saturate(var(--lg-saturation));
+}
+
+#mobileNavBar::after {
+    background:
+        linear-gradient(135deg,
+            rgba(255,255,255,0.32) 0%,
+            rgba(255,255,255,0.06) 25%,
+            rgba(255,255,255,0.01) 52%,
+            rgba(255,255,255,0.18) 100%) !important;
+    filter: url(#notoz-liquid-refraction);
+    mix-blend-mode: overlay;
+}
+
+#mobileNavBar > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* Make the small controls feel like glass controls instead of flat pills. */
+.mobile-nav-new-note,
+.mobile-nav-undo,
+.mobile-nav-redo {
+    background: color-mix(in srgb, var(--lg-glass) 6%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--lg-light) 18%, transparent) !important;
+    box-shadow:
+        inset 1px 1px 0 -1px rgba(255,255,255,0.65),
+        inset -1px -1px 0 -1px rgba(0,0,0,0.10),
+        0 2px 7px rgba(0,0,0,0.10);
+    backdrop-filter: blur(5px) saturate(150%);
+    -webkit-backdrop-filter: blur(5px) saturate(150%);
+}
+
+/* ============================================================================
+   Editor toolbar
+   ============================================================================ */
+
+.toolbar {
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--lg-light) 16%, transparent) !important;
+    background: color-mix(in srgb, var(--lg-glass) 6%, transparent) !important;
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 10%), transparent),
+        inset 1.8px 3px 0 -2px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 88%), transparent),
+        inset -2px -2px 0 -2px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 76%), transparent),
+        inset -3px -8px 1px -6px color-mix(in srgb, var(--lg-light) calc(var(--lg-reflex-light) * 52%), transparent),
+        inset -0.3px -1px 4px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 12%), transparent),
+        inset -1.5px 2.5px 0 -2px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 18%), transparent),
+        inset 0 3px 4px -2px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 18%), transparent),
+        0 8px 22px color-mix(in srgb, var(--lg-dark) calc(var(--lg-reflex-dark) * 10%), transparent) !important;
+    backdrop-filter: blur(4px) saturate(var(--lg-saturation));
+    -webkit-backdrop-filter: blur(4px) saturate(var(--lg-saturation));
+}
+
+.toolbar-glass {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: 0;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--lg-glass) 9%, transparent) !important;
+    backdrop-filter: blur(7px) saturate(var(--lg-saturation));
+    -webkit-backdrop-filter: blur(7px) saturate(var(--lg-saturation));
+}
+
+.toolbar-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid color-mix(in srgb, var(--lg-light) 12%, transparent);
+    pointer-events: none;
+}
+
+.toolbar-glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        linear-gradient(135deg,
+            rgba(255,255,255,0.30) 0%,
+            rgba(255,255,255,0.05) 25%,
+            rgba(255,255,255,0.01) 52%,
+            rgba(255,255,255,0.17) 100%);
+    filter: url(#notoz-liquid-refraction);
+    mix-blend-mode: overlay;
+    pointer-events: none;
+}
+
+.toolbar-scroll {
+    position: relative;
+    z-index: 2;
+}
+
+.toolbar button {
+    background: color-mix(in srgb, var(--lg-glass) 8%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--lg-light) 14%, transparent) !important;
+    box-shadow:
+        inset 1px 1px 0 -1px rgba(255,255,255,0.72),
+        inset -1px -1px 0 -1px rgba(0,0,0,0.12),
+        0 2px 6px rgba(0,0,0,0.10) !important;
+    backdrop-filter: blur(5px) saturate(150%);
+    -webkit-backdrop-filter: blur(5px) saturate(150%);
+    transition:
+        transform 180ms cubic-bezier(.32,.72,0,1),
+        background-color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.toolbar button:hover {
+    background: color-mix(in srgb, var(--lg-glass) 18%, transparent) !important;
+    transform: translateY(-1px) scale(1.025);
+    box-shadow:
+        inset 1px 1px 0 -1px rgba(255,255,255,0.82),
+        0 4px 10px rgba(0,0,0,0.12) !important;
+}
+
+[data-theme="dark"] {
+    --lg-light: #ffffff34;
+    --lg-dark: #00000034;
+    --lg-glass: #8b8b9034;
+    --lg-reflex-light: 0.34;
+    --lg-reflex-dark: 2;
+}
+
+[data-theme="dark"] #mobileNavBar {
+    background: color-mix(in srgb, #8b8b90 9%, transparent) !important;
+}
+
+[data-theme="dark"] #mobileNavBar::before {
+    background: rgba(18,18,21,0.25) !important;
+}
+
+[data-theme="dark"] #mobileNavBar::after,
+[data-theme="dark"] .toolbar-glass::after {
+    background:
+        linear-gradient(135deg,
+            rgba(255,255,255,0.18) 0%,
+            rgba(255,255,255,0.035) 45%,
+            rgba(255,255,255,0.12) 100%) !important;
+}
+
+[data-theme="dark"] .toolbar {
+    background: color-mix(in srgb, #8b8b90 10%, transparent) !important;
+}
+
+[data-theme="dark"] .toolbar-glass {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme="dark"] .toolbar button,
+[data-theme="dark"] .mobile-nav-new-note,
+[data-theme="dark"] .mobile-nav-undo,
+[data-theme="dark"] .mobile-nav-redo {
+    background: rgba(255,255,255,0.045) !important;
+    border-color: rgba(255,255,255,0.10) !important;
+    box-shadow:
+        inset 1px 1px 0 -1px rgba(255,255,255,0.20),
+        inset -1px -1px 0 -1px rgba(0,0,0,0.24),
+        0 3px 9px rgba(0,0,0,0.35) !important;
+}
+
+[data-theme="dark"] .toolbar button:hover,
+[data-theme="dark"] .mobile-nav-new-note:hover,
+[data-theme="dark"] .mobile-nav-undo:hover,
+[data-theme="dark"] .mobile-nav-redo:hover {
+    background: rgba(255,255,255,0.09) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toolbar button,
+    .mobile-nav-new-note,
+    .mobile-nav-undo,
+    .mobile-nav-redo {
+        transition: none !important;
+    }
+}
+
+
+/* ============================================================================
+   MOBILE THREE-PANE NAVIGATION — reference-inspired Liquid Glass
+   Folders / Notes / Editor all use the same visual language.
+   ============================================================================ */
+#mobileNavBar.mobile-pane-nav {
+    display: flex !important;
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top));
+    left: 10px;
+    right: 10px;
+    height: 72px;
+    padding: 0 2px;
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible;
+    isolation: auto;
+}
+#mobileNavBar.mobile-pane-nav::before,
+#mobileNavBar.mobile-pane-nav::after { display: none !important; }
+.mobile-pane-nav-side { width: 66px; min-width: 66px; height: 58px; display:flex; align-items:center; justify-content:center; }
+.mobile-pane-nav-side-right { width:84px; min-width:84px; }
+.mobile-glass-circle,.mobile-glass-title-pill,.mobile-history-capsule { border:1px solid rgba(255,255,255,.22); background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(8,8,12,.34)); box-shadow:inset 1px 1px 0 rgba(255,255,255,.28),inset -1px -1px 0 rgba(0,0,0,.22),0 7px 20px rgba(0,0,0,.20); backdrop-filter:blur(20px) saturate(155%); -webkit-backdrop-filter:blur(20px) saturate(155%); }
+.mobile-glass-circle { width:58px; height:58px; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; color:var(--text-primary); cursor:pointer; transition:transform 180ms cubic-bezier(.32,.72,0,1); }
+.mobile-glass-circle:active { transform:scale(.93); }
+.mobile-glass-circle svg { width:31px; height:31px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+.mobile-account-circle span { font-size:19px; font-weight:600; line-height:1; }
+.mobile-glass-title-pill { flex:1; min-width:0; max-width:270px; height:58px; padding:5px 18px; border-radius:999px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; text-align:center; }
+.mobile-pane-title { width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:Georgia,"Times New Roman",serif; font-size:clamp(20px,5.8vw,28px); line-height:28px; font-weight:400; letter-spacing:-.35px; color:var(--text-primary); }
+.mobile-editor-date { max-width:100%; margin-top:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:Georgia,"Times New Roman",serif; font-size:11px; line-height:13px; color:color-mix(in srgb,var(--text-primary) 72%,transparent); }
+.mobile-add-circle svg { width:29px; height:29px; stroke-width:1.7; }
+.mobile-history-capsule { width:82px; min-width:82px; height:58px; padding:0 4px; border-radius:999px; display:flex; align-items:center; justify-content:center; gap:0; }
+.mobile-history-btn { width:36px; height:50px; padding:0; border:0 !important; border-radius:999px; background:transparent !important; box-shadow:none !important; display:inline-flex; align-items:center; justify-content:center; color:var(--text-primary); cursor:pointer; }
+.mobile-history-btn:active { transform:scale(.92); }
+.mobile-history-btn svg { width:31px; height:31px; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
+[data-theme="dark"] .mobile-glass-circle,[data-theme="dark"] .mobile-glass-title-pill,[data-theme="dark"] .mobile-history-capsule { background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(0,0,0,.46)); border-color:rgba(255,255,255,.18); box-shadow:inset 1px 1px 0 rgba(255,255,255,.16),inset -1px -1px 0 rgba(0,0,0,.34),0 7px 20px rgba(0,0,0,.34); }
+@media (max-width:380px) { #mobileNavBar.mobile-pane-nav{left:6px;right:6px;gap:6px}.mobile-pane-nav-side{width:58px;min-width:58px}.mobile-pane-nav-side-right{width:74px;min-width:74px}.mobile-glass-circle{width:52px;height:52px}.mobile-glass-title-pill{height:54px;padding-left:12px;padding-right:12px}.mobile-history-capsule{width:70px;min-width:70px;height:54px}.mobile-history-btn{width:31px;height:46px}.mobile-history-btn svg{width:28px;height:28px} }
+
+/* =========================================================
+   MOBILE 3-PANE LIQUID GLASS NAVBAR
+   ========================================================= */
+
+#mobileNavBar {
+    height: 56px;
+    left: 14px;
+    right: 14px;
+    top: max(10px, env(safe-area-inset-top));
+    padding: 0 7px;
+    border-radius: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    background: color-mix(
+        in srgb,
+        var(--lg-glass) 10%,
+        transparent
+    ) !important;
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--lg-light) 18%,
+        transparent
+    ) !important;
+
+    backdrop-filter: blur(24px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.28),
+        inset 0 -1px 0 rgba(0,0,0,.08),
+        0 8px 28px rgba(0,0,0,.16);
+
+    overflow: visible;
+}
+
+/* LEFT / RIGHT AREAS */
+
+.mobile-nav-left,
+.mobile-nav-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.mobile-nav-right {
+    gap: 5px;
+}
+
+/* CENTER TITLE */
+
+.mobile-nav-title-pill {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+
+    max-width: min(55vw, 260px);
+    min-width: 90px;
+
+    height: 38px;
+    padding: 0 18px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 21px;
+
+    background: color-mix(
+        in srgb,
+        var(--lg-glass) 12%,
+        transparent
+    );
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--lg-light) 14%,
+        transparent
+    );
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.22),
+        0 2px 10px rgba(0,0,0,.08);
+
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+
+    pointer-events: none;
+}
+
+.mobile-nav-title {
+    max-width: 100%;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 18px;
+
+    color: var(--text-color, currentColor);
+}
+
+.mobile-nav-date {
+    max-width: 100%;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+
+    opacity: .58;
+    line-height: 11px;
+}
+
+/* CIRCULAR GLASS BUTTONS */
+
+.mobile-nav-circle {
+    width: 40px;
+    height: 40px;
+
+    padding: 0;
+    border-radius: 50%;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid color-mix(
+        in srgb,
+        var(--lg-light) 18%,
+        transparent
+    );
+
+    background: color-mix(
+        in srgb,
+        var(--lg-glass) 9%,
+        transparent
+    );
+
+    color: var(--accent-color, var(--accent));
+
+    box-shadow:
+        inset 1px 1px 0 rgba(255,255,255,.32),
+        inset -1px -1px 0 rgba(0,0,0,.08),
+        0 3px 10px rgba(0,0,0,.10);
+
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+
+    cursor: pointer;
+
+    transition:
+        transform .18s cubic-bezier(.32,.72,0,1),
+        background .18s ease;
+}
+
+.mobile-nav-circle:hover {
+    transform: scale(1.04);
+    background: color-mix(
+        in srgb,
+        var(--lg-glass) 18%,
+        transparent
+    );
+}
+
+.mobile-nav-circle:active {
+    transform: scale(.92);
+}
+
+.mobile-nav-circle svg {
+    width: 19px;
+    height: 19px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ACCOUNT INITIAL */
+
+#mobileAccountInitial {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* UNDO / REDO */
+
+.mobile-nav-history {
+    gap: 4px;
+}
+
+/* DARK MODE */
+
+[data-theme="dark"] #mobileNavBar {
+    background: color-mix(
+        in srgb,
+        #8b8b90 12%,
+        transparent
+    ) !important;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.12),
+        inset 0 -1px 0 rgba(0,0,0,.18),
+        0 8px 28px rgba(0,0,0,.42);
+}
+
+[data-theme="dark"] .mobile-nav-title-pill,
+[data-theme="dark"] .mobile-nav-circle {
+    background: rgba(255,255,255,.055);
+    border-color: rgba(255,255,255,.12);
+}
+
+/* SMALL PHONES */
+
+@media (max-width: 380px) {
+    #mobileNavBar {
+        left: 9px;
+        right: 9px;
+        height: 52px;
+    }
+
+    .mobile-nav-circle {
+        width: 36px;
+        height: 36px;
+    }
+
+    .mobile-nav-title-pill {
+        max-width: 48vw;
+        height: 36px;
+        padding: 0 13px;
+    }
+
+    .mobile-nav-title {
+        font-size: 15px;
+    }
 }

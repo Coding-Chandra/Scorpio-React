@@ -4003,21 +4003,6 @@ supabaseClient
 
 const _originalUpdateCurrentNote = app.updateCurrentNote;
 
-app.updateCurrentNote = async function () {
-
-const note = this.getActiveNote();
-
-if (!note) return;
-
-await this.saveSingleNoteToIndexedDB({
-    ...note,
-    user_id: CURRENT_USER_ID
-});
-
-return _originalUpdateCurrentNote.apply(this, arguments);
-
-};
-
 document.addEventListener('DOMContentLoaded', function() {
     // Check if running inside the Median wrapper
     if (navigator.userAgent.indexOf('median') > -1) {

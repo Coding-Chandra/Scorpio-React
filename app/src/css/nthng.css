@@ -109,7 +109,7 @@
 }
 
 :root[data-ui="nothing"] h2 {
-  font-family: var(--font-family);
+  font-family: var(--font-family2);
 }
 
 :root[data-ui="nothing"] .mobile-nav-title{
