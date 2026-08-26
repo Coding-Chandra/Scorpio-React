@@ -219,8 +219,8 @@
             z-index: 0;
             border-radius: inherit;
             background: rgba(255,255,255,0.30);
-            backdrop-filter: blur(22px) saturate(1.4);
-            -webkit-backdrop-filter: blur(22px) saturate(1.4);
+            backdrop-filter: blur(7px) saturate(1.4);
+            -webkit-backdrop-filter: blur(7px) saturate(1.4);
         }
         #mobileNavBar::after {
             content: "";
@@ -254,13 +254,13 @@
             display: flex;
             justify-content: flex-start;
             gap: 8px;
-            min-width: 70px;
+            min-width: 56px;
         }
         .mobile-nav-right {
             display: flex;
             justify-content: flex-end;
             gap: 8px;
-            min-width: 70px;
+            min-width: 56px;
         }
         .mobile-nav-title {
             flex: 1;
@@ -271,46 +271,46 @@
             text-overflow: ellipsis;
         }
         .mobile-nav-back {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             border: none;
             background: none;
-            font-size: 2.5vh;
+            margin-left: 6px;
             color: var(--accent);
             padding: 0;
             cursor: pointer;
         }
-        .mobile-nav-back-chev {
-            border: solid var(--accent);
-            border-width: 0 0 2px 2px;
-            display: inline-block;
-            padding: 3px;
-            margin-right: 2px;
-            margin-left: 2.5px;
-            transform: rotate(45deg);
+        .mobile-nav-back svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--accent-color);
+            fill: none;
+            stroke-width: var(--icon-stroke);
+            stroke-linecap: round;
+            stroke-linejoin: round;
         }
         .mobile-nav-icon-btn,
         .mobile-nav-text-btn,
         .mobile-nav-new-note {
             border: none;
             background: none;
-            font-size: 2.5vh;
             color: var(--accent);
             padding: 0 4px;
+            margin-right: 6px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
         .mobile-nav-new-note {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             border-radius: 999px;
             background: rgba(255,255,255,0.12);
         }
         .mobile-nav-new-note svg {
-            width: 18px;
-            height: 18px;
+            width: 28px;
+            height: 28px;
             stroke: var(--accent-color);
             fill: none;
             stroke-width: var(--icon-stroke);
@@ -612,7 +612,7 @@
             left: 2vh;
             right: 2vh;
             border-radius: 50px;
-            bottom: 5.4vh;
+            bottom: 1vh;
             display: flex;
             gap: 5px;
             align-items: center;
@@ -1059,7 +1059,7 @@
             background: transparent;
             left: 2vh;
             right: 2vh;
-            bottom: 5.4vh;
+            bottom: 1vh;
             border-radius: 24px;
         }
         .toolbar-glass {

@@ -1961,8 +1961,7 @@ app.renderMobileNav = function () {
         bar.innerHTML = `
             <div class="mobile-nav-left">
                 <button class="mobile-nav-back" onclick="app.goToMobileView('folders')">
-                    <span class="mobile-nav-back-chev"></span>
-                    <span>Folders</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
             <div class="mobile-nav-title">${Utils.escapeHtml(folderName)}</div>
@@ -1981,8 +1980,7 @@ app.renderMobileNav = function () {
         bar.innerHTML = `
             <div class="mobile-nav-left">
                 <button class="mobile-nav-back" onclick="app.goToMobileView('notes')">
-                    <span class="mobile-nav-back-chev"></span>
-                    <span>Notes</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
             <div class="mobile-nav-title">${Utils.escapeHtml(title)} <div class="editor-meta-info" id="mobileEditorDateDisplay">${note ? Utils.formatDateTime(note.updated_at) : ''}</div></div>

@@ -67,7 +67,7 @@
   color-scheme: dark;
 
   --bg-main: #0c0c0c;
-  --bg-card: #000000;
+  --bg-card: #00000070;
   --bg-elevated: #141414;
 
   --bg-card-t: rgba(0, 0, 0, 0.4);
@@ -86,7 +86,7 @@
   color-scheme: light;
 
   --bg-main: #F3F3F3;
-  --bg-card: #FFFFFF;
+  --bg-card: #FFFFFF70;
   --bg-elevated: #F2F2F2;
 
   --bg-card-t: rgba(255, 255, 255, 0.6);
@@ -236,7 +236,7 @@ border-top: none;
 
 :root[data-ui="nothning"] .multi-select-bar{
   border: 0.5px solid rgba(0, 0, 0, 0.12);
-  bottom: 4.4vh;
+  bottom: 1vh;
   align-items: center;
   left: 2vh;
   right: 2vh;
@@ -254,7 +254,7 @@ border-top: none;
     display: flex;
     position: absolute;
     padding: 6px;
-    bottom: 4.4vh;
+    bottom: 1vh;
     background: rgba(20, 20, 22, 0.4);
     left: 2vh;
     right: 2vh;
