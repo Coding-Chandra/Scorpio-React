@@ -1960,18 +1960,21 @@ app.renderMobileNav = function () {
     } else if (this.ui.mobileView === 'notes') {
         bar.innerHTML = `
             <div class="mobile-nav-left">
-                <button class="mobile-nav-back" onclick="app.goToMobileView('folders')">
+                <button class="mobile-nav-back edit-notes-btn" onclick="app.goToMobileView('folders')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
             <div class="mobile-nav-title">${Utils.escapeHtml(folderName)}</div>
             <div class="mobile-nav-right">
-                <button class="mobile-nav-new-note" onclick="app.createNewNote()" title="New Note" aria-label="New Note">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                </button>
+                <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/>
+  <line x1="9" y1="6" x2="19" y2="6"/>
+  <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+  <line x1="9" y1="12" x2="19" y2="12"/>
+  <circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+  <line x1="9" y1="18" x2="19" y2="18"/>
+</svg>
+</button>
             </div>
         `;
     } else if (this.ui.mobileView === 'editor') {
@@ -1979,7 +1982,7 @@ app.renderMobileNav = function () {
         const title = note?.title || 'New Note';
         bar.innerHTML = `
             <div class="mobile-nav-left">
-                <button class="mobile-nav-back" onclick="app.goToMobileView('notes')">
+                <button class="mobile-nav-back edit-notes-btn" onclick="app.goToMobileView('notes')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
@@ -2823,7 +2826,7 @@ app.setActiveFolder = setActiveFolder;
 app.toggleMultiSelect = function () {
     this.ui.multiSelect = !this.ui.multiSelect;
     this.ui.selectedNoteIds = new Set();
-    document.getElementById('editNotesBtn').innerText = this.ui.multiSelect ? 'Done' : 'Edit';
+    document.getElementById('editNotesBtn').innerHTML = this.ui.multiSelect ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="6" x2="19" y2="6"/><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="12" x2="19" y2="12"/><circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="18" x2="19" y2="18"/></svg>`;
     this.updateMultiSelectUI();
     this.renderNotesList();
 

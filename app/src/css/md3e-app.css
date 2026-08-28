@@ -274,7 +274,6 @@
   position: absolute;
   left: 2vh;
   right: 2vh;
-  bottom: 13vh;
   border-radius: 22px;
   background-color: color-mix(in srgb, var(--editor-bg-glass) 70%, rgba(var(--md-seed), 1.48));
   backdrop-filter: blur(3px) saturate(2);

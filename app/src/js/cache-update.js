@@ -7,6 +7,7 @@
  * ✅ No auto updates
  * ✅ User-triggered updates only
  * ✅ Cleans old caches safely
+ * ✅ Total automatic cleanup & self-destruct support
  */
 
 let BUILD_NUMBER = 'Unknown';
@@ -74,14 +75,13 @@ async function getAppCaches() {
   const cacheNames = await caches.keys();
 
   return cacheNames.filter(name =>
-    name.startsWith('notoj-app-v')
+    name.startsWith('notoj-app-')
   );
 }
 
 /**
  * Parse version from cache name
- * Example:
- * notoj-app-cache-v2.7.15
+ * Example: notoj-app-v1.99.27
  */
 function parseVersion(cacheName) {
   const match = cacheName.match(/v(\d+)\.(\d+)\.(\d+)/);
@@ -137,11 +137,9 @@ async function syncCacheState() {
   }
 
   LATEST_CACHE_NAME = await getLatestCacheName(appCaches);
-
   ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
 
   const versionMatch = ACTIVE_CACHE_NAME.match(/v(.+)/);
-
   BUILD_NUMBER = versionMatch?.[1] || 'Unknown';
 
   console.log('[Cache Update]');
@@ -204,18 +202,15 @@ async function checkForUpdates() {
     console.log('[Cache Update] Checking for updates...');
 
     await registration.update();
-
     await wait(2000);
 
     const appCaches = await getAppCaches();
-
     const newestCache = await getLatestCacheName(appCaches);
 
     console.log('[Cache Update]');
     console.log('Current:', ACTIVE_CACHE_NAME);
     console.log('Latest:', newestCache);
 
-    // Cleanup middle caches
     await cleanupMiddleCaches(appCaches, newestCache);
 
     if (
@@ -224,20 +219,14 @@ async function checkForUpdates() {
       newestCache !== ACTIVE_CACHE_NAME
     ) {
       console.log('[Cache Update] UPDATE AVAILABLE');
-
       LATEST_CACHE_NAME = newestCache;
-
       updateAvailable = true;
-
       updateButtonUI(true);
-
       pendingUpdateSize = await fetchUpdateSize();
 
     } else {
       console.log('[Cache Update] Already latest');
-
       updateAvailable = false;
-
       updateButtonUI(false);
     }
 
@@ -290,17 +279,14 @@ function updateButtonUI(hasUpdate = false) {
  * Open update modal
  */
 window.showUpdateCacheModal = () => {
-
   if (typeof window.openModal !== 'function') {
     alert('Modal system not ready');
     return;
   }
 
-  // Get the button that triggered this modal for animation origin
   const sourceEl = document.getElementById('updateCacheBtn');
 
   if (updateAvailable) {
-
     const sizeText = pendingUpdateSize?.totalBytes
       ? ` (${formatBytes(pendingUpdateSize.totalBytes)})`
       : '';
@@ -317,7 +303,6 @@ window.showUpdateCacheModal = () => {
     );
 
   } else {
-
     window.openModal(
       'Check for Updates',
       'Check for latest version?',
@@ -328,7 +313,6 @@ window.showUpdateCacheModal = () => {
       },
       sourceEl
     );
-
   }
 };
 
@@ -399,17 +383,13 @@ function updateProgressUI(phase, message = '', extra = {}) {
  */
 async function manualUpdateCheck() {
   try {
-
-    const confirmBtn =
-      document.getElementById('modal-confirm-btn');
-
+    const confirmBtn = document.getElementById('modal-confirm-btn');
     confirmBtn.disabled = true;
     confirmBtn.innerText = 'Checking...';
 
     await checkForUpdates();
 
     if (updateAvailable) {
-
       confirmBtn.disabled = false;
       confirmBtn.innerText = 'Update Now';
 
@@ -421,19 +401,12 @@ async function manualUpdateCheck() {
         ? ` (${formatBytes(pendingUpdateSize.totalBytes)})`
         : '';
 
-      document.getElementById('modal-title').innerText =
-        'Update Ready';
-
-      document.getElementById('modal-message').innerText =
-        `A new version is available${sizeText}.`;
+      document.getElementById('modal-title').innerText = 'Update Ready';
+      document.getElementById('modal-message').innerText = `A new version is available${sizeText}.`;
 
     } else {
-
-      document.getElementById('modal-title').innerText =
-        'No Updates';
-
-      document.getElementById('modal-message').innerText =
-        'Your app is already up to date.';
+      document.getElementById('modal-title').innerText = 'No Updates';
+      document.getElementById('modal-message').innerText = 'Your app is already up to date.';
 
       confirmBtn.disabled = false;
       confirmBtn.innerText = 'Close';
@@ -451,9 +424,7 @@ async function manualUpdateCheck() {
     }
 
   } catch (err) {
-
     console.error(err);
-
     window.closeCustomModal();
 
     showNotification(
@@ -469,19 +440,14 @@ async function manualUpdateCheck() {
  */
 async function performUpdate() {
   try {
-
     userTriggeredUpdate = true;
 
-    const registration =
-      await navigator.serviceWorker.getRegistration();
-
+    const registration = await navigator.serviceWorker.getRegistration();
     if (!registration) {
       throw new Error('No SW registration');
     }
 
-    const confirmBtn =
-      document.getElementById('modal-confirm-btn');
-
+    const confirmBtn = document.getElementById('modal-confirm-btn');
     if (confirmBtn) {
       confirmBtn.disabled = true;
       confirmBtn.innerText = 'Preparing...';
@@ -490,7 +456,6 @@ async function performUpdate() {
     updateProgressUI('downloading', 'Fetching update assets from the service worker');
 
     const sw = registration.waiting || registration.installing || registration.active;
-
     if (!sw) {
       throw new Error('No SW found');
     }
@@ -537,61 +502,37 @@ async function performUpdate() {
     });
 
     console.log('[Cache Update] Sending SKIP_WAITING');
-
-    sw.postMessage({
-      type: 'SKIP_WAITING'
-    });
+    sw.postMessage({ type: 'SKIP_WAITING' });
 
     await wait(500);
 
     if (registration.active) {
-      registration.active.postMessage({
-        type: 'CLAIM_CLIENTS'
-      });
+      registration.active.postMessage({ type: 'CLAIM_CLIENTS' });
     }
 
     let updated = false;
 
     const listener = () => {
       if (!userTriggeredUpdate) return;
-
       updated = true;
-
-      navigator.serviceWorker.removeEventListener(
-        'controllerchange',
-        listener
-      );
+      navigator.serviceWorker.removeEventListener('controllerchange', listener);
     };
 
-    navigator.serviceWorker.addEventListener(
-      'controllerchange',
-      listener
-    );
+    navigator.serviceWorker.addEventListener('controllerchange', listener);
 
     await new Promise(resolve => {
-
-      const timeout = setTimeout(() => {
-        resolve();
-      }, 3000);
-
+      const timeout = setTimeout(() => resolve(), 3000);
       const interval = setInterval(() => {
-
         if (updated) {
-
           clearTimeout(timeout);
           clearInterval(interval);
-
           resolve();
         }
-
       }, 100);
-
     });
 
     ACTIVE_CACHE_NAME = LATEST_CACHE_NAME;
-
     updateAvailable = false;
-
     updateButtonUI(false);
 
     updateProgressUI('complete', 'Update installed successfully', {
@@ -607,7 +548,6 @@ async function performUpdate() {
     }, 1200);
 
   } catch (err) {
-
     console.error('[Cache Update] Install failed:', err);
 
     updateProgressUI('error', err.message || 'The update could not be completed.');
@@ -623,18 +563,69 @@ async function performUpdate() {
 }
 
 /**
+ * Perform a total application reset & service worker self-destruct
+ */
+window.performTotalSelfDestruct = async () => {
+  if (!('serviceWorker' in navigator)) {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const sw = registration?.active || registration?.waiting || registration?.installing;
+
+    if (!sw) {
+      localStorage.clear();
+      sessionStorage.clear();
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+      window.location.reload();
+      return;
+    }
+
+    const channel = new MessageChannel();
+
+    channel.port1.onmessage = (event) => {
+      if (event.data?.status === 'SUCCESS') {
+        localStorage.clear();
+        sessionStorage.clear();
+        console.log('[Cache Update] Total cleanup finished. Reloading...');
+        window.location.reload(true);
+      }
+    };
+
+    sw.postMessage(
+      { type: 'UNREGISTER_AND_CLEAR_ALL' },
+      [channel.port2]
+    );
+
+    setTimeout(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.reload();
+    }, 3000);
+
+  } catch (err) {
+    console.error('[Cache Update] Self-destruct failed:', err);
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  }
+};
+
+/**
  * Notification
  */
 function showNotification(title, message, type = 'info') {
   if (!shouldShowNotifications()) return;
 
-  let container =
-    document.getElementById('notification-container');
+  let container = document.getElementById('notification-container');
 
   if (!container) {
-
     container = document.createElement('div');
-
     container.id = 'notification-container';
 
     container.style.cssText = `

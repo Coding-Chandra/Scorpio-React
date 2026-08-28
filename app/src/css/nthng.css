@@ -2,6 +2,7 @@
    NOTHING OS THEME
    Accent: Nothing Red (#D71921)
    ===================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 @font-face {
   font-family: 'Ndot 57 Aligned';
@@ -15,7 +16,6 @@
   font-display: swap;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 /* -----------------------------------------------------
    1. ROOT TOKENS (Nothing scale system)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notoj-app-v1.96.77';
+const CACHE_NAME = 'notoj-app-v1.99.27';
 const BASE = self.registration.scope;
 const urlsToCache = [
   './',
@@ -61,7 +61,6 @@ self.addEventListener('install', event => {
       console.log('[SW] Pre-caching all assets');
       return cache.addAll(urlsToCache).catch(err => {
         console.warn('[SW] Some assets failed to cache:', err);
-        // Continue even if individual files fail
         return Promise.all(
           urlsToCache.map(url =>
             cache.add(url).catch(e => {
@@ -72,7 +71,6 @@ self.addEventListener('install', event => {
       });
     })
   );
-  // DO NOT auto-skip waiting - only skip when user explicitly updates via Settings
 });
 
 // ============================================================================
@@ -84,7 +82,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames =>
       Promise.all(
         cacheNames
-          .filter(name => name.startsWith('notoj-app-cache-') && name !== CACHE_NAME)
+          .filter(name => name.startsWith('notoj-app-') && name !== CACHE_NAME)
           .map(name => {
             console.log('[SW] Deleting old cache:', name);
             return caches.delete(name);
@@ -98,10 +96,8 @@ self.addEventListener('activate', event => {
 // FETCH: Cache-First with URL normalization
 // ============================================================================
 self.addEventListener('fetch', event => {
-  // Skip non-origin requests (Supabase API calls etc)
   if (!event.request.url.startsWith(self.location.origin)) return;
 
-  // Normalize URL - strip query strings for navigation requests
   const url = new URL(event.request.url);
   if (event.request.mode === 'navigate') {
     url.search = '';
@@ -110,18 +106,15 @@ self.addEventListener('fetch', event => {
 
   event.respondWith(
     caches.match(normalizedRequest).then(cachedResponse => {
-      // Return cached version if available
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      // Fall through to network
       return fetch(event.request).then(networkResponse => {
         if (!networkResponse || networkResponse.status !== 200) {
           return networkResponse;
         }
 
-        // Cache the new response for future use
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then(cache => {
           cache.put(normalizedRequest, responseToCache);
@@ -129,7 +122,6 @@ self.addEventListener('fetch', event => {
 
         return networkResponse;
       }).catch(() => {
-        // Offline fallback for navigation
         if (event.request.mode === 'navigate') {
           return caches.match(new URL('app/index.html', BASE).toString())
             || caches.match(new URL('index.html', BASE).toString());
@@ -148,14 +140,44 @@ self.addEventListener('message', event => {
 
   switch (event.data.type) {
 
+    case 'UNREGISTER_AND_CLEAR_ALL': {
+      const port = event.ports[0];
+
+      (async () => {
+        try {
+          console.log('[SW] Executing total self-destruct...');
+
+          // 1. Delete all CacheStorage instances
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+
+          // 2. Clear IndexedDB databases
+          if ('indexedDB' in self && indexedDB.databases) {
+            const dbs = await indexedDB.databases();
+            await Promise.all(dbs.map(db => indexedDB.deleteDatabase(db.name)));
+          }
+
+          // 3. Notify main thread cleanup completed
+          port?.postMessage({ status: 'SUCCESS' });
+
+          // 4. Unregister Service Worker
+          await self.registration.unregister();
+          console.log('[SW] Successfully unregistered');
+
+        } catch (err) {
+          console.error('[SW] Cleanup error:', err);
+          port?.postMessage({ status: 'ERROR', error: err.message });
+        }
+      })();
+      break;
+    }
+
     case 'SKIP_WAITING':
-      // Only activate new SW when user explicitly requests it from Settings
       console.log('[SW] User requested update - activating new service worker');
       self.skipWaiting();
       break;
 
     case 'CLAIM_CLIENTS':
-      // Only take control of pages when user confirms update
       console.log('[SW] Claiming clients for new version');
       self.clients.claim();
       break;
@@ -211,9 +233,7 @@ self.addEventListener('message', event => {
             const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
             const len = res.headers.get('content-length');
             if (len) totalBytes += parseInt(len, 10);
-          } catch (e) {
-            // skip files that fail HEAD (e.g. opaque/cross-origin)
-          }
+          } catch (e) {}
         }));
         port?.postMessage({ type: 'UPDATE_SIZE', totalBytes, totalFiles: urls.length });
       })();
