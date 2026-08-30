@@ -50,6 +50,7 @@
             --danger-color: #ff3b30;
             --blue: #007aff;
             --accent: #ffd60a;
+            --accent-color: #ffd60a;
             --green:#2fd159;
             --font-family: SF Pro Rounded, -apple-system, BlinkMacSystemFont, Roboto;
             --icon-stroke: 1.5px;
@@ -458,13 +459,13 @@
         .sidebar-actions {
             padding: calc(1vh + 1px);
             position: absolute;
-            left: 3vh;
-            right: 3vh;
+            left: 2vh;
+            right: 2vh;
             border-top: 1px solid rgba(255,255,255,0.4);
             border-top-color: rgba(0,0,0,0.06);
             display: flex;
             flex-direction: row;
-            bottom: 3vh;
+            bottom: 2vh;
             justify-content: center;
             border-radius: 50px;
             backdrop-filter: blur(4px) saturate(1.5);
@@ -1001,7 +1002,7 @@
         .multi-select-bar.show {
             display: flex;
             align-items: center;
-            backdrop-filter: blur(4px) saturate(1);
+            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
             flex-direction: row; 
         }
         .multi-select-label {
@@ -1193,7 +1194,7 @@
             background: rgba(255,255,255,.10);
             border: 1px solid rgba(0, 0, 0, 0.14);
             border-radius: 14px;
-            backdrop-filter: blur(4px) saturate(1.5);
+            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
             -webkit-backdrop-filter: blur(4px) saturate(1.5);
 
             box-shadow:
@@ -1426,7 +1427,7 @@
         .account-ac-btn {
             border: none;
             background: none;
-            color: var(--accent);
+            color: var(--blue);
             font-size: 14px;
             font-weight: 500;
             padding: 6px 10px;
@@ -1590,8 +1591,8 @@
             position: fixed;
             display: none;
             background: rgba(248, 248, 250, 01);
-            backdrop-filter: blur(4px) saturate(1.2);
-            -webkit-backdrop-filter: blur(18px) saturate(1.2);
+            backdrop-filter: blur(4px) saturate(1.2) url(#lg-filter);
+            -webkit-backdrop-filter: blur(4px) saturate(1.2);
             border-radius: 12px;
             padding: 4px 6px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.18);
@@ -1600,6 +1601,8 @@
             font-size: 13px;
             white-space: nowrap;
             align-items: center;
+            padding: 6px;
+            gap: 1px;
         }
         [data-theme="dark"] .selection-toolbar {
             background: rgba(44,44,46,0.1);
@@ -1738,42 +1741,6 @@
                     inset 1px 1px 0 -1px rgba(255,255,255,0.6),
                     inset 0 0 4px 1px rgba(255,255,255,0.35),
                     0 8px 20px rgba(0,0,0,0.14);
-            }
-
-            .toolbar-glass {
-                display: block;
-                position: absolute;
-                inset: 0;
-                border-radius: inherit;
-                z-index: 0;
-                background: rgba(248,248,250,0.62);
-                backdrop-filter: blur(14px) saturate(1.5);
-                -webkit-backdrop-filter: blur(5px) saturate(1.5);
-                pointer-events: none;
-            }
-
-            .toolbar-glass::after {
-                content: "";
-                position: absolute;
-                inset: 0;
-                border-radius: inherit;
-                background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.3) 100%);
-                mix-blend-mode: overlay;
-            }
-
-            [data-theme="dark"] .toolbar {
-                box-shadow:
-                    inset 1px 1px 0 -1px rgba(255,255,255,0.1),
-                    inset 0 0 4px 1px rgba(255,255,255,0.06),
-                    0 8px 20px rgba(0,0,0,0.4);
-            }
-
-            [data-theme="dark"] .toolbar-glass {
-                background: rgba(20,20,22,0.42);
-            }
-
-            [data-theme="dark"] .toolbar-glass::after {
-                background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.1) 100%);
             }
 
             .toolbar-scroll {

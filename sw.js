@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notoj-app-v1.99.29';
+const CACHE_NAME = 'notoj-app-v1.99.30';
 const BASE = self.registration.scope;
 const urlsToCache = [
   './',

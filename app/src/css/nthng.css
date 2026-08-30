@@ -25,6 +25,7 @@
   /* Accent */
   --accent-color: #D71921;
   --accent: #D71921;
+  --blue: #D71921;
 
   /* Spacing — Nothing launcher scale (8px base) */
   --space-1: 4px;
@@ -325,6 +326,9 @@ border-top: none;
 :root[data-ui="nothing"] .note-preview{
   font-family: var(--font-family-ui);
   font-weight: 400;
+}
+:root[data-ui="nothing"] .editor-glass-layer{
+  border-radius: 1px;
 }
 
 /* Focus — animated dot underline */
