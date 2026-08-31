@@ -386,12 +386,6 @@ html[data-ui="md3e"] .icon-btn {
   letter-spacing: 0.5px;
 }
 
-/* Nothing OS - Geometric, Bold look */
-html[data-ui="nothing"] button {
-  font-family: 'Ndot 57 Aligned', monospace;
-  letter-spacing: 0.02em;
-  border: none;
-}
 html[data-ui="nothing"] .account-btn {
   font-family: 'NDot 57 Aligned', monospace;
   letter-spacing: 0.02em;

@@ -9,6 +9,9 @@
 <link rel="apple-touch-icon" href="../assets/icons/logo.png">
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
 /* =====================================================
    BASE ANIMATIONS
    ===================================================== */
@@ -103,17 +106,10 @@
 }
 
 @font-face {
-  font-family: 'Ndot 57 Aligned';
-  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
-  font-display: swap;
-}
-
-@font-face {
   font-family: 'NType 82 Regular';
   src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
   font-display: swap;
 }
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
 
 :root {
   --bg-main: #000;
@@ -230,7 +226,7 @@
 }
 :root[data-ui="nothing"] .row {
     display: flex;
-    font-family: 'NDot 57 Aligned', monospace;
+    font-family: 'Geist', sans-serif;
     align-items: center;
     background: var(--bg-card);
     justify-content: space-between;
@@ -296,6 +292,7 @@ h2 {
   margin: 16px 16px 8px;
   animation: slideDown 0.3s ease-out;
   animation-fill-mode: both;
+  font-weight: normal;
 }
 
 h2:nth-of-type(1) { animation-delay: 0.05s; }

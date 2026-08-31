@@ -51,7 +51,7 @@ html[data-ui="md3e"] body {
 html[data-ui="nothing"] body {
   background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: var(--font-family, 'NType 82 Regular', sans-serif);
+  font-family: var(--font-family-ui, 'NType 82 Regular', sans-serif);
   letter-spacing: var(--letter-tight, 0.02em);
 }
 
@@ -77,7 +77,7 @@ h1 {
 }
 
 html[data-ui="nothing"] h1 {
-  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-family: var(--font-family, monospace);
   font-size: 24px;
   letter-spacing: var(--letter-wide, 0.06em);
   font-weight: 400;
@@ -100,7 +100,7 @@ html[data-ui="md3e"] h1 {
 }
 
 html[data-ui="nothing"] .subtitle {
-  font-family: var(--font-family, 'NType 82 Regular');
+  font-family: var(--font-family-ui, 'Geist', sans-serif);
   color: var(--text-dim);
 }
 
@@ -131,7 +131,7 @@ html[data-ui="md3e"] .subtitle {
   color: var(--text-dim);
 }
 
-.badge strong { color: var(--text-main); font-weight: 600; }
+.badge strong { color: var(--text-main); }
 
 /* Nothing badge */
 html[data-ui="nothing"] .badge {
@@ -143,7 +143,7 @@ html[data-ui="nothing"] .badge {
 }
 
 html[data-ui="nothing"] .badge strong {
-  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-family: var(--font-family-ui, 'Geist', monospace);
   color: var(--text-main);
 }
 
@@ -204,17 +204,17 @@ html[data-ui="nothing"] .toggle-row-label {
 
 /* Nothing pill — square thumb per nothing-theme.css §9 */
 html[data-ui="nothing"] .toggle-pill {
-  width: 36px;
+  width: 22px;
   height: 22px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  border: 4px solid var(--border-color);
   background: transparent;
 }
 
 html[data-ui="nothing"] .toggle-pill .toggle-thumb {
   width: 14px;
   height: 14px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-lg);
   background: var(--text-dim);
   box-shadow: none;
   transform: translateX(0px);
@@ -587,6 +587,93 @@ html[data-ui="nothing"] .wallpaper-card.selected::after {
   100% { transform: translateX(0); }
 }
 
+/* =====================================================
+   MD3E COLOR PRESETS
+   Replaces the wallpaper board when ui === 'md3e'.
+   Swatch technique carried over from theme.html's .preset
+   circles (pop-in animation + accent ring on selection).
+===================================================== */
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
+  margin-top: 22px;
+  padding: 4px 4px 20px;
+}
+
+.preset-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.preset-swatch .swatch-dot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: md3ePresetPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.04s);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.preset-swatch:active .swatch-dot { transform: scale(0.88); }
+
+.preset-swatch.active .swatch-dot {
+  border-color: var(--accent-color);
+  box-shadow:
+    0 0 0 3px var(--md-surface-0, var(--bg-secondary)),
+    0 0 0 5px var(--accent-color);
+  animation: md3eSelectPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes md3eSelectPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+.preset-swatch.active .swatch-dot::after {
+  content: '✓';
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  animation: md3eCheckPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+
+@keyframes md3eCheckPop {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.swatch-label {
+  font-family: "Google Sans", sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary, var(--text-dim));
+  text-align: center;
+  line-height: 1.2;
+}
+
+@keyframes md3ePresetPop {
+  0%   { transform: scale(0.8); opacity: 0; }
+  70%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 400px) {
+  .preset-grid { grid-template-columns: repeat(3, 1fr); }
+  .preset-swatch .swatch-dot { width: 44px; height: 44px; }
+}
+
 /* ── Responsive ────────────────────────────────────── */
 
 @media (max-width: 400px) {
@@ -605,8 +692,8 @@ html[data-ui="nothing"] .wallpaper-card.selected::after {
 
   <div class="page-head">
     <div>
-      <h1>Wallpaper</h1>
-      <p class="subtitle">Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.</p>
+      <h1 id="pageTitle">Wallpaper</h1>
+      <p class="subtitle" id="pageSubtitle">Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.</p>
     </div>
 
     <div class="state-row">
@@ -628,6 +715,7 @@ html[data-ui="nothing"] .wallpaper-card.selected::after {
   <p id="errorBanner" class="error-banner"></p>
   <p id="wallpaperStatus" class="note"></p>
   <div id="wallpaperBoard" class="wallpaper-board" role="list"></div>
+  <div id="md3ePresetGrid" class="preset-grid" role="list" style="display:none;"></div>
 
 </div>
 
@@ -637,19 +725,43 @@ html[data-ui="nothing"] .wallpaper-card.selected::after {
 ===================================================== */
 const WALLPAPER_KEY         = 'notozApp_wallpaper';
 const WALLPAPER_DISABLE_KEY = 'notozApp_wallpaper_disabled';
+const MD3E_SEED_KEY         = 'md3e-seed'; // same key theme.html writes to
 
-const $board   = document.getElementById('wallpaperBoard');
-const $status  = document.getElementById('wallpaperStatus');
-const $error   = document.getElementById('errorBanner');
-const $pill    = document.getElementById('wallpaperTogglePill');
-const $trow    = document.getElementById('wallpaperToggleRow');
-const $tlabel  = document.getElementById('wallpaperToggleLabel');
+const $board       = document.getElementById('wallpaperBoard');
+const $presetGrid  = document.getElementById('md3ePresetGrid');
+const $status      = document.getElementById('wallpaperStatus');
+const $error       = document.getElementById('errorBanner');
+const $pill        = document.getElementById('wallpaperTogglePill');
+const $trow        = document.getElementById('wallpaperToggleRow');
+const $tlabel      = document.getElementById('wallpaperToggleLabel');
+const $pageTitle   = document.getElementById('pageTitle');
+const $pageSubtitle= document.getElementById('pageSubtitle');
+
+// MD3E accent presets. First 5 match theme.html's original set so a seed
+// picked there still resolves to a labeled swatch here; the remaining 7
+// round the palette out closer to the wider accent spread Android 17's
+// leaked Material 3 Expressive color picker exposes (beyond just the
+// old blue/green/purple/sand/mono set).
+const md3ePresets = [
+  { hex:'#4285F4', label:'Ocean'    },
+  { hex:'#46707c', label:'Slate'    },
+  { hex:'#6750A4', label:'Violet'   },
+  { hex:'#C2B280', label:'Sand'     },
+  { hex:'#555555', label:'Graphite' },
+  { hex:'#984061', label:'Rose'     },
+  { hex:'#9c4a3d', label:'Coral'    },
+  { hex:'#7c5800', label:'Amber'    },
+  { hex:'#586e00', label:'Olive'    },
+  { hex:'#006874', label:'Teal'     },
+  { hex:'#4a5b9c', label:'Indigo'   },
+  { hex:'#7a4a8a', label:'Plum'     }
+];
 
 const wallpaperCards = [
-  { id:'w1', theme:'ios-md3e', title:'Aurora Bloom',  description:'Soft violet glow with deep glass-like depth.',    image:'url(../assets/wallpaper/imd/imd1.jpg)', label:'iOS / MD3E' },
-  { id:'w2', theme:'ios-md3e', title:'Sunset Drift',  description:'Warm gradient glow with subtle motion.',          image:'url(../assets/wallpaper/imd/imd2.jpg)',   label:'iOS / MD3E' },
-  { id:'w3', theme:'ios-md3e', title:'Teal Waves',    description:'Cool cyan texture with crisp highlights.',        image:'url(../assets/wallpaper/imd/imd3.jpg)',   label:'iOS / MD3E' },
-  { id:'w4', theme:'ios-md3e', title:'The OG Fish',   description:'Minimal texture with gentle tonal transitions.',  image:'url(../assets/wallpaper/imd/imd4.jpg)',   label:'iOS / MD3E' },
+  { id:'w1', theme:'ios',     title:'Aurora Bloom',  description:'Soft violet glow with deep glass-like depth.',    image:'url(../assets/wallpaper/imd/imd1.jpg)', label:'iOS' },
+  { id:'w2', theme:'ios',     title:'Sunset Drift',  description:'Warm gradient glow with subtle motion.',          image:'url(../assets/wallpaper/imd/imd2.jpg)',   label:'iOS' },
+  { id:'w3', theme:'ios',     title:'Teal Waves',    description:'Cool cyan texture with crisp highlights.',        image:'url(../assets/wallpaper/imd/imd3.jpg)',   label:'iOS' },
+  { id:'w4', theme:'ios',     title:'The OG Fish',   description:'Minimal texture with gentle tonal transitions.',  image:'url(../assets/wallpaper/imd/imd4.jpg)',   label:'iOS' },
   { id:'n1', theme:'nothing',  title:'Paper Grid',    description:'Dark high-contrast energy with gray & black mixture.',     image:'url(../assets/wallpaper/n/nos1.jpg)', label:'Nothing OS' },
   { id:'n2', theme:'nothing',  title:'Neon Shift',    description:'Soft white surface with fine neon flares.',     image:'url(../assets/wallpaper/n/nos2.jpg)', label:'Nothing OS' },
   { id:'n3', theme:'nothing',  title:'Glass Mesh',    description:'Pink-chromic pattern with glass-like depth.',       image:'url(../assets/wallpaper/n/nos3.jpg)', label:'Nothing OS' },
@@ -673,16 +785,31 @@ function initializeTheme() {
   if (mode) root.setAttribute('data-theme', mode);
 
   if (ui === 'md3e') {
-    const hex = localStorage.getItem('md3e-seed');
-    if (hex) {
-      const v = hex.replace('#', '');
-      root.style.setProperty('--md-seed',
-        `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);
-    }
+    const hex = localStorage.getItem(MD3E_SEED_KEY);
+    if (hex) applySeedVar(hex);
   }
 
   const labels = { ios: 'iOS', md3e: 'Material You', nothing: 'Nothing OS' };
   document.getElementById('current-ui-label').textContent = labels[ui] || 'iOS';
+
+  applyPageModeForUI(ui);
+}
+
+/* =====================================================
+   PAGE MODE — wallpaper board (iOS/Nothing) vs.
+   color presets (MD3E)
+===================================================== */
+function applyPageModeForUI(ui) {
+  const isColorMode = ui === 'md3e';
+
+  $board.style.display      = isColorMode ? 'none' : '';
+  $presetGrid.style.display = isColorMode ? 'grid' : 'none';
+  $trow.style.display       = isColorMode ? 'none' : '';
+
+  $pageTitle.textContent = isColorMode ? 'Color' : 'Wallpaper';
+  $pageSubtitle.textContent = isColorMode
+    ? 'Pick an accent color for Material You. It applies across the whole app.'
+    : 'Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.';
 }
 
 /* =====================================================
@@ -708,8 +835,17 @@ function toggleWallpaperState() {
    STATUS NOTE
 ===================================================== */
 function updateStatus() {
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+
+  if (ui === 'md3e') {
+    const hex    = localStorage.getItem(MD3E_SEED_KEY) || '#6750A4';
+    const preset = md3ePresets.find(p => p.hex.toLowerCase() === hex.toLowerCase());
+    $status.textContent = preset ? `Active: ${preset.label}` : `Active: Custom (${hex})`;
+    return;
+  }
+
   if (isDisabled()) {
-    $status.textContent = 'Wallpaper is disabled. Your selection is saved and will apply when re-enabled.';
+    $status.textContent = 'Wallpapers are disabled. Your selection is saved and will apply when re-enabled.';
     return;
   }
   const id   = localStorage.getItem(WALLPAPER_KEY) || 'w1';
@@ -718,11 +854,58 @@ function updateStatus() {
 }
 
 /* =====================================================
+   MD3E PRESET GRID
+===================================================== */
+function buildPresetGrid() {
+  const current = (localStorage.getItem(MD3E_SEED_KEY) || '#6750A4').toLowerCase();
+
+  $presetGrid.innerHTML = md3ePresets.map((p, i) => `
+    <div
+      class="preset-swatch${p.hex.toLowerCase() === current ? ' active' : ''}"
+      style="--i:${i}"
+      data-hex="${p.hex.toLowerCase()}"
+      role="listitem"
+      onclick="handlePresetTap('${p.hex}')"
+    >
+      <span class="swatch-dot" style="background:${p.hex};"></span>
+      <span class="swatch-label">${p.label}</span>
+    </div>
+  `).join('');
+
+  updateStatus();
+}
+
+function handlePresetTap(hex) {
+  localStorage.setItem(MD3E_SEED_KEY, hex);
+  applySeedVar(hex);
+
+  // Toggle the active class on just the swatches involved instead of
+  // rebuilding the grid — rebuilding recreated every swatch as a new
+  // DOM node, which replayed the pop-in animation on all 12 instead
+  // of just the one that was tapped.
+  const hexLower = hex.toLowerCase();
+  $presetGrid.querySelectorAll('.preset-swatch').forEach(el => {
+    el.classList.toggle('active', el.dataset.hex === hexLower);
+  });
+
+  updateStatus();
+  window.parent.postMessage({ type: 'SET_MD3E_COLOR', color: hex }, '*');
+}
+
+function applySeedVar(hex) {
+  const v = hex.replace('#', '');
+  document.documentElement.style.setProperty(
+    '--md-seed',
+    `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`
+  );
+}
+
+/* =====================================================
    BOARD BUILDER
 ===================================================== */
 function buildWallpaperBoard() {
   const ui           = localStorage.getItem('ui-theme') || 'ios';
-  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios-md3e';
+  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios';
   let   selected     = localStorage.getItem(WALLPAPER_KEY) || 'w1';
 
   const visible = wallpaperCards.filter(c => c.theme === currentTheme);
@@ -767,14 +950,14 @@ function handleWallpaperTap(id) {
     return;
   }
 
-  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios-md3e';
+  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios';
   const card         = wallpaperCards.find(c => c.id === id);
   if (!card) return;
 
   if (card.theme !== currentTheme) {
     showError(card.theme === 'nothing'
       ? 'This wallpaper is only available for Nothing OS theme.'
-      : 'This wallpaper is only available for iOS / Material You theme.');
+      : 'This wallpaper is only available for iOS theme.');
     return;
   }
 
@@ -877,8 +1060,13 @@ function scrollSelectedIntoView() {
    BOOT
 ===================================================== */
 initializeTheme();
-syncToggleUI();
-buildWallpaperBoard();
+
+if ((localStorage.getItem('ui-theme') || 'ios') === 'md3e') {
+  buildPresetGrid();
+} else {
+  syncToggleUI();
+  buildWallpaperBoard();
+}
 
 // --- Live system theme updates (when mode === system) ---
 (function syncSystemThemeOnWallpaper() {
@@ -892,9 +1080,13 @@ buildWallpaperBoard();
       mq.matches ? 'dark' : 'light'
     );
 
-    // Rebuild so any theme-dependent CSS/selectors update immediately
-    // (wallpaper cards themselves are UI/IOS vs Nothing, but frost/badges can depend on data-theme)
-    buildWallpaperBoard();
+    // Rebuild whichever view is active so theme-dependent CSS/selectors
+    // update immediately (wallpaper frost/badges vs. preset ring colors)
+    if ((localStorage.getItem('ui-theme') || 'ios') === 'md3e') {
+      buildPresetGrid();
+    } else {
+      buildWallpaperBoard();
+    }
   };
 
   if (typeof mq.addEventListener === 'function') {

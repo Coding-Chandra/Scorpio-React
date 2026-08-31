@@ -607,6 +607,17 @@ function applyMD3EAccent(hex) {
 }
 
 function applyWallpaperUI() {
+    const ui = localStorage.getItem('ui-theme') || 'ios';
+
+    if (ui === 'md3e') {
+        const seed = localStorage.getItem('md3e-seed') || '#6750A4';
+        const wallpaperDisplay = document.getElementById('currentWallpaperDisplay');
+        if (wallpaperDisplay) {
+            wallpaperDisplay.textContent = `Material You`;
+        }
+        return;
+    }
+
     const wallpaperValue = localStorage.getItem('notozApp_wallpaper') || 'w1';
     let wallpaperLabel;
     if (wallpaperValue.startsWith('http://') || wallpaperValue.startsWith('https://')) {
@@ -614,7 +625,7 @@ function applyWallpaperUI() {
     } else if (wallpaperValue.startsWith('n')) {
         wallpaperLabel = `Nothing OS (${wallpaperValue.slice(1)})`;
     } else {
-        wallpaperLabel = `iOS / MD3E (${wallpaperValue.slice(1)})`;
+        wallpaperLabel = `iOS (${wallpaperValue.slice(1)})`;
     }
     const wallpaperDisplay = document.getElementById('currentWallpaperDisplay');
     if (wallpaperDisplay) {
@@ -642,47 +653,66 @@ function updateSettingsNotificationUI() {
     statusEl.textContent = enabled ? 'Enabled' : 'Disabled';
     // Theme-aware toggle background/thumb colors (use CSS variables)
     toggle.setAttribute('data-checked', enabled ? 'true' : 'false');
-    thumb.style.transform = enabled ? 'translateX(11.5px)' : 'translateX(-12px)';
 }
 
 window.addEventListener("message", (event) => {
     if (!event.data || !event.data.type) return;
 
     switch (event.data.type) {
-        case "SET_UI_THEME":
+        case "SET_UI_THEME": {
             applyUI(event.data.theme);
             const frame = document.getElementById("portal-frame");
             if (frame?.contentWindow) {
                 frame.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, "*");
             }
+            const uiLabels = { ios: "iOS", md3e: "Material You", nothing: "Nothing OS" };
+            showNotification(
+                "Appearance Updated",
+                `${uiLabels[event.data.theme] || event.data.theme} theme applied.`,
+                "success"
+            );
             break;
+        }
 
-        case "SET_THEME":
+        case "SET_THEME": {
             applyTheme(event.data.theme);
             const frame2 = document.getElementById("portal-frame");
             if (frame2?.contentWindow) {
                 frame2.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, "*");
             }
+            showNotification(
+                "Theme Updated",
+                `Switched to ${event.data.theme} mode.`,
+                "success"
+            );
             break;
+        }
 
-        case "SET_MD3E_COLOR":
+        case "SET_MD3E_COLOR": {
             applyMD3EAccent(event.data.color);
             const frame3 = document.getElementById("portal-frame");
             if (frame3?.contentWindow) {
                 frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notozApp_theme") }, "*");
             }
-            break;
-
-        case "WALLPAPER_CHANGED":
-            applyWallpaperUI();
             showNotification(
-                'Wallpaper Saved',
-                event.data.wallpaper === 'nothing'
-                    ? 'Nothing OS wallpaper selected.'
-                    : 'iOS / MD3E wallpaper selected.',
-                'success'
+                "Accent Color Updated",
+                `Color set to ${event.data.color}.`,
+                "success"
             );
             break;
+        }
+
+        case "WALLPAPER_CHANGED": {
+            applyWallpaperUI();
+            showNotification(
+                "Wallpaper Setting Saved",
+                event.data.label === "Nothing OS"
+                    ? "Nothing OS wallpaper selected."
+                    : "iOS wallpaper selected.",
+                "success"
+            );
+            break;
+        }
     }
 });
 

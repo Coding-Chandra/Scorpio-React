@@ -63,7 +63,7 @@
         }
 
         [data-theme="dark"] {
-            --sidebar-bg-glass: rgba(28,28,30,0.2);
+            --sidebar-bg-glass: rgba(28,28,30,0.52);
             --list-bg-glass: rgba(28,28,30,0.82);
             --editor-bg-glass: rgba(1,1,3,0.82);
             --border-color: rgba(255,255,255,0.08);
@@ -90,7 +90,7 @@
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
             position: relative;
-            background-image: var(--wallpaper-image), radial-gradient(circle at top left, #ffffff 0%, #e7ecff 30%, #f7f7fb 70%, #f0f0f5 100%);
+            background-image: var(--wallpaper-image), radial-gradient( #ffffff 0%, #ffffff);
             background-size: cover, cover;
             background-position: center, center;
             background-repeat: no-repeat, no-repeat;
@@ -99,7 +99,7 @@
             transition: background-image 0.3s ease;
         }
         [data-theme="dark"] body {
-            background-image: var(--wallpaper-image), radial-gradient(circle at top left, #1a1a1f 0%, #050509 40%, #000000 100%);
+            background-image: var(--wallpaper-image), radial-gradient(#000000, #000000);
             background-size: cover, cover;
             background-position: center, center;
             background-repeat: no-repeat, no-repeat;
@@ -275,12 +275,22 @@
         .mobile-nav-back {
             display: flex;
             align-items: center;
-            border: none;
-            background: none;
             margin-left: 6px;
             color: var(--accent);
-            padding: 0;
             cursor: pointer;
+            border: none;
+            background: none;
+            height: 32px;
+            font-size: 15px;
+            padding: 2px 2px;
+            cursor: pointer;
+            border-radius: 99px;
+        }
+        .mobile-nav-back:hover{
+            background-color: rgba(0,0,0,0.04);
+        }
+        [data-theme="dark"] .mobile-nav-back:hover {
+            background-color: rgba(255,255,255,0.06);
         }
         .mobile-nav-back svg {
             width: 28px;
@@ -746,11 +756,12 @@
         .edit-notes-btn {
             border: none;
             background: none;
+            height: 32px;
             color: var(--accent);
             font-size: 15px;
             padding: 2px 2px;
             cursor: pointer;
-            border-radius: 999px;
+            border-radius: 99px;
         }
         .edit-notes-btn:hover {
             background-color: rgba(0,0,0,0.04);
@@ -1261,6 +1272,11 @@
         .dropdown-menu.direction-down.open,
         .dropdown-menu.direction-down.is-open {
             transform: translate3d(0,0,0) scale(1,1);
+        }
+
+        .btn{
+            display: flex;
+            flex-direction: row;
         }
 
         .dropdown-menu .btn {

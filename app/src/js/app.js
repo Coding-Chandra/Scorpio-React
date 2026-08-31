@@ -1960,21 +1960,22 @@ app.renderMobileNav = function () {
     } else if (this.ui.mobileView === 'notes') {
         bar.innerHTML = `
             <div class="mobile-nav-left">
-                <button class="mobile-nav-back edit-notes-btn" onclick="app.goToMobileView('folders')">
+                <button class="mobile-nav-back" onclick="app.goToMobileView('folders')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
             <div class="mobile-nav-title">${Utils.escapeHtml(folderName)}</div>
             <div class="mobile-nav-right">
-                <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/>
-  <line x1="9" y1="6" x2="19" y2="6"/>
-  <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-  <line x1="9" y1="12" x2="19" y2="12"/>
-  <circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/>
-  <line x1="9" y1="18" x2="19" y2="18"/>
-</svg>
-</button>
+                <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/>
+                    <line x1="9" y1="6" x2="19" y2="6"/>
+                    <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                    <line x1="9" y1="12" x2="19" y2="12"/>
+                    <circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+                    <line x1="9" y1="18" x2="19" y2="18"/>
+                </svg>
+                </button>
             </div>
         `;
     } else if (this.ui.mobileView === 'editor') {
@@ -4003,6 +4004,21 @@ supabaseClient
 // ============================================================================
 
 const _originalUpdateCurrentNote = app.updateCurrentNote;
+
+app.updateCurrentNote = async function () {
+
+const note = this.getActiveNote();
+
+if (!note) return;
+
+await this.saveSingleNoteToIndexedDB({
+    ...note,
+    user_id: CURRENT_USER_ID
+});
+
+return _originalUpdateCurrentNote.apply(this, arguments);
+
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     // Check if running inside the Median wrapper

@@ -37,7 +37,7 @@
             </div>
         </div>
         <div class="row clickable" onclick="openPortal('./src/pages/wallpaper.html')">
-            <span class="label">Wallpaper</span>
+            <span class="label">Wallpaper & Colors</span>
             <div style="display:flex; align-items:center; gap: 8px;">
                 <span id="currentWallpaperDisplay" class="value" style="font-size: 14px;">Default</span>
                 <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
@@ -46,7 +46,7 @@
         <div class="row" onclick="toggleAppNotifications()" style="justify-content:space-between; gap: 8px;">
             <span class="label">Notifications</span>
             <div style="display:flex; align-items: center;gap: 10px; flex-direction: column-reverse;">
-                <span id="notificationRowStatus" class="value" style="font-size: 14px;">Loading...</span>
+                <span id="notificationRowStatus" class="value" style="font-size: 14px;" hidden>Loading...</span>
                 <span id="notificationRowToggle" class="notifToggle">
                     <span id="notificationRowThumb" class="notifThumb"></span>
                 </span>
@@ -118,7 +118,7 @@
         <h3 id="modal-title" style="margin: 0 0 8px 0; font-size: 20px;">Title</h3>
         <p id="modal-message" style="color: var(--text-dim); font-size: 15px; margin: 0 0 24px 0;">Message</p>
         <div id="modal-input-container"></div>
-        <div style="display: flex; flex-direction: row-reverse;">
+        <div style="display: flex; flex-direction: row-reverse; gap: 2vh;">
             <button onclick="closeCustomModal()" class="modal-btn btn-secondary">Cancel</button>
             <button id="modal-confirm-btn" class="modal-btn">Confirm</button>
         </div>

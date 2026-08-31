@@ -25,9 +25,10 @@
   /* Accent */
   --accent-color: #D71921;
   --accent: #D71921;
-  --blue: #D71921;
+  --blue: #67965e;
 
   /* Spacing — Nothing launcher scale (8px base) */
+  --space-0: 2px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -110,7 +111,7 @@
 }
 
 :root[data-ui="nothing"] h2 {
-  font-family: var(--font-family2);
+  font-family: var(--font-family);
 }
 
 :root[data-ui="nothing"] .mobile-nav-title{
@@ -118,7 +119,7 @@
 }
 
 /* -----------------------------------------------------
-   5. PANELS / CARDS
+   5. PANELS, CARDS & MENUS
 ----------------------------------------------------- */
 
 :root[data-ui="nothing"] .pane,
@@ -132,6 +133,28 @@
   backdrop-filter: none !important;
 }
 
+
+
+:root[data-ui="nothing"] #mobileNavBar,
+:root[data-ui="nothing"] .toolbar,
+:root[data-ui="nothing"] .dropdown-menu,
+:root[data-ui="nothing"] .selection-toolbar{
+  backdrop-filter: blur(4px) saturate(1.5);
+  background: var(--bg-card-t);
+}
+
+:root[data-ui="nothing"] .btn {
+  font-family: var(--font-family-ui);
+  border-bottom: #55555570 1px solid;
+  border-radius: 0px;
+}
+:root[data-ui="nothing"] .btn:first-child{
+  border-radius: 8px 8px 0px 0px;
+}
+:root[data-ui="nothing"] .btn:last-child{
+  border-bottom: none;
+  border-radius: 0px 0px 8px 8px;
+}
 /* -----------------------------------------------------
    6. DOT-MATRIX SYNC / LOADING
 ----------------------------------------------------- */
@@ -353,14 +376,15 @@ border-top: none;
 :root[data-ui="nothing"] .popover {
   background: var(--bg-card-t);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  padding: 0px;
   box-shadow: none;
   letter-spacing: var(--letter-tight);
 }
 
 :root[data-ui="nothing"] .account-dropdown{
   padding: var(--space-2);
+  border-radius: var(--radius-xl);
 }
 
 /* Dialog red signal bar */

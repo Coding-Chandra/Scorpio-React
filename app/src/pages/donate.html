@@ -31,16 +31,14 @@
 <style>
 /* ============================================================
    FONT FACES
-   ============================================================ */
+============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
 @font-face {
   font-family: 'SF Pro Rounded';
   src: url('../assets/fonts/SFR.ttf') format('truetype');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ndot 57 Aligned';
-  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
   font-display: swap;
 }
 
@@ -49,8 +47,6 @@
   src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
   font-display: swap;
 }
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
-
 /* ============================================================
    THEME TOKENS
    ============================================================ */
@@ -93,9 +89,9 @@ html[data-ui="nothing"][data-theme="light"] {
   --bg-secondary: #FFFFFF;
   --bg-card: #FFFFFF;
 }
-html[data-ui="nothing"] body { font-family: 'NType 82 Regular', monospace, sans-serif; }
+html[data-ui="nothing"] body { font-family: 'Geist' sans-serif; }
 html[data-ui="nothing"] .label,
-html[data-ui="nothing"] .page-title { font-family: 'Ndot 57 Aligned', monospace; }
+html[data-ui="nothing"] .page-title { font-family: 'NType 82 Regular', monospace; }
 html[data-ui="nothing"] .row {
   background: var(--bg-secondary);
   border: none;

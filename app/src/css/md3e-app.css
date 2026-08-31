@@ -270,7 +270,8 @@
     );
 }
 
-:root[data-ui="md3e"] .toolbar{
+:root[data-ui="md3e"] .toolbar,
+:root[data-ui="md3e"] #mobileNavBar{
   position: absolute;
   left: 2vh;
   right: 2vh;
@@ -297,6 +298,7 @@
       var(--editor-bg-glass) 88%,
       rgba(var(--md-seed), 1.12)
     );
+  backdrop-filter: blur(3px) saturate(2);
 }
 
 :root[data-ui="md3e"] .multi-select-bar
