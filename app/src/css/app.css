@@ -1044,7 +1044,7 @@
 
         #editor-pane {
             flex-grow: 1;
-            padding-top: 7vh;
+            padding-top: 9vh;
         }
         #editor-pane.glass-panel-strong {
             display: flex;

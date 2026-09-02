@@ -33,15 +33,15 @@
   --glass-bg: rgba(30, 30, 30, 0.85);
   --glass-border: rgba(255, 255, 255, 0.15);
   --transparent: #ffffff06;
+  --notification-bg: rgba(0, 0, 0, 0.1);
 
-  /* Settings toggle (notification) theme tokens */
   --toggle-off: #e4e4e5;
   --toggle-on: #65c466;
   --toggle-thumb: #fff;
 
   --ui-refresh-token: 0;
 
-  --font-family-nos: "Geist";
+  --font-family: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, Roboto;
 }
 
 
@@ -54,6 +54,8 @@
   --sep: rgba(60, 60, 67, 0.29);
   --glass-bg: rgba(255, 255, 255, 0.85);
   --glass-border: rgba(0, 0, 0, 0.1);
+  --transparent: #00000006;
+  --notification-bg: rgba(255, 255, 255, 0.05);
 }
 
 html {
@@ -223,6 +225,62 @@ body::before {
   background: var(--bg-main);
 }
 
+.notif {
+  position: relative;
+  padding: 16px 20px;
+  padding-right: 40px; /* room for the close button */
+  border-radius: 22px;
+  background: var(--notification-bg);
+  color: var(--text-main);
+  font-size: 14px;
+  z-index: 10000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .06), 0 20px 50px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  animation: toastSlideIn 0.3s ease-out forwards;
+  border: 1px solid rgba(255,255,255,0.14);
+  touch-action: pan-y; /* let vertical page scroll pass through; horizontal swipe is handled in JS */
+  will-change: transform;
+}
+
+/* While actively being dragged, kill the transition so the notif tracks the finger 1:1 */
+.notif.dragging {
+  transition: none;
+}
+
+.notif-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(128, 128, 128, 0.15);
+  color: var(--text-main);
+  opacity: 0.65;
+  cursor: pointer;
+  transition: opacity 0.15s ease-out, background 0.15s ease-out;
+}
+
+.notif-close:hover,
+.notif-close:focus-visible {
+  opacity: 1;
+  background: rgba(128, 128, 128, 0.28);
+}
+
+[data-theme="light"] .notif {
+  background: var(--notification-bg);
+  color: var(--text-main);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .04), 0 20px 50px rgba(0, 0, 0, .12);
+}
 /* --- Custom Modal --- */
 /* =====================================================
   MODAL SYSTEM - WORKS WITH ALL THEMES
@@ -408,6 +466,14 @@ body::before {
            NOTHING OS 4 - MODAL OVERRIDES
 ===================================================== */
 
+:root[data-ui="nothing"]{
+  --font-family: 'Geist', sans-serif;
+  --notification-bg: rgba(0, 0, 0, 0.610);
+}
+:root[data-ui="nothing"][data-theme="light"]{
+  --notification-bg: rgba(255, 255, 255, 0.610);
+}
+
 html[data-ui="nothing"] .header-main h1{
   font-family: 'NType 82 Regular', monospace;
   font-weight: normal;
@@ -466,7 +532,13 @@ html[data-ui="nothing"] .btn-secondary {
 /* =====================================================
            MD3E (MATERIAL YOU) - MODAL OVERRIDES
 ===================================================== */
-
+:root[data-ui="md3e"]{
+  --font-family: "Google Sans", sans-serif;
+  --notification-bg: color-mix(in srgb, rgba(var(--md-seed), 0.6) 20%, var(--bg-main) 60%);
+}
+:root[data-ui="md3e"][data-theme="dark"]{
+  --notification-bg: color-mix(in srgb, rgba(var(--md-seed), 0.6) 20%, var(--bg-main) 60%);
+}
 html[data-ui="md3e"] #custom-modal-overlay {
   background: rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(3px);
@@ -531,6 +603,11 @@ html[data-ui="md3e"][data-theme="dark"] .btn-secondary:active {
   background: rgba(255, 255, 255, 0.12);
 }
 
+html[data-ui="md3e"] .notif{
+  padding: 16px 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(4px) saturate(1.5);
+}
 /* =====================================================
            iOS like (DEFAULT) - MODAL OVERRIDES
 ===================================================== */
@@ -714,7 +791,7 @@ html[data-ui="nothing"][data-theme="dark"] {
 }
 
 html[data-ui="nothing"] body {
-  font-family: var(--font-family-nos), "Geist";
+  font-family: var(--font-family), "Geist";
 }
 
 /* Card surface: near-black, elevated, NO border */
@@ -765,7 +842,7 @@ html[data-ui="nothing"][data-theme="dark"] .row.clickable:active {
 }
 
 html[data-ui="nothing"] .label {
-  font-family: var(--font-family-nos);
+  font-family: var(--font-family);
   font-weight: normal;
 }
 
@@ -796,6 +873,11 @@ html[data-ui="nothing"] .notifToggle[data-checked="true"] .notifThumb {
   background: var(--toggle-thumb-off);
 }
 
+html[data-ui="nothing"] .notif{
+  padding: 16px 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(4px) saturate(1.5);
+}
 
 /* =====================================================
         MD3E – SAFE PATCH (NO COLOR-MIX, JUST BASE COLORS)

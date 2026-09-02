@@ -178,6 +178,28 @@ const AnimationUtils = {
   },
 
   /**
+   * Swipe-dismiss a toast/notification to the right.
+   * Reads the --drag-x custom property as its start position, so it can
+   * continue smoothly from wherever a drag gesture released the element.
+   * @param {Element} element - Target element
+   * @param {number} duration - Duration in ms
+   * @param {function} onComplete - Callback when animation ends
+   */
+  swipeOutRight: (element, duration = 250, onComplete = null) => {
+    AnimationUtils.animate(element, 'toastSwipeOutRight', duration, onComplete);
+  },
+
+  /**
+   * Swipe-dismiss a toast/notification to the left.
+   * @param {Element} element - Target element
+   * @param {number} duration - Duration in ms
+   * @param {function} onComplete - Callback when animation ends
+   */
+  swipeOutLeft: (element, duration = 250, onComplete = null) => {
+    AnimationUtils.animate(element, 'toastSwipeOutLeft', duration, onComplete);
+  },
+
+  /**
    * List item entry animation
    * @param {Element} element - Item element
    * @param {boolean} bounce - Use bounce effect

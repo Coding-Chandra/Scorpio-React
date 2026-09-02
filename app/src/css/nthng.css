@@ -68,7 +68,7 @@
 :root[data-ui="nothing"][data-theme="dark"] {
   color-scheme: dark;
 
-  --bg-main: #0c0c0c;
+  --bg-main: #000000;
   --bg-card: #00000070;
   --bg-elevated: #141414;
 
@@ -76,6 +76,7 @@
 
   --text-main: #FFFFFF;
   --text-dim: rgba(255,255,255,0.60);
+  --text-secondary: rgba(255,255,255,0.85);
 
   --border-color: rgba(255,255,255,0.18);
 }
@@ -87,7 +88,7 @@
 :root[data-ui="nothing"][data-theme="light"] {
   color-scheme: light;
 
-  --bg-main: #F3F3F3;
+  --bg-main: #FFFFFF;
   --bg-card: #FFFFFF70;
   --bg-elevated: #F2F2F2;
 
@@ -95,6 +96,7 @@
 
   --text-main: #000000;
   --text-dim: rgba(0,0,0,0.55);
+  --text-secondary: rgba(0,0,0,0.70);
 
   --border-color: rgba(0,0,0,0.16);
 }

@@ -7,8 +7,8 @@
 <link rel="icon" type="image/png" href="../assets/icons/logo.png">
 <link rel="apple-touch-icon" href="../assets/icons/logo.png">
 <!-- Must run before CSS so data-ui / data-theme are set before any selector matches -->
-<script>(function(){const r=document.documentElement;const ui=localStorage.getItem('ui-theme')||'ios';r.setAttribute('data-ui',ui);const stored=localStorage.getItem('notozApp_theme');const mode=(stored==='system'||!stored)?((window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):stored;r.setAttribute('data-theme',mode);if(ui==='md3e'){const hex=localStorage.getItem('md3e-seed');if(hex){const v=hex.replace('#','');r.style.setProperty('--md-seed',`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
-
+<script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notesApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+   
 <!-- Shared design tokens -->
 <link rel="stylesheet" href="../css/settings.css">
 <!-- Theme-specific tokens -->
@@ -42,16 +42,16 @@ body {
 
 /* MD3E — tonal surface from md3e-app.css */
 html[data-ui="md3e"] body {
-  background-color: var(--md-surface-1) !important;
+  background-color: var(--bg-main) !important;
   color: var(--text-primary);
   font-family: "Google Sans", sans-serif;
 }
 
 /* Nothing OS — uses its own --bg-main */
 html[data-ui="nothing"] body {
-  background-color: var(--bg-main);
+  background: var(--bg-main);
   color: var(--text-main);
-  font-family: var(--font-family-ui, 'NType 82 Regular', sans-serif);
+  font-family: var(--font-family-ui, sans-serif);
   letter-spacing: var(--letter-tight, 0.02em);
 }
 
@@ -946,7 +946,7 @@ function handleWallpaperTap(id) {
   const ui = localStorage.getItem('ui-theme') || 'ios';
 
   if (ui === 'md3e') {
-    showError('Wallpaper selection is not available for Material You.');
+    showError('Wallpaper selection is not available for Material You 3 Expresive.');
     return;
   }
 
