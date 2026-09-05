@@ -89,7 +89,7 @@
   color-scheme: light;
 
   --bg-main: #FFFFFF;
-  --bg-card: #FFFFFF70;
+  --bg-card: #FFFFFFCC;
   --bg-elevated: #F2F2F2;
 
   --bg-card-t: rgba(255, 255, 255, 0.6);
@@ -149,13 +149,14 @@
   font-family: var(--font-family-ui);
   border-bottom: #55555570 1px solid;
   border-radius: 0px;
+  padding: 10px;
 }
 :root[data-ui="nothing"] .btn:first-child{
-  border-radius: 8px 8px 0px 0px;
+  border-radius: 16px 16px 0px 0px;
 }
 :root[data-ui="nothing"] .btn:last-child{
   border-bottom: none;
-  border-radius: 0px 0px 8px 8px;
+  border-radius: 0px 0px 16px 16px;
 }
 /* -----------------------------------------------------
    6. DOT-MATRIX SYNC / LOADING
@@ -378,7 +379,7 @@ border-top: none;
 :root[data-ui="nothing"] .popover {
   background: var(--bg-card-t);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   padding: 0px;
   box-shadow: none;
   letter-spacing: var(--letter-tight);

@@ -192,111 +192,46 @@
 </head>
 <body>
     <div class="container">
-        
-        <h1>About This App</h1>
-        <div class="subtitle">A Modern, Private Note-Taking Space.</div>
+        <h1>About Notoz</h1>
+        <div class="subtitle">A private place for your notes.</div>
 
-        <p class="intro-text">
-            This app is built for people who value **simplicity, speed, and privacy**.
-        </p>
-        <p class="intro-text">
-            We believe your notes are personal. That’s why this app is designed so **only you can read your notes** — not us, not the server, not anyone else.
-        </p>
+        <p class="intro-text">Notoz is an independent project published by <strong>webg</strong>, a solo developer. It is built for writing and syncing notes while keeping your note content encrypted before it reaches the server.</p>
+        <p class="intro-text">I can't read your notes because I don't have the key needed to decrypt them. Notoz encrypts them in your browser before they are sent to the server.</p>
 
-        <h2>Privacy by Design</h2>
-        
-        <p>Your notes are protected using **end-to-end encryption**.</p>
-        
+        <h2>How Your Notes Are Protected</h2>
         <div class="callout-core">
-            <h3>What this means in simple terms:</h3>
+            <h3>In plain language</h3>
             <ul>
-                <li>Notes are **encrypted on your device**.</li>
-                <li>Only encrypted (scrambled) data is stored in the cloud.</li>
-                <li>Your password is used to unlock your private encryption key.</li>
-                <li>The server **never sees your notes in readable form**.</li>
+                <li>Your notes are encrypted in the browser with AES-256-GCM.</li>
+                <li>The server stores ciphertext, not readable note content.</li>
+                <li>Your personal master encryption key is protected by a key derived from your password.</li>
+                <li>After login, the key is held in your browser as a non-extractable CryptoKey for the session.</li>
             </ul>
-            <p>Even if someone accessed the database, they would see only meaningless encrypted data.</p>
         </div>
+        <p>Your password is important: if you lose it, there is no server-side password reset that can recover your encrypted notes.</p>
 
-        <h2>How It Works (Simple)</h2>
+        <h2>What Notoz Includes</h2>
         <ul>
-            <li>When you create an account, a private encryption key is generated just for you.</li>
-            <li>This key is protected by your password.</li>
-            <li>Every note you write is encrypted before it’s saved.</li>
-            <li>When you log in, your password unlocks the key and your notes are decrypted **locally on your device**.</li>
+            <li>Client-side, end-to-end encrypted notes.</li>
+            <li>Account login and encrypted note syncing.</li>
+            <li>Sanitization of content pasted or synced into the editor before it is rendered.</li>
+            <li>A client-side security monitor that can warn about suspicious activity in your browser session and offer a one-tap logout.</li>
+            <li>User-initiated account deletion with password re-confirmation, including removal of the account and its encrypted notes.</li>
+            <li>Logout that clears the locally held session key from your device.</li>
         </ul>
-        <p>If you don’t have the password (or a recovery option), the notes cannot be read — by anyone.</p>
-
-        <h2>What We Can and Can’t See</h2>
-        <p>This is a **zero-knowledge system** — even the app creators don’t have access to your data.</p>
-        
-        <div class="callout-core">
-            <div style="display: flex; gap: 40px;">
-                <div>
-                    <h3 style="color: var(--accent-green); margin-top: 0;">We Can See:</h3>
-                    <ul>
-                        <li>Your email address (for login)</li>
-                        <li>Encrypted note data (unreadable)</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 style="color: var(--warning-text); margin-top: 0;">We Cannot See:</h3>
-                    <ul>
-                        <li>Your notes or titles</li>
-                        <li>Your content</li>
-                        <li>Your encryption keys</li>
-                        <li>Your password</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <h2>Designed for Focus</h2>
-        <p>Beyond security, the app is built to feel calm and intuitive:</p>
-        <ul>
-            <li>Clean, distraction-free interface.</li>
-            <li>Smooth animations inspired by modern OS design.</li>
-            <li>Works seamlessly across devices.</li>
-            <li>Fast and responsive, even with large notes.</li>
-        </ul>
-        <p>The goal is simple: **think clearly, write freely, and trust your data is safe.**</p>
 
         <div class="callout-warning">
-            <h3>Important Note About Security</h3>
-            <p>Because of how encryption works:</p>
-            <ul>
-                <li>If you forget your password and have no recovery option, **your notes cannot be restored**.</li>
-                <li>This is intentional — it’s the trade-off for true privacy.</li>
-            </ul>
-            <p>We recommend keeping your password safe and enabling recovery options when available.</p>
+            <h3>A Note About Security</h3>
+            <p>Notoz uses the protections described above, but no online service can promise that every risk is eliminated. The security monitor is a convenience and awareness feature, not a guarantee against account compromise.</p>
         </div>
 
-        <h2>Android App (Median.co)</h2>
-        <p>
-            On Android, this app is wrapped using <strong>Median.co</strong> (Median). The encryption and privacy model stays the same: your notes remain encrypted and decrypted locally on your device.
-        </p>
+        <h2>Independent by Design</h2>
+        <p>Notoz is maintained by one independent developer, not a company or dedicated support team. Support response times may therefore be limited.</p>
 
-        <div class="callout-core">
-            <h3>Current App Status</h3>
-            <ul>
-                <li><strong>End-to-end encryption</strong> protects your notes.</li>
-                <li>This app follows a <strong>zero-knowledge</strong> approach: the server never sees your readable content.</li>
-                <li>Images and attachments are handled securely through the app’s media flow.</li>
-            </ul>
-        </div>
-
-        <h2 class="philosophy">
-            Our Philosophy
-            <p style="font-size: 20px; font-weight: 500; color: var(--text-primary); margin-top: 10px;">
-                Privacy is not a feature. It’s a foundation.
-            </p>
-            <p style="font-size: 17px; font-weight: 400; color: var(--text-secondary); margin-top: 20px;">
-                This app is built with the idea that your data belongs to you — and only you.
-            </p>
-        </h2>
+        <p class="philosophy">Your notes should belong to you.</p>
 
         <div class="footer">
-            Copyright © 2026 Notoz Notes App. All rights reserved.
+            Published by webg. Contact: [Will Update]
         </div>
     </div>
 

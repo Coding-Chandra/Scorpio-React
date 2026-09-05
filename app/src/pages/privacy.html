@@ -199,111 +199,55 @@
 </head>
 <body>
     <div class="container">
-        <span class="last-updated">Last Updated: 12 December 2025 </span>
-        
+        <span class="last-updated">Last Updated: Friday 4, September 2026</span>
+
         <h1>Privacy Policy</h1>
-        <p class="intro-text">
-            This Privacy Policy explains how we handle your information when you use our notes application (“the App”).
-            We designed our system so that your private notes stay private to you, and we cannot access them.
-        </p>
-        <p>If you do not agree with this policy, please do not use the App.</p>
+        <p class="intro-text">This policy explains how webg, an independent solo developer, handles information for Notoz. It is a draft starting point and should be reviewed by a lawyer before publication, because legal requirements vary by jurisdiction.</p>
 
-        <h2>1. Information We Collect</h2>
-        <p>We intentionally collect as little information as possible.</p>
-        
-        <div class="callout">
-            <h3>We Collect:</h3>
-            <ul>
-                <li><strong>Email address</strong> (for login, account creation, and password resets)</li>
-                <li><strong>Display name</strong> (optional)</li>
-                <li><strong>Encrypted note data</strong> (we cannot read it)</li>
-            </ul>
-
-            <h3 style="color: var(--text-secondary);">We Do Not Collect:</h3>
-            <ul style="color: var(--text-secondary);">
-                <li>Plain text notes</li>
-                <li>Your password</li>
-                <li>Your Master Encryption Key</li>
-                <li>Any content you write inside the app</li>
-            </ul>
-        </div>
-
-        <h2>2. End-to-End Encryption</h2>
-        <p>Your notes are encrypted locally on your device before being sent to our servers.</p>
-        <p>This means:</p>
+        <h2>1. Information Stored</h2>
+        <p>Notoz stores the information needed to provide the app:</p>
         <ul>
-            <li>We cannot read your notes.</li>
-            <li>We cannot decrypt your notes.</li>
-            <li>We cannot restore your notes if you lose your password.</li>
-            <li>Your Master Key stays on your device.</li>
+            <li>Your account email address.</li>
+            <li>Your encrypted note content.</li>
+            <li>Your encrypted personal master key and the related password-derived key data, including its per-user random salt.</li>
+            <li>Metadata associated with notes, such as timestamps.</li>
         </ul>
-        <p>Even if someone accessed the database, your data would appear as unreadable encrypted text.</p>
+        <p>Notoz does not store readable note content or your password. The app also sanitizes content pasted or synced into the editor before rendering it.</p>
 
-        <h2>3. How Your Data Is Stored</h2>
-        <p><strong>We store:</strong></p>
+        <h2>2. Encryption</h2>
+        <p>Notes are encrypted in your browser with AES-256-GCM before they are sent to the server. Your master key is encrypted with a key derived from your password using PBKDF2-SHA256 with 600,000 iterations and a per-user random salt.</p>
+        <p>After login, the master key is decrypted client-side and held as a non-extractable browser CryptoKey through the Web Crypto API for the session. The server and database operator cannot decrypt your notes. Losing your password means losing access to your encrypted notes because there is no server-side password reset that can recover them.</p>
+
+        <h2>3. How Information Is Used</h2>
+        <p>Stored information is used to authenticate your account, sync encrypted notes, maintain note metadata, and provide Notoz’s app functions. I do not sell user data and Notoz does not use advertising.</p>
+
+        <h2>4. Service Providers</h2>
         <ul>
-            <li>Encrypted note content</li>
-            <li>Encrypted Master Key (locked with your password-derived key)</li>
-            <li>Basic account information (email, display name)</li>
+            <li><strong>Supabase:</strong> provides PostgreSQL database and authentication services.</li>
+            <li><strong>Netlify:</strong> hosts the frontend.</li>
         </ul>
-        <p><strong>We do NOT store:</strong></p>
-        <ul>
-            <li>Plaintext note content</li>
-            <li>Decryption keys</li>
-            <li>Your password</li>
-        </ul>
-        <p>Your decrypted Master Key exists only in your browser storage (LocalStorage) while you are logged in.</p>
+        <p>Supabase stores the encrypted note data and account information described above. Netlify hosts the app frontend. The supplied app facts do not specify additional providers or the providers’ retention and regional-processing details.</p>
 
-        <h2>4. How We Use Your Data</h2>
-        <p>We use your information only to provide the service, such as:</p>
-        <ul>
-            <li>Authenticating your account</li>
-            <li>Syncing encrypted notes</li>
-            <li>Basic app features</li>
-        </ul>
-        <p>We do not sell, share, or analyze your notes.</p>
+        <h2>5. Retention and Deletion</h2>
+        <p>The app supports user-initiated account deletion. Deletion requires password re-confirmation and submits a request that removes the account and its encrypted notes.</p>
+        <p><strong>Retention period:</strong>Currently the only way to backup your data is via exporting it in profile section.</p>
 
-        <div class="callout callout-warning">
-            <h3>5. Loss of Access</h3>
-            <p style="color: var(--text-primary);">Because of our encryption design:</p>
-            <ul style="color: var(--text-primary);">
-                <li>If you forget your password, <strong>we cannot recover your notes.</strong></li>
-                <li>If you delete your browser storage, we cannot restore your key.</li>
-                <li>If you delete your account, your encrypted data may become permanently inaccessible.</li>
-            </ul>
-            <p style="color: var(--text-primary);">You are solely responsible for maintaining access to your password and device.</p>
-        </div>
+        <h2>6. Security Monitor and Logout</h2>
+        <p>Notoz includes a client-side security monitor that may warn you about suspicious activity in your own browser session, such as the developer console opening unexpectedly, and may offer a one-tap logout. This is a convenience and awareness feature, not a guarantee against account compromise. Logging out clears the locally held session key from your device.</p>
 
-        <h2>6. Third-Party Services</h2>
-        <p>We use trusted third-party providers such as:</p>
-        <ul>
-            <li><strong>Supabase</strong> (for authentication & encrypted data storage)</li>
-        </ul>
-        <p>This provider may process your email address and encrypted notes on our behalf. They cannot access your decrypted notes.</p>
-        <ul>
-            <li><strong>Netlify</strong> (for hosting our site) </li>
-        </ul>
-        <p>They doesn't have access to our Database, They got our app files</p>
-        <h2>7. Security</h2>
-        <p>We take reasonable measures to protect your data, but:</p>
-        <ul>
-            <li>No online service is completely immune from risks.</li>
-            <li>You use the App at your own risk.</li>
-            <li>We cannot guarantee absolute security.</li>
-        </ul>
+        <h2>7. Regional Privacy Laws</h2>
+        <p>Users may be located anywhere, including the European Union, the United Kingdom, and California. GDPR, UK GDPR, CCPA, or similar obligations may apply depending on the circumstances. This draft does not make a compliance determination and needs review by a lawyer familiar with the developer’s jurisdiction and the users’ locations.</p>
+        <p><strong>Developer jurisdiction:</strong> [INDIA].</p>
 
-        <h2>8. Children</h2>
-        <p>This app is not intended for users under the age of 13.</p>
+        <h2>8. Changes</h2>
+        <p>I may update this policy. The effective date above should be updated when changes are published.</p>
 
-        <h2>9. Changes to This Policy</h2>
-        <p>We may update this Privacy Policy at any time. Continued use of the app means you accept the updated policy.</p>
-
-        <h2>10. Contact</h2>
-        <p>If you have questions, please contact us at:</p>
-        <p><a href="mailto:webgdev25@gmail.com">Email</a></p>
+        <h2>9. Contact</h2>
+        <p>For privacy questions or a deletion request, contact:</p>
+        <p><a href="mailto:">No Mail as of now</a></p>
 
         <div class="footer">
-            Copyright © 2026 Notoz Notes App. All rights reserved.
+            Published by webg.
         </div>
     </div>
 

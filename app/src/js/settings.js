@@ -328,32 +328,144 @@ document.addEventListener('click', (e) => {
 // --- Actions ---
 window.showSignOutModal = () => {
     openModal("Sign Out?", "End your current session?", "Sign Out", "var(--accent)", async () => {
-        const { error } = await supabase.auth.signOut();
-        
-        if (error) {
-            console.error('Logout failed:', error);
-            alert('Logout failed. Check console for details.');
-            return;
-        }
+        await performFullSignOut();
         window.location.href = '../index.html';
     }, SettingsDialog.lastSourceEl);
 };
 
-// Triple Step Delete with animations
+// --- Local crypto helpers (mirrors profile.js) so we can offer a backup mid-deletion ---
+function _bufFromB64Local(b64) {
+    const bin = atob(b64 || '');
+    return new Uint8Array([...bin].map(c => c.charCodeAt(0)));
+}
+
+function getLocalMasterKeyBytes() {
+    const stored = localStorage.getItem('notes_master_key');
+    return stored ? _bufFromB64Local(stored) : null;
+}
+
+async function decryptWithMasterKeyLocal(stored) {
+    if (!stored) return '';
+    if (!stored.startsWith('enc:')) return stored;
+    const mk = getLocalMasterKeyBytes();
+    if (!mk) return stored;
+    const [, ivB64, ctB64] = stored.split(':');
+    const iv = _bufFromB64Local(ivB64);
+    const ct = _bufFromB64Local(ctB64);
+    const key = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['decrypt']);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return new TextDecoder().decode(decrypted);
+}
+
+// Downloads a JSON backup of all notes. Returns the note count. Throws on failure.
+async function exportDataBeforeDeletion() {
+    const { data: notes, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('user_id', currentUser.id);
+    if (error) throw error;
+
+    const decryptedNotes = [];
+    for (const note of notes || []) {
+        decryptedNotes.push({
+            title: await decryptWithMasterKeyLocal(note.title),
+            content: await decryptWithMasterKeyLocal(note.content),
+            paper_style: note.paper_style || 'blank',
+            folder_id: note.folder_id || null,
+            pinned: note.pinned || false,
+            created_at: note.created_at,
+            updated_at: note.updated_at
+        });
+    }
+
+    const exportData = {
+        exportDate: new Date().toISOString(),
+        userEmail: currentUser.email,
+        totalNotes: decryptedNotes.length,
+        notes: decryptedNotes
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `notes-backup-before-deletion-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    return decryptedNotes.length;
+}
+
+// Five Step Delete with animations: confirm -> warning -> export -> password -> type-to-confirm
 window.showDeleteModal = () => {
-    openModal("Step 1 of 3", "Are you sure you want to delete your account?", "Continue", "var(--text-dim)", async () => {
-        openModal("Step 2 of 3", "WARNING: All encrypted notes will be lost forever. Proceed?", "I Understand", "var(--accent1)", async () => {
-            showPasswordGate();
-        }, SettingsDialog.lastSourceEl);
+    openModal("Step 1 of 5", "Are you sure you want to delete your account?", "Continue", "var(--text-dim)", async () => {
+        showDeleteStep2();
     }, SettingsDialog.lastSourceEl);
 };
 
+function showDeleteStep2() {
+    document.getElementById('modal-title').innerText = "Step 2 of 5";
+    document.getElementById('modal-message').innerText = "WARNING: All encrypted notes will be lost forever. Proceed?";
+    inputContainer.innerHTML = '';
+    confirmBtn.innerText = "I Understand";
+    confirmBtn.style.background = "var(--accent1)";
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = () => showDeleteStep3();
+}
+
+function showDeleteStep3() {
+    document.getElementById('modal-title').innerText = "Step 3 of 5";
+    document.getElementById('modal-message').innerText = "Want a backup first? Export your notes before your account is deleted.";
+    inputContainer.innerHTML = `
+        <p id="delete-export-status" style="font-size: 13px; color: var(--text-dim); margin: 0 0 14px 0; min-height: 16px;"></p>
+        <div style="text-align:center;"><span id="skip-export-link" style="font-size:13px; color:var(--text-dim); text-decoration:underline; cursor:pointer;">Skip, I don't need a backup</span></div>
+    `;
+    confirmBtn.innerText = "Export Data";
+    confirmBtn.style.background = "var(--accent)";
+    confirmBtn.disabled = false;
+
+    confirmBtn.onclick = async () => {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Exporting...";
+        const statusEl = document.getElementById('delete-export-status');
+
+        try {
+            const count = await exportDataBeforeDeletion();
+            if (statusEl) {
+                statusEl.textContent = `✓ Exported ${count} ${count === 1 ? 'note' : 'notes'}`;
+                statusEl.style.color = 'var(--accent)';
+            }
+            showNotification('Backup saved', `Exported ${count} ${count === 1 ? 'note' : 'notes'} before deletion.`, 'success');
+            confirmBtn.innerText = "Continue";
+            confirmBtn.disabled = false;
+            confirmBtn.onclick = () => showPasswordGate();
+        } catch (err) {
+            console.error('[Delete] Export failed:', err);
+            if (statusEl) {
+                statusEl.textContent = '✕ Export failed — you can still continue';
+                statusEl.style.color = 'var(--accent1)';
+            }
+            showNotification('Export failed', err.message || 'Could not export notes.', 'error');
+            confirmBtn.innerText = "Continue Anyway";
+            confirmBtn.disabled = false;
+            confirmBtn.onclick = () => showPasswordGate();
+        }
+    };
+
+    setTimeout(() => {
+        const skipLink = document.getElementById('skip-export-link');
+        if (skipLink) skipLink.addEventListener('click', () => showPasswordGate());
+    }, 0);
+}
+
 const showPasswordGate = () => {
-    // Update UI directly
-    document.getElementById('modal-title').innerText = "Final Step";
+    document.getElementById('modal-title').innerText = "Step 4 of 5";
     document.getElementById('modal-message').innerText = "Enter your password to confirm deletion.";
     inputContainer.innerHTML = `<input type="password" id="final-pass" placeholder="Password" style="width: 85%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid var(--sep); background: rgba(128,128,128,0.1); color: var(--text-main); outline: none; animation: inputFocus 0.3s ease-out;">`;
-    confirmBtn.innerText = "Delete Permanently";
+    confirmBtn.innerText = "Verify";
     confirmBtn.style.background = "var(--accent1)";
     confirmBtn.disabled = false;
 
@@ -365,42 +477,72 @@ const showPasswordGate = () => {
 
     confirmBtn.onclick = async () => {
         const pass = document.getElementById('final-pass').value;
-        if(!pass) return alert("Password required");
-        
+        if (!pass) {
+            showNotification('Password required', 'Enter your password to continue.', 'error');
+            return;
+        }
+
         confirmBtn.disabled = true;
         confirmBtn.innerText = "Verifying...";
         const { error: authError } = await supabase.auth.signInWithPassword({ email: currentUser.email, password: pass });
 
         if (authError) {
             confirmBtn.disabled = false;
-            confirmBtn.innerText = "Delete Permanently";
-            alert("Incorrect password. Deletion cancelled.");
+            confirmBtn.innerText = "Verify";
+            showNotification('Incorrect password', 'Deletion cancelled.', 'error');
             closeCustomModal();
             return;
         }
 
+        showDeleteStep5();
+    };
+};
+
+function showDeleteStep5() {
+    document.getElementById('modal-title').innerText = "Step 5 of 5";
+    document.getElementById('modal-message').innerText = 'This is permanent and cannot be undone. Type "DELETE" below to confirm.';
+    inputContainer.innerHTML = `<input type="text" id="final-delete-confirm" placeholder="Type DELETE" style="width: 85%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid var(--sep); background: rgba(128,128,128,0.1); color: var(--text-main); outline: none; animation: inputFocus 0.3s ease-out;">`;
+    confirmBtn.innerText = "Delete Permanently";
+    confirmBtn.style.background = "var(--accent1)";
+    confirmBtn.disabled = false;
+
+    setTimeout(() => {
+        const input = document.getElementById('final-delete-confirm');
+        if (input) input.focus();
+    }, 100);
+
+    confirmBtn.onclick = async () => {
+        const typed = (document.getElementById('final-delete-confirm').value || '').trim().toUpperCase();
+        if (typed !== 'DELETE') {
+            showNotification('Confirmation required', 'Type DELETE exactly to proceed.', 'error');
+            return;
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = "Deleting...";
+
         try {
             const { error } = await supabase.from('delete_requests').insert([{ id: currentUser.id }]);
             if (error) throw error;
-            
+
             confirmBtn.innerText = "Deleted!";
             confirmBtn.style.background = "var(--accent)";
             confirmBtn.disabled = true;
-            
+            showNotification('Account deleted', 'Your account has been scheduled for deletion.', 'success');
+
             // Success animation then cleanup
             setTimeout(async () => {
-                await supabase.auth.signOut();
-                localStorage.clear();
+                await performFullSignOut();
                 window.location.href = './index.html';
             }, 1500);
         } catch (err) {
             confirmBtn.disabled = false;
             confirmBtn.innerText = "Delete Permanently";
-            alert(err.message);
+            showNotification('Deletion failed', err.message || 'Something went wrong.', 'error');
             closeCustomModal();
         }
     };
-};
+}
 
 function shouldShowNotifications() {
     return localStorage.getItem('app_notifications_disabled') !== 'true';
@@ -480,7 +622,7 @@ function showNotification(title, message, type = 'info') {
     };
 
     // Store timeout reference on the element so MAX_NOTIFICATIONS check can clear it
-    notification._timeout = setTimeout(dismiss, 400000); // adjusted timeout to 4 seconds
+    notification._timeout = setTimeout(dismiss, 1600); // adjusted timeout to 1.6 seconds
 
     // Tap/click anywhere on the toast dismisses it (skipped if the tap ended a drag)
     notification.addEventListener('click', () => {
@@ -565,6 +707,25 @@ function showNotification(title, message, type = 'info') {
 
     notification.addEventListener('pointerup', endDrag);
     notification.addEventListener('pointercancel', endDrag);
+}
+
+// Shared, complete sign-out: clears the IndexedDB session key + in-memory
+// caches (same cleanup app.js's handleLogout does) before ending the
+// Supabase session. Used by both the Sign Out button and account deletion.
+async function performFullSignOut() {
+    try {
+        if (window.clearSessionMasterKey) {
+            await window.clearSessionMasterKey();
+        }
+    } catch (err) {
+        console.warn('Could not clear session master key:', err);
+    }
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        console.error('Logout failed:', error);
+        showNotification('Logout failed', 'Check console for details.', 'error');
+        throw error;
+    }
 }
 
 async function load() {
@@ -767,6 +928,7 @@ window.addEventListener("message", (event) => {
     switch (event.data.type) {
         case "SET_UI_THEME": {
             applyUI(event.data.theme);
+            applyWallpaperUI();
             const frame = document.getElementById("portal-frame");
             if (frame?.contentWindow) {
                 frame.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, "*");

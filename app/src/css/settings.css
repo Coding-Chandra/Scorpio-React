@@ -1009,18 +1009,51 @@ html[data-ui="md3e"] .notifToggle[data-checked="true"] .notifThumb {
   background: var(--toggle-thumb);
 }
 
-.row.clickable {
+.row.clickable,
+.notifToggle,
+.back-btn,
+.modal-btn,
+button,
+a,
+input,
+textarea,
+select,
+summary,
+[role="button"],
+[onclick] {
   -webkit-tap-highlight-color: transparent; /* Removes the blue highlight on mobile */
-  outline: none;                            /* Removes the blue focus border */
+  outline: none !important;                 /* Removes the blue focus border */
 }
 
-.row.clickable:active {
+.row.clickable:active,
+.notifToggle:active,
+.back-btn:active,
+.modal-btn:active {
   background-color: transparent;            /* Replaces the blue flash with nothing */
 }
 
 /* Optional: remove blue outline on keyboard focus */
-.row.clickable:focus-visible {
-  outline: none; 
+.row.clickable:focus-visible,
+.notifToggle:focus-visible,
+.back-btn:focus-visible,
+.modal-btn:focus-visible,
+button:focus,
+button:focus-visible,
+a:focus,
+a:focus-visible,
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible,
+summary:focus,
+summary:focus-visible,
+[role="button"]:focus,
+[role="button"]:focus-visible,
+[onclick]:focus,
+[onclick]:focus-visible {
+  outline: none !important;
 }
 
 /* Settings-specific animation overrides */

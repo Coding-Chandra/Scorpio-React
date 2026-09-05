@@ -15,6 +15,30 @@ const FOLDERS_TABLE = 'folders';
 
 let CURRENT_USER_ID = null;
 
+// ============================================================================
+// NOTE CONTENT SANITIZATION
+// Every place decrypted/synced note HTML is written into the DOM must go
+// through this first. Requires DOMPurify to be loaded on the page BEFORE
+// this script (e.g. <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>).
+// ============================================================================
+const NOTE_HTML_ALLOWED_TAGS = ['div', 'br', 'p', 'h1', 'h2', 'h3', 'span', 'b', 'strong', 'i', 'em', 'u', 'strike', 's', 'img'];
+const NOTE_HTML_ALLOWED_ATTR = ['style', 'src', 'class', 'contenteditable'];
+
+function sanitizeNoteHtml(html) {
+    if (!html) return '';
+    if (typeof DOMPurify === 'undefined') {
+        // Fail safe: if the sanitizer didn't load, strip ALL markup rather
+        // than risk rendering unsanitized HTML. Degraded formatting is far
+        // better than an XSS hole.
+        console.error('[Security] DOMPurify not loaded — rendering note content as plain text.');
+        return Utils.escapeHtml(Utils.stripHtml(html));
+    }
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: NOTE_HTML_ALLOWED_TAGS,
+        ALLOWED_ATTR: NOTE_HTML_ALLOWED_ATTR
+    });
+}
+
 // Supabase client (safe init)
 const supabaseClient = (() => {
     if (window.supabase) {
@@ -197,20 +221,64 @@ async function decryptMasterKey(encObj, password) {
     return new Uint8Array(decrypted);
 }
 
-function setLocalMasterKeyBytes(bytes) {
-    localStorage.setItem('notes_master_key', _b64Encode(bytes));
+// ---------------------------------------------------------
+// 🔒 Session key storage — IndexedDB, non-extractable CryptoKey
+// (mirrors login.js — reads the key that login.js already imported)
+// ---------------------------------------------------------
+const KEY_DB_NAME = 'notoz_session';
+const KEY_STORE = 'keys';
+
+function _openKeyDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(KEY_DB_NAME, 1);
+        req.onupgradeneeded = () => {
+            req.result.createObjectStore(KEY_STORE);
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
 }
 
-function getLocalMasterKeyBytes() {
-    const b64 = localStorage.getItem('notes_master_key');
-    return b64 ? _b64Decode(b64) : null;
+async function getSessionMasterKey() {
+    const db = await _openKeyDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(KEY_STORE, 'readonly');
+        const req = tx.objectStore(KEY_STORE).get('masterKey');
+        req.onsuccess = () => resolve(req.result || null); // CryptoKey object or null
+        req.onerror = () => reject(req.error);
+    });
 }
+
+async function clearSessionMasterKey() {
+    const db = await _openKeyDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(KEY_STORE, 'readwrite');
+        tx.objectStore(KEY_STORE).delete('masterKey');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// Full sign-out: clears decrypt queue/cache, in-memory key cache, the
+// IndexedDB-stored master key, AND ends the Supabase session. This is the
+// one function anything on this page (including security-monitor.js)
+// should call for a real, complete logout — mirrors settings.js's
+// performFullSignOut() so the same global name works on every page.
+async function performFullSignOut() {
+    if (typeof DecryptQueue !== 'undefined') DecryptQueue.abort();
+    if (typeof _decryptCache !== 'undefined') _decryptCache.clear();
+    if (typeof clearCryptoKeyCache === 'function') clearCryptoKeyCache();
+    await clearSessionMasterKey();
+
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+}
+window.performFullSignOut = performFullSignOut;
 
 async function encryptWithMasterKey(plaintext) {
     if (!plaintext) return '';
-    const mk = getLocalMasterKeyBytes();
-    if (!mk) throw new Error('Master key not available locally.');
-    const key = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['encrypt']);
+    const key = await getSessionMasterKey();
+    if (!key) throw new Error('Master key not available locally.');
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
     return `enc:${_b64Encode(iv)}:${_b64Encode(ct)}`;
@@ -219,12 +287,11 @@ async function encryptWithMasterKey(plaintext) {
 async function decryptWithMasterKey(stored) {
     if (!stored) return '';
     if (!stored.startsWith('enc:')) return stored;
-    const mk = getLocalMasterKeyBytes();
-    if (!mk) return stored;
+    const key = await getSessionMasterKey();
+    if (!key) return stored;
     const [, ivB64, ctB64] = stored.split(':');
     const iv = _b64Decode(ivB64);
     const ct = _b64Decode(ctB64);
-    const key = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['decrypt']);
     const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
     return new TextDecoder().decode(dec);
 }
@@ -243,17 +310,17 @@ let _cachedEncryptKey = null;
  */
 async function _getDecryptKey() {
     if (_cachedDecryptKey) return _cachedDecryptKey;
-    const mk = getLocalMasterKeyBytes();
-    if (!mk) return null;
-    _cachedDecryptKey = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['decrypt']);
+    const key = await getSessionMasterKey();
+    if (!key) return null;
+    _cachedDecryptKey = key;
     return _cachedDecryptKey;
 }
 
 async function _getEncryptKey() {
     if (_cachedEncryptKey) return _cachedEncryptKey;
-    const mk = getLocalMasterKeyBytes();
-    if (!mk) return null;
-    _cachedEncryptKey = await crypto.subtle.importKey('raw', mk, 'AES-GCM', false, ['encrypt']);
+    const key = await getSessionMasterKey();
+    if (!key) return null;
+    _cachedEncryptKey = key;
     return _cachedEncryptKey;
 }
 
@@ -446,7 +513,7 @@ const DecryptQueue = (() => {
                     const contentEl = document.getElementById('noteContentInput');
                     const titleEl   = document.getElementById('noteTitleInput');
                     if (contentEl && document.activeElement !== contentEl) {
-                        contentEl.innerHTML = content;
+                        contentEl.innerHTML = sanitizeNoteHtml(content);
                     }
                     if (titleEl && document.activeElement !== titleEl) {
                         titleEl.value = title;
@@ -942,13 +1009,9 @@ const app = {
     },
 
     async handleLogout() {
-        // Abort pending decrypt operations and clear session caches
-        DecryptQueue.abort();
-        _decryptCache.clear();
-        clearCryptoKeyCache();
-
-        const { error } = await supabaseClient.auth.signOut();
-        if (error) {
+        try {
+            await performFullSignOut();
+        } catch (error) {
             console.error('Logout failed:', error);
             alert('Logout failed. Check console for details.');
             return;
@@ -962,6 +1025,24 @@ const app = {
                 e.target.classList.toggle('checked');
                 this.updateCurrentNote();
             }
+        });
+
+        // Intercept ALL paste paths (native Ctrl+V, right-click paste) so
+        // clipboard HTML is sanitized before it ever enters the editor —
+        // never trust content that came from outside the app.
+        document.getElementById('noteContentInput')?.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const clipboard = e.clipboardData || window.clipboardData;
+            const html = clipboard?.getData('text/html');
+            const text = clipboard?.getData('text/plain') || '';
+
+            if (html) {
+                const clean = sanitizeNoteHtml(html);
+                document.execCommand('insertHTML', false, clean);
+            } else {
+                document.execCommand('insertText', false, text);
+            }
+            this.updateCurrentNote();
         });
 
         document.addEventListener('click', (e) => {
@@ -1920,13 +2001,13 @@ app.renderEditor = function () {
             decryptWithMasterKey(note.content).then(decrypted => {
                 note.content = decrypted;
                 note._decrypted = true;
-                contentInput.innerHTML = decrypted;
+                contentInput.innerHTML = sanitizeNoteHtml(decrypted);
                 this.updateNoteItemInList(note.id);
             }).catch(e => {
                 console.error('[Decrypt] On-demand decryption failed:', e);
             });
         } else {
-            contentInput.innerHTML = note.content || '';
+            contentInput.innerHTML = sanitizeNoteHtml(note.content || '');
         }
     }
 
@@ -2413,7 +2494,7 @@ app.performUndo = function () {
 
     this.ui.undoRedoManager.isApplyingHistory = true;
     if (titleInput) titleInput.value = previousState.title;
-    if (contentInput) contentInput.innerHTML = previousState.content;
+    if (contentInput) contentInput.innerHTML = sanitizeNoteHtml(previousState.content);
     this.ui.undoRedoManager.isApplyingHistory = false;
 
     this.updateCurrentNote();
@@ -2429,7 +2510,7 @@ app.performRedo = function () {
 
     this.ui.undoRedoManager.isApplyingHistory = true;
     if (titleInput) titleInput.value = nextState.title;
-    if (contentInput) contentInput.innerHTML = nextState.content;
+    if (contentInput) contentInput.innerHTML = sanitizeNoteHtml(nextState.content);
     this.ui.undoRedoManager.isApplyingHistory = false;
 
     this.updateCurrentNote();
@@ -2584,9 +2665,15 @@ app.positionMenuByDirection = function (menu, x, y) {
 };
 
 app.openNoteActionsMenu = function (ev, noteId) {
-    this.activeNoteId = noteId;
     const menu = document.getElementById('noteActionsMenu');
+    if (menu?.classList.contains('open') && menu.dataset.parentId === String(noteId)) {
+        this.closeDropdown('noteActionsMenu');
+        return;
+    }
+
+    this.activeNoteId = noteId;
     if (!menu) return;
+    menu.dataset.parentId = String(noteId);
 
     const note = this.getActiveNote();
     const pinBtn = menu.querySelector('#pinBtn');
@@ -2613,9 +2700,15 @@ app.requestDeleteActiveNoteFromMenu = function () {
 
 app.openFolderActionsMenu = function (ev, folderId) {
     if (folderId === 'all') return;
-    this.pendingFolderId = folderId;
     const menu = document.getElementById('folderActionsMenu');
+    if (menu?.classList.contains('open') && menu.dataset.parentId === String(folderId)) {
+        this.closeDropdown('folderActionsMenu');
+        return;
+    }
+
+    this.pendingFolderId = folderId;
     if (!menu) return;
+    menu.dataset.parentId = String(folderId);
 
     const x = ev.clientX || (ev.touches?.[0]?.clientX) || 20;
     const y = ev.clientY || (ev.touches?.[0]?.clientY) || 20;
@@ -3575,7 +3668,8 @@ const BackHandler = {
             'textStyleDropdown',
             'noteActionsMenu',
             'folderActionsMenu',
-            'accountDropdown'
+            'accountDropdown',
+            'viewOptionsMenu'
         ];
         for (const menuId of openMenus) {
             const el = document.getElementById(menuId);
@@ -3848,8 +3942,8 @@ app.saveSingleNoteToIndexedDB = async function (note) {
 app.decryptVisibleNotesOnly = async function () {
 
     // Wait for master key to be available before queuing
-    const mk = getLocalMasterKeyBytes();
-    if (!mk) {
+    const key = await getSessionMasterKey();
+    if (!key) {
         console.warn('[Decrypt] Master key not ready, retrying in 300ms');
         setTimeout(() => this.decryptVisibleNotesOnly(), 300);
         return;

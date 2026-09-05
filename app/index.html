@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, interactive-widget=resizes-content">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-title" content="Notoz">
+  <meta name="theme-color" content="#000000">
   <title>Notoz</title>
-  <script>
+    <script>
     (function () {
       const root = document.documentElement;
       const ui = localStorage.getItem("ui-theme") || "ios";
@@ -23,13 +27,18 @@
         'n1': './src/assets/wallpaper/n/nos1.jpg',
         'n2': './src/assets/wallpaper/n/nos2.jpg',
         'n3': './src/assets/wallpaper/n/nos3.jpg',
-        'n4': './src/assets/wallpaper/n/nos4.jpg'
+        'n4': './src/assets/wallpaper/n/nos4.jpg',
       };
+
+      const wallpaperPath = wallpaperMap[wallpaper] || null;
+      const isRemoteWallpaper = wallpaper.startsWith('http://') || wallpaper.startsWith('https://');
+      const wallpaperAbs = wallpaperPath ? new URL(wallpaperPath, document.baseURI).href : null;
+
       const wallpaperValue = wallpaperDisabled
         ? 'none'
-        : (wallpaperMap[wallpaper]
-            ? `url('${wallpaperMap[wallpaper]}')`
-            : (wallpaper.startsWith('http://') || wallpaper.startsWith('https://')
+        : (wallpaperAbs
+            ? `url('${wallpaperAbs}')`
+            : (isRemoteWallpaper
                 ? `url('${wallpaper}')`
                 : 'none'));
       root.style.setProperty('--wallpaper-image', wallpaperValue);
@@ -43,40 +52,8 @@
       };
 
       const storedSeed = localStorage.getItem('md3e-seed') || '#6750A4';
-      const wallpaperSource = wallpaperMap[wallpaper] || (wallpaper.startsWith('http://') || wallpaper.startsWith('https://') ? wallpaper : null);
-      const shouldUseWallpaperSeed = ui === 'md3e' && wallpaperValue !== 'none' && !wallpaperDisabled && wallpaperSource;
-
+      const wallpaperSource = wallpaperAbs || (isRemoteWallpaper ? wallpaper : null);
       setMdSeed(storedSeed);
-
-      if (shouldUseWallpaperSeed) {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = wallpaperSource;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = 16;
-          canvas.height = 16;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-          let r = 0, g = 0, b = 0, count = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            r += data[i];
-            g += data[i + 1];
-            b += data[i + 2];
-            count += 1;
-          }
-          if (count) {
-            r = Math.round(r / count);
-            g = Math.round(g / count);
-            b = Math.round(b / count);
-            root.style.setProperty('--md-seed', `${r},${g},${b}`);
-          }
-        };
-        img.onerror = () => {
-          setMdSeed(storedSeed);
-        };
-      }
     })();
   </script>
   <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
@@ -86,6 +63,7 @@
   <link rel="stylesheet" href="./src/css/app.css">
   <link rel="stylesheet" href="./src/css/md3e-app.css" loading="lazy">
   <link rel="stylesheet" href="./src/css/nthng.css" loading="lazy">
+  <link rel="stylesheet" href="./src/css/grid-view.css" loading="lazy">
   <link rel="manifest" href="../manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -159,7 +137,6 @@
   </div>
 
   <!-- Hidden SVG Filter Definition -->
-<!-- Sized for 420×280px. If your element is a different size, update the four width/height attributes below to match. -->
 <svg width="0" height="0" style="position: absolute" aria-hidden="true">
   <!-- Compact 1-->
    <filter id="lg-filter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
@@ -402,6 +379,10 @@
       <button class="btn" onclick="app.requestDeletePendingFolder()">Delete Folder</button>
     </div>
   </div>
+  
+  <div id="viewOptionsMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">
+    <div class="row" id="viewOptionsRow"></div>
+  </div>
 
   <div id="appDialogOverlay" class="dialog-overlay">
     <div class="dialog-panel">
@@ -418,7 +399,9 @@
   </script>
   <script src="./src/js/animation-utils.js"></script>
   <script src="./src/js/offline-sync.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="./src/js/app.js"></script>
+  <script src="./src/js/grid-view.js"></script>
   <script src="./src/js/avatars.js"></script>
   <script src="./src/js/md3e-enhance.js" defer loading="lazy"></script>
   <script>
@@ -493,14 +476,7 @@
           if (!hex) return;
           localStorage.setItem('md3e-seed', hex);
 
-          const wallpaperDisabled = localStorage.getItem('notozApp_wallpaper_disabled') === 'true';
-          const wallpaperId = localStorage.getItem('notozApp_wallpaper') || 'w1';
-          const wallpaperUrl = wallpaperToUrl(wallpaperId);
-          const useWallpaper = !wallpaperDisabled && wallpaperUrl && document.documentElement.getAttribute('data-ui') === 'md3e';
-
-          if (!useWallpaper) {
-            setMdSeed(hex);
-          }
+          setMdSeed(hex);
           break;
         }
         case "WALLPAPER_CHANGED": {
@@ -513,20 +489,17 @@
           document.documentElement.style.setProperty('--wallpaper-active', wallpaperValue !== 'none' ? '1' : '0');
 
           if (document.documentElement.getAttribute('data-ui') === 'md3e') {
-            const storedSeed = localStorage.getItem('md3e-seed') || '#6750A4';
-            const wallpaperUrl = wallpaperToUrl(wallpaper);
-            if (!wallpaperDisabled && wallpaperUrl) {
-              deriveSeedFromImage(wallpaperUrl, storedSeed);
-            } else {
-              setMdSeed(storedSeed);
-            }
+            setMdSeed(localStorage.getItem('md3e-seed') || '#6750A4');
           }
           break;
         }
       }
     });
   </script>
-
+  <script src="./src/js/app-notif.js"></script>
+  <script src="./src/js/security-monitor.js"
+        onerror="window.showNotification && window.showNotification('Security Monitor', 'Failed to load — protections are NOT active on this page.', 'error')">
+</script>
 </body>
 
 </html>

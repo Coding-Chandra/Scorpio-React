@@ -82,13 +82,62 @@ async function decryptMasterKey(encObj, password, salt, iterations) {
     return new Uint8Array(plain);
 }
 
-function setLocalMasterKeyBytes(bytes) {
-    localStorage.setItem("notes_master_key", _b64FromBuf(bytes));
+// ---------------------------------------------------------
+// 🔒 Session key storage — IndexedDB, non-extractable CryptoKey
+// (replaces the old localStorage-raw-bytes approach)
+// ---------------------------------------------------------
+const KEY_DB_NAME = 'notoz_session';
+const KEY_STORE = 'keys';
+
+function _openKeyDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(KEY_DB_NAME, 1);
+        req.onupgradeneeded = () => {
+            req.result.createObjectStore(KEY_STORE);
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
 }
 
-function getLocalMasterKeyBytes() {
-    const b64 = localStorage.getItem("notes_master_key");
-    return b64 ? _bufFromB64(b64) : null;
+// Takes the raw key bytes, imports them as a NON-EXTRACTABLE CryptoKey,
+// and stores that object (not the bytes) in IndexedDB.
+async function setSessionMasterKey(masterKeyBytes) {
+    const key = await crypto.subtle.importKey(
+        "raw",
+        masterKeyBytes,
+        "AES-GCM",
+        false, // extractable: false — the raw bytes can never be read back out
+        ["encrypt", "decrypt"]
+    );
+    const db = await _openKeyDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(KEY_STORE, "readwrite");
+        tx.objectStore(KEY_STORE).put(key, "masterKey");
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
+// Returns the CryptoKey object directly, ready to use for encrypt/decrypt.
+async function getSessionMasterKey() {
+    const db = await _openKeyDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(KEY_STORE, "readonly");
+        const req = tx.objectStore(KEY_STORE).get("masterKey");
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function clearSessionMasterKey() {
+    const db = await _openKeyDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(KEY_STORE, "readwrite");
+        tx.objectStore(KEY_STORE).delete("masterKey");
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+    });
 }
 
 function makeRandomKey() {
@@ -234,7 +283,7 @@ async function handleLogin(e) {
             const masterKeyBytes = await migrateUserCrypto(password);
             if (!masterKeyBytes) throw new Error("migration returned nothing");
 
-            setLocalMasterKeyBytes(masterKeyBytes);
+            await setSessionMasterKey(masterKeyBytes);
             handleAuthSuccess();
             return;
         } catch (e) {
@@ -264,7 +313,7 @@ async function handleLogin(e) {
         return;
     }
 
-    setLocalMasterKeyBytes(newMasterKey);
+    await setSessionMasterKey(newMasterKey);
     handleAuthSuccess();
 }
 

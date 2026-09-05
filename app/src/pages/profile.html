@@ -23,6 +23,16 @@
     <link rel="stylesheet" href="../css/animations.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="../css/avatars.css">
+    <!-- Import/Export format support -->
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script>
+        // pdf.js needs an explicit worker URL when loaded this way
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+        }
+    </script>
     </head>
 <body>
 <div class="container animate-fade-in">
@@ -131,7 +141,7 @@
         <h3 id="modal-title" style="margin: 0 0 8px 0; font-size: 20px;">Title</h3>
         <p id="modal-message" style="color: var(--text-dim); font-size: 15px; margin: 0 0 24px 0;">Message</p>
         <div id="modal-input-container"></div>
-        <div style="display: flex; flex-direction: row-reverse;">
+        <div style="display: flex; flex-direction: row-reverse; gap: 7px;">
             <button onclick="window.closeCustomModal()" class="modal-btn" style="opacity: 0.6;">Cancel</button>
             <button id="modal-confirm-btn" class="modal-btn">Confirm</button>
         </div>
@@ -312,6 +322,7 @@
 </style>
 
 <script src="../js/avatars.js"></script>
+<script src="../js/animation-utils.js"></script>
 <script type="module" src="../js/profile.js"></script>
 </body>
 </html>

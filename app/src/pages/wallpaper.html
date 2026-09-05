@@ -7,13 +7,32 @@
 <link rel="icon" type="image/png" href="../assets/icons/logo.png">
 <link rel="apple-touch-icon" href="../assets/icons/logo.png">
 <!-- Must run before CSS so data-ui / data-theme are set before any selector matches -->
-<script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notesApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed");if (hex) {const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}}})();</script>
+<script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notozApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed") || "#6750A4";const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}})();</script>
    
 <!-- Shared design tokens -->
 <link rel="stylesheet" href="../css/settings.css">
 <!-- Theme-specific tokens -->
 <link rel="stylesheet" href="../css/nthng.css">
 <link rel="stylesheet" href="../css/md3e-app.css">
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <!-- Compact 1-->
+   <filter id="lg-filter" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+    <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence"/>
+    <!-- Seeds: 14, 17,  -->
+    <feComponentTransfer in="turbulence" result="mapped">
+      <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+      <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+      <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+    </feComponentTransfer>
+    <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+    <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+      <fePointLight x="-200" y="-200" z="300" />
+    </feSpecularLighting>
+    <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+    <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+</svg>
 
 <style>
 /* =====================================================
@@ -132,6 +151,128 @@ html[data-ui="md3e"] .subtitle {
 }
 
 .badge strong { color: var(--text-main); }
+
+/* UI theme picker, matching the app dropdown treatment. */
+.ui-picker {
+  position: relative;
+}
+
+.ui-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--sep);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.ui-picker-trigger:active {
+  transform: scale(.98);
+}
+
+.ui-picker-trigger svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ui-picker-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 176px;
+  padding: 8px;
+  border: 1px solid rgba(0, 0, 0, .14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .08), 0 28px 60px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(2px) saturate(1.5) url(#lg-filter);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(.96);
+  transform-origin: top left;
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+[data-theme="dark"] .ui-picker-menu {
+  background: rgba(0, 0, 0, .86);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ui-picker-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.ui-picker-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ui-picker-option:hover,
+.ui-picker-option.active {
+  background: var(--bg-active);
+}
+
+.ui-picker-option .check {
+  opacity: 0;
+  color: var(--accent);
+}
+
+.ui-picker-option.active .check {
+  opacity: 1;
+}
+
+html[data-ui="nothing"] .ui-picker-menu {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(12px) saturate(1.5);
+  padding: 0px;
+  box-shadow: none;
+}
+
+html[data-ui="nothing"] .ui-picker-option {
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+html[data-ui="nothing"] .ui-picker-option:first-child {
+  border-radius: 16px 16px 0px 0px;
+}
+
+html[data-ui="nothing"] .ui-picker-option:last-child {
+  border-bottom: 0;
+  border-radius: 0px 0px 16px 16px;
+}
+
+html[data-ui="md3e"] .ui-picker-menu {
+  background: var(--md-surface-1);
+  border-color: var(--border-color);
+  backdrop-filter: blur(12px) saturate(1.5);
+}
 
 /* Nothing badge */
 html[data-ui="nothing"] .badge {
@@ -692,12 +833,22 @@ html[data-ui="nothing"] .wallpaper-card.selected::after {
 
   <div class="page-head">
     <div>
-      <h1 id="pageTitle">Wallpaper</h1>
-      <p class="subtitle" id="pageSubtitle">Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.</p>
+      <h1 id="pageTitle">Wallpaper & Colors</h1>
+      <p class="subtitle" id="pageSubtitle">Click to apply a UI<br>Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.</p>
     </div>
 
     <div class="state-row">
-      <span class="badge">UI: <strong id="current-ui-label">Loading…</strong></span>
+      <div class="ui-picker">
+        <button class="ui-picker-trigger" id="uiPickerTrigger" type="button" aria-haspopup="menu" aria-expanded="false">
+          <span>UI: <strong id="current-ui-label">Loading...</strong></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+        </button>
+        <div class="ui-picker-menu" id="uiPickerMenu" role="menu">
+          <button class="ui-picker-option" type="button" data-ui="ios" role="menuitem">iOS <span class="check">&#10003;</span></button>
+          <button class="ui-picker-option" type="button" data-ui="md3e" role="menuitem">MD3E <span class="check">&#10003;</span></button>
+          <button class="ui-picker-option" type="button" data-ui="nothing" role="menuitem">Nothing <span class="check">&#10003;</span></button>
+        </div>
+      </div>
 
       <div class="toggle-row"
            id="wallpaperToggleRow"
@@ -736,6 +887,8 @@ const $trow        = document.getElementById('wallpaperToggleRow');
 const $tlabel      = document.getElementById('wallpaperToggleLabel');
 const $pageTitle   = document.getElementById('pageTitle');
 const $pageSubtitle= document.getElementById('pageSubtitle');
+const $uiTrigger   = document.getElementById('uiPickerTrigger');
+const $uiMenu      = document.getElementById('uiPickerMenu');
 
 // MD3E accent presets. First 5 match theme.html's original set so a seed
 // picked there still resolves to a labeled swatch here; the remaining 7
@@ -749,12 +902,20 @@ const md3ePresets = [
   { hex:'#C2B280', label:'Sand'     },
   { hex:'#555555', label:'Graphite' },
   { hex:'#984061', label:'Rose'     },
-  { hex:'#9c4a3d', label:'Coral'    },
-  { hex:'#7c5800', label:'Amber'    },
-  { hex:'#586e00', label:'Olive'    },
-  { hex:'#006874', label:'Teal'     },
-  { hex:'#4a5b9c', label:'Indigo'   },
-  { hex:'#7a4a8a', label:'Plum'     }
+  { hex:'#386A20', label:'Green'    },
+
+  { hex:'#0F9D58', label:'Forest'             },
+  { hex:'#F4B400', label:'Sunflower'          },
+  { hex:'#FF69B4', label:'Hot Pink'           },
+  { hex:'#FF6600', label:'Scarf Bright Orange'},
+  { hex:'#00FFCC', label:'Energy Cyan'        },
+  { hex:'#FFFFFF', label:'Sleeve Pure White'  },
+  { hex:'#00FF66', label:'Bright MIR Green'   },
+  { hex:'#FFD700', label:'Vibrant Gold'       },
+  { hex:'#33FFFF', label:'Barrier Electric'   },
+  { hex:'#00E5FF', label:'Aura Glow'          },
+  { hex:'#FFAA00', label:'Bright Amber'       },
+  { hex:'#CCFF00', label:'Ki Neon'            }
 ];
 
 const wallpaperCards = [
@@ -793,6 +954,38 @@ function initializeTheme() {
   document.getElementById('current-ui-label').textContent = labels[ui] || 'iOS';
 
   applyPageModeForUI(ui);
+  syncUIPicker(ui);
+}
+
+function syncUIPicker(ui) {
+  const labels = { ios: 'iOS', md3e: 'MD3E', nothing: 'Nothing' };
+  document.getElementById('current-ui-label').textContent = labels[ui] || labels.ios;
+  $uiMenu.querySelectorAll('.ui-picker-option').forEach(option => {
+    option.classList.toggle('active', option.dataset.ui === ui);
+  });
+}
+
+function closeUIPicker() {
+  $uiMenu.classList.remove('open');
+  $uiTrigger.setAttribute('aria-expanded', 'false');
+}
+
+function setUITheme(ui) {
+  if (!['ios', 'md3e', 'nothing'].includes(ui)) return;
+
+  localStorage.setItem('ui-theme', ui);
+  document.documentElement.setAttribute('data-ui', ui);
+  if (ui === 'md3e') {
+    applySeedVar(localStorage.getItem(MD3E_SEED_KEY) || '#6750A4');
+    buildPresetGrid();
+  } else {
+    buildWallpaperBoard();
+    syncToggleUI();
+  }
+  applyPageModeForUI(ui);
+  syncUIPicker(ui);
+  closeUIPicker();
+  window.parent.postMessage({ type: 'SET_UI_THEME', theme: ui }, '*');
 }
 
 /* =====================================================
@@ -1055,6 +1248,31 @@ function scrollSelectedIntoView() {
     if (dragging) e.stopPropagation();
   }, true);
 })($board);
+
+/* =====================================================
+   UI THEME PICKER
+===================================================== */
+$uiTrigger.addEventListener('click', (event) => {
+  event.stopPropagation();
+  const open = $uiMenu.classList.toggle('open');
+  $uiTrigger.setAttribute('aria-expanded', String(open));
+});
+
+$uiMenu.addEventListener('click', (event) => {
+  const option = event.target.closest('.ui-picker-option');
+  if (!option) return;
+  setUITheme(option.dataset.ui);
+});
+
+document.addEventListener('click', (event) => {
+  if (!$uiMenu.contains(event.target) && !$uiTrigger.contains(event.target)) {
+    closeUIPicker();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeUIPicker();
+});
 
 /* =====================================================
    BOOT
