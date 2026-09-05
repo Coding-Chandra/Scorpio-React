@@ -356,6 +356,84 @@ body::before {
   line-height: 1.5;
 }
 
+#modal-message:has(.update-progress-track) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.update-progress-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.update-progress-track {
+  display: block;
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-card));
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.update-progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 78%, white), var(--accent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
+  transition: width 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+}
+
+.update-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.42) 50%, transparent 80%);
+  background-size: 220% 100%;
+  animation: updateProgressShimmer 1.4s linear infinite;
+}
+
+.update-progress-track-indeterminate .update-progress-fill {
+  width: 42%;
+  animation: updateProgressIndeterminate 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.update-progress-stats {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.update-progress-stats strong {
+  color: var(--text-main);
+  font-size: 16px;
+}
+
+@keyframes updateProgressShimmer {
+  from { background-position: 140% 0; }
+  to { background-position: -40% 0; }
+}
+
+@keyframes updateProgressIndeterminate {
+  0% { transform: translateX(-115%); }
+  55%, 100% { transform: translateX(250%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-progress-fill,
+  .update-progress-fill::after {
+    animation: none;
+    transition: none;
+  }
+}
+
 #modal-input-container {
   margin-bottom: 20px;
 }

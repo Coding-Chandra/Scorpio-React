@@ -353,12 +353,22 @@ function updateProgressUI(phase, message = '', extra = {}) {
 
   if (phase === 'downloading') {
     titleEl.innerText = 'Downloading update';
-    messageEl.innerHTML = `${message || 'Fetching new assets'}<br><br><strong>${updateProgressState.downloadedFiles}/${totalFiles}</strong> files • <strong>${sizeLabel}</strong> downloaded<br>${percent}% complete`;
+    messageEl.innerHTML = `
+      <span class="update-progress-label">Fetching new app files</span>
+      <span class="update-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+        <span class="update-progress-fill" style="width: ${percent}%"></span>
+      </span>
+      <span class="update-progress-stats"><strong>${percent}%</strong><span>${updateProgressState.downloadedFiles}/${totalFiles} files · ${sizeLabel}</span></span>`;
     confirmBtn.disabled = true;
     confirmBtn.innerText = 'Downloading...';
   } else if (phase === 'installing') {
     titleEl.innerText = 'Installing update';
-    messageEl.innerHTML = `${message || 'Preparing app files'}<br><br><strong>${updateProgressState.downloadedFiles}/${totalFiles}</strong> files • <strong>${sizeLabel}</strong> ready`;
+    messageEl.innerHTML = `
+      <span class="update-progress-label">${message || 'Preparing app files'}</span>
+      <span class="update-progress-track update-progress-track-indeterminate" role="progressbar" aria-label="Installing update">
+        <span class="update-progress-fill"></span>
+      </span>
+      <span class="update-progress-stats"><strong>Almost done</strong><span>${updateProgressState.downloadedFiles}/${totalFiles} files · ${sizeLabel} ready</span></span>`;
     confirmBtn.disabled = true;
     confirmBtn.innerText = 'Installing...';
   } else if (phase === 'error') {

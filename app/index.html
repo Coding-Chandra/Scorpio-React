@@ -19,6 +19,23 @@
       }
       const wallpaper = localStorage.getItem('notozApp_wallpaper') || 'w1';
       const wallpaperDisabled = localStorage.getItem('notozApp_wallpaper_disabled') === 'true';
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      const normalizeHex = (value) => {
+        if (!value) return null;
+        const hex = value.startsWith('#') ? value : `#${value}`;
+        return /^#[0-9a-f]{6}$/i.test(hex) ? hex.toUpperCase() : null;
+      };
+      const getThemeBackground = (currentUi, currentTheme) => {
+        if (currentUi === 'nothing') return currentTheme === 'light' ? '#F3F3F3' : '#000000';
+        return currentTheme === 'light' ? '#F2F2F7' : '#000000';
+      };
+      const updateThemeColor = (currentUi = ui, currentTheme = root.getAttribute('data-theme')) => {
+        if (!themeColorMeta) return;
+        const themeColor = currentUi === 'md3e'
+          ? (normalizeHex(localStorage.getItem('md3e-seed')) || '#6750A4')
+          : getThemeBackground(currentUi, currentTheme);
+        themeColorMeta.setAttribute('content', themeColor);
+      };
       const wallpaperMap = {
         'w1': './src/assets/wallpaper/imd/imd1.jpg',
         'w2': './src/assets/wallpaper/imd/imd2.jpg',
@@ -54,6 +71,8 @@
       const storedSeed = localStorage.getItem('md3e-seed') || '#6750A4';
       const wallpaperSource = wallpaperAbs || (isRemoteWallpaper ? wallpaper : null);
       setMdSeed(storedSeed);
+      updateThemeColor();
+      window.updateThemeColor = updateThemeColor;
     })();
   </script>
   <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
@@ -477,6 +496,22 @@
           localStorage.setItem('md3e-seed', hex);
 
           setMdSeed(hex);
+          if (document.documentElement.getAttribute('data-ui') === 'md3e') {
+            window.updateThemeColor?.('md3e');
+          }
+          break;
+        }
+        case "SET_UI_THEME": {
+          document.documentElement.setAttribute('data-ui', e.data.theme);
+          window.updateThemeColor?.(e.data.theme);
+          break;
+        }
+        case "SET_THEME": {
+          const theme = e.data.theme === 'system'
+            ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : e.data.theme;
+          document.documentElement.setAttribute('data-theme', theme);
+          window.updateThemeColor?.(document.documentElement.getAttribute('data-ui'), theme);
           break;
         }
         case "WALLPAPER_CHANGED": {
