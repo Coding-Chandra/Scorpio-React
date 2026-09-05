@@ -29,12 +29,23 @@
         if (currentUi === 'nothing') return currentTheme === 'light' ? '#F3F3F3' : '#000000';
         return currentTheme === 'light' ? '#F2F2F7' : '#000000';
       };
+      const getSeedBackground = (seed, currentTheme) => {
+        const hex = seed.replace('#', '');
+        const channels = [0, 2, 4].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
+        const base = currentTheme === 'dark' ? [28, 27, 31] : [255, 255, 255];
+        const seedWeight = currentTheme === 'dark' ? 0.12 : 0.06;
+        return '#' + channels.map((channel, index) =>
+          Math.round(base[index] * (1 - seedWeight) + channel * seedWeight)
+            .toString(16).padStart(2, '0')
+        ).join('');
+      };
       const updateThemeColor = (currentUi = ui, currentTheme = root.getAttribute('data-theme')) => {
         if (!themeColorMeta) return;
         const themeColor = currentUi === 'md3e'
-          ? (normalizeHex(localStorage.getItem('md3e-seed')) || '#6750A4')
+          ? getSeedBackground(normalizeHex(localStorage.getItem('md3e-seed')) || '#6750A4', currentTheme)
           : getThemeBackground(currentUi, currentTheme);
         themeColorMeta.setAttribute('content', themeColor);
+        root.style.setProperty('--md-browser-bg', themeColor);
       };
       const wallpaperMap = {
         'w1': './src/assets/wallpaper/imd/imd1.jpg',
@@ -381,6 +392,7 @@
 
   <div id="noteActionsMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">
     <div class="row">
+      <button class="btn" id="moveNoteBtn" onclick="app.openMoveNoteMenu(event)">Move to Folder</button>
       <button class="btn" onclick="app.requestDeleteActiveNoteFromMenu()">Delete Note</button>
       <button class="btn" id="editorPinBtn" onclick="app.togglePin()" title="Pin/Unpin">Pin/Unpin
         <svg viewBox="0 0 24 24" style="transform:rotate(45deg); display: none;">
@@ -390,6 +402,10 @@
         </svg>
       </button>
     </div>
+  </div>
+
+  <div id="noteMoveMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">
+    <div class="row" id="noteMoveMenuRow"></div>
   </div>
 
   <div id="folderActionsMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">

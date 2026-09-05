@@ -1049,6 +1049,7 @@ const app = {
             this.handleDropdownClose('shareDropdown', 'shareBtn', e);
             this.handleDropdownClose('textStyleDropdown', 'textStyleBtn', e);
             this.handleMenuCloseOnly('noteActionsMenu', e);
+            this.handleMenuCloseOnly('noteMoveMenu', e);
             this.handleMenuCloseOnly('folderActionsMenu', e);
             this.handleDropdownClose('accountDropdown', 'accountBtn', e);
         });
@@ -1059,6 +1060,7 @@ const app = {
                 this.closeDropdown('textStyleDropdown');
                 this.closeDropdown('noteActionsMenu');
                 this.closeDropdown('folderActionsMenu');
+                this.closeDropdown('noteMoveMenu');
                 this.closeDropdown('accountDropdown');
             }
         });
@@ -2593,6 +2595,9 @@ app.closeDropdown = function (dropdownId) {
         dropdown.classList.remove('direction-up', 'direction-down');
         dropdown.setAttribute('aria-expanded', 'false');
     }
+    if (dropdownId === 'noteActionsMenu') {
+        this.closeDropdown('noteMoveMenu');
+    }
 };
 
 app.handleDropdownClose = function (dropdownId, triggerId, e) {
@@ -2674,8 +2679,13 @@ app.openNoteActionsMenu = function (ev, noteId) {
     this.activeNoteId = noteId;
     if (!menu) return;
     menu.dataset.parentId = String(noteId);
+    this.closeDropdown('noteMoveMenu');
 
     const note = this.getActiveNote();
+    const moveBtn = menu.querySelector('#moveNoteBtn');
+    if (moveBtn) {
+        moveBtn.style.display = this.activeFolderId === 'all' ? 'none' : '';
+    }
     const pinBtn = menu.querySelector('#pinBtn');
     if (note && pinBtn) {
         pinBtn.innerHTML = `${note.pinned ? 'Unpin Note' : 'Pin Note'}`;
@@ -2687,6 +2697,85 @@ app.openNoteActionsMenu = function (ev, noteId) {
     this.positionMenuByDirection(menu, x, y);
     menu.classList.add('open', 'is-open');
     menu.setAttribute('aria-expanded', 'true');
+};
+
+app.openMoveNoteMenu = function (ev) {
+    ev.stopPropagation();
+
+    const note = this.getActiveNote();
+    const menu = document.getElementById('noteMoveMenu');
+    const row = document.getElementById('noteMoveMenuRow');
+    if (!note || !menu || !row) return;
+
+    row.innerHTML = '';
+    if (!this.folders.length) {
+        const empty = document.createElement('span');
+        empty.className = 'btn';
+        empty.textContent = 'No folders available';
+        row.appendChild(empty);
+    } else {
+        this.folders.forEach((folder) => {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.type = 'button';
+            button.textContent = String(folder.id) === String(note.folder_id)
+                ? `${folder.name} (Current)`
+                : folder.name;
+            button.disabled = String(folder.id) === String(note.folder_id);
+            button.addEventListener('click', () => this.moveNote(note.id, folder.id));
+            row.appendChild(button);
+        });
+    }
+
+    const x = ev.clientX || (ev.touches?.[0]?.clientX) || 20;
+    const y = ev.clientY || (ev.touches?.[0]?.clientY) || 20;
+    this.positionMenuByDirection(menu, x, y);
+    menu.classList.add('open', 'is-open');
+    menu.setAttribute('aria-expanded', 'true');
+};
+
+app.moveNote = async function (noteId, folderId) {
+    const note = this.notes.find((item) => item.id === noteId);
+    if (!note || String(note.folder_id) === String(folderId)) return;
+
+    this.closeDropdown('noteActionsMenu');
+    this.closeDropdown('noteMoveMenu');
+
+    const previousFolderId = note.folder_id;
+    const updatedAt = new Date().toISOString();
+    note.folder_id = folderId;
+    note.updated_at = updatedAt;
+
+    if (!isOnline()) {
+        try {
+            await saveNoteOffline({ ...note, user_id: CURRENT_USER_ID });
+        } catch (error) {
+            note.folder_id = previousFolderId;
+            console.error('[Offline] Failed to move note:', error);
+            alert('Failed to move note.');
+            return;
+        }
+    } else {
+        const { error } = await supabaseClient
+            .from(NOTES_TABLE)
+            .update({ folder_id: folderId, updated_at: updatedAt })
+            .eq('id', noteId)
+            .eq('user_id', CURRENT_USER_ID);
+
+        if (error) {
+            note.folder_id = previousFolderId;
+            console.error('Error moving note:', error);
+            alert('Failed to move note. See console.');
+            return;
+        }
+
+        this.mirrorNotesToIndexedDB([note]);
+    }
+
+    this.renderFolders();
+    this.renderNotesList();
+    this.renderEditor();
+    this.updateNotesCount();
 };
 
 app.requestDeleteActiveNoteFromMenu = function () {

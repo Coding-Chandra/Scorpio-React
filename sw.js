@@ -1,28 +1,23 @@
-const CACHE_NAME = 'notoj-app-v2.00.01';
+const CACHE_NAME = 'notoj-app-v2.1.0';
 const BASE = self.registration.scope;
 const urlsToCache = [
   './',
   'index.html',
   'app/index.html',
   'app/settings.html',
-  'app/src/pages/theme.html',
 
   // CSS
   'app/src/css/app.css',
   'app/src/css/md3e-app.css',
   'app/src/css/nthng.css',
   'app/src/css/settings.css',
-  'app/src/css/profile.css',
-  'src/css/login.css',
 
   // JS
   'app/src/js/app.js',
   'app/src/js/settings.js',
-  'app/src/js/profile.js',
   'app/src/js/md3e-enhance.js',
   'app/src/js/cache-update.js',
   'app/src/js/offline-sync.js',
-  'src/js/login.js',
 
   // Fonts
   'app/src/assets/fonts/SFR.ttf',
@@ -30,7 +25,6 @@ const urlsToCache = [
   'app/src/assets/fonts/NType82-Headline.otf',
   'app/src/assets/fonts/NType82-Regular.otf',
   'app/src/assets/fonts/UbuntuMono[wght].ttf',
-  'src/assets/fonts/SFR.ttf',
 
   // Icons
   'app/src/assets/icons/logo.png',
@@ -38,7 +32,7 @@ const urlsToCache = [
   'src/assets/icons/logo.svg',
 
   // Wallpapers
-  // IMD wallpapers
+  // iOS wallpapers
   'app/src/assets/wallpapers/imd/imd1.jpg',
   'app/src/assets/wallpapers/imd/imd2.jpg',
   'app/src/assets/wallpapers/imd/imd3.jpg',

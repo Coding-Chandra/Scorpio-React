@@ -707,6 +707,72 @@ function getFileExtension(filename) {
     return parts.length > 1 ? parts.pop() : '';
 }
 
+// Finds the user's "Imports" folder, creating it the first time it's needed.
+async function getOrCreateImportsFolder() {
+    const { data: existing, error: findError } = await supabase
+        .from('folders')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('name', 'Imports')
+        .limit(1)
+        .maybeSingle();
+
+    if (findError) throw findError;
+    if (existing) return existing.id;
+
+    const { data: created, error: createError } = await supabase
+        .from('folders')
+        .insert([{ name: 'Imports', user_id: currentUser.id }])
+        .select('id')
+        .single();
+
+    if (createError) throw createError;
+    return created.id;
+}
+
+function escapeHtml(str) {
+    return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// ---------- Animated progress bar (export modal) ----------
+
+function ensureProgressBar() {
+    let wrap = document.getElementById('exportProgressWrap');
+    if (wrap) return wrap;
+
+    wrap = document.createElement('div');
+    wrap.id = 'exportProgressWrap';
+    wrap.style.cssText = 'margin-top: 16px;';
+    wrap.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-bottom:6px;">
+            <span id="exportProgressLabel">Preparing…</span>
+            <span id="exportProgressPct">0%</span>
+        </div>
+        <div style="height:6px; border-radius:999px; background:var(--bg-input); overflow:hidden;">
+            <div id="exportProgressBar" style="height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width 0.25s cubic-bezier(0.25,0.46,0.45,0.94);"></div>
+        </div>
+    `;
+
+    const container = document.getElementById('modal-input-container');
+    if (container) container.appendChild(wrap);
+    return wrap;
+}
+
+function setExportProgress(fraction, label) {
+    ensureProgressBar();
+    const bar = document.getElementById('exportProgressBar');
+    const pct = document.getElementById('exportProgressPct');
+    const lbl = document.getElementById('exportProgressLabel');
+    const clamped = Math.max(0, Math.min(1, fraction));
+
+    if (bar) bar.style.width = `${Math.round(clamped * 100)}%`;
+    if (pct) pct.textContent = `${Math.round(clamped * 100)}%`;
+    if (lbl && label) lbl.textContent = label;
+}
+
 // Walks a note's HTML content, pulls each <img> out to its own file (fetching
 // it from Supabase Storage or decoding a base64 data URL), and swaps it for a
 // plain-text placeholder so the note still reads sensibly as a .txt file.
@@ -768,12 +834,12 @@ window.promptExportNotes = () => {
     document.getElementById('modal-input-container').innerHTML = `
         <div style="display:flex; flex-direction:column; gap:10px; margin: 4px 0 14px 0;">
             <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
-                <input type="radio" name="exportFormat" value="json" checked style="margin-top:3px;width: 22px;height: 22px;">
-                <span><strong>JSON</strong> — all notes in one file, no images</span>
-            </label>
-            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
                 <input type="radio" name="exportFormat" value="zip" style="margin-top:3px;width: 22px;height: 22px;">
                 <span><strong>ZIP</strong> — each note as .txt, with images saved in their own format</span>
+            </label>
+            <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                <input type="radio" name="exportFormat" value="json" checked style="margin-top:3px;width: 22px;height: 22px;">
+                <span><strong>JSON</strong> — all notes in one file, no images</span>
             </label>
         </div>
     `;
@@ -855,8 +921,10 @@ async function fetchAndDecryptNotes(progressCallback) {
     };
 }
 
-function exportNotesAsJson(decryptedNotes) {
+function exportNotesAsJson(decryptedNotes, recoveryInfo) {
     const exportData = {
+        notozBackup: true,
+        formatVersion: 1,
         exportDate: new Date().toISOString(),
         userEmail: currentUser.email,
         displayName: currentUser.user_metadata?.display_name || 'User',
@@ -864,34 +932,95 @@ function exportNotesAsJson(decryptedNotes) {
         notes: decryptedNotes
     };
 
+    if (recoveryInfo && recoveryInfo.failedNotes.length > 0) {
+        exportData.failedNotes = recoveryInfo.failedNotes.map((f) => ({ id: f.id, error: f.error }));
+        exportData.recoveryWarning = 'Some notes could not be decrypted and are NOT included above. If recoveryKeyBase64 is present, it is the raw local encryption key — it can decrypt ALL of your notes, so keep this file private and delete it once you no longer need it.';
+        if (recoveryInfo.recoveryKeyB64) exportData.recoveryKeyBase64 = recoveryInfo.recoveryKeyB64;
+        if (recoveryInfo.recoveryKeyError) exportData.recoveryKeyError = recoveryInfo.recoveryKeyError;
+    }
+
     downloadBlob(
         new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' }),
         `notes-backup-${new Date().toISOString().split('T')[0]}.json`
     );
 }
 
-async function exportNotesAsZip(decryptedNotes, messageEl) {
+async function exportNotesAsZip(decryptedNotes, onProgress, recoveryInfo) {
     if (!window.JSZip) throw new Error('ZIP library failed to load.');
 
     const zip = new window.JSZip();
     const notesFolder = zip.folder('notes');
     const imagesFolder = zip.folder('images');
+    const total = decryptedNotes.length || 1;
+    const manifestNotes = [];
 
     for (let i = 0; i < decryptedNotes.length; i++) {
         const note = decryptedNotes[i];
-        if (messageEl) messageEl.textContent = `Processing note ${i + 1} of ${decryptedNotes.length}...`;
+        if (onProgress) onProgress(0.6 + (i / total) * 0.3, `Packing note ${i + 1} of ${decryptedNotes.length}...`);
 
         const { plainText, images } = await extractPlainTextAndImages(note.content, i + 1);
         const safeTitle = sanitizeFilename(note.title, `note-${i + 1}`);
         const heading = note.title || 'Untitled';
         const header = `${heading}\n${'='.repeat(heading.length)}\n\n`;
+        const txtFilename = `${i + 1}-${safeTitle}.txt`;
 
-        notesFolder.file(`${i + 1}-${safeTitle}.txt`, header + plainText);
+        notesFolder.file(txtFilename, header + plainText);
         images.forEach((img) => imagesFolder.file(img.filename, img.blob));
+
+        // Machine-readable companion to the human-readable .txt files, so
+        // Restore Backup can rebuild folder/pin/style/dates exactly.
+        manifestNotes.push({
+            index: i + 1,
+            title: note.title || 'Untitled',
+            paper_style: note.paper_style || 'blank',
+            folder_id: note.folder_id || null,
+            pinned: !!note.pinned,
+            created_at: note.created_at || null,
+            updated_at: note.updated_at || null,
+            textFile: `notes/${txtFilename}`,
+            images: images.map((img) => `images/${img.filename}`)
+        });
     }
 
-    if (messageEl) messageEl.textContent = 'Compressing files...';
-    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    // Special-encoding marker Restore Backup looks for, so a stray .zip of
+    // random files can't be mistaken for one of our backups.
+    zip.file('backup-manifest.json', JSON.stringify({
+        notozBackup: true,
+        formatVersion: 1,
+        exportDate: new Date().toISOString(),
+        userEmail: currentUser.email,
+        totalNotes: decryptedNotes.length,
+        notes: manifestNotes
+    }, null, 2));
+
+    if (recoveryInfo && recoveryInfo.failedNotes.length > 0) {
+        const lines = [
+            `${recoveryInfo.failedNotes.length} note(s) could not be decrypted and are NOT included in this backup:`,
+            ...recoveryInfo.failedNotes.map((f) => `  - note ${f.id}: ${f.error}`),
+            ''
+        ];
+
+        if (recoveryInfo.recoveryKeyB64) {
+            lines.push(
+                'A recovery key is included below for these notes.',
+                'This is the raw local encryption key — it can decrypt ALL of your notes, not just the failed ones.',
+                'Keep this file private and delete it once you no longer need it.',
+                '',
+                `Recovery key (base64, AES-GCM): ${recoveryInfo.recoveryKeyB64}`
+            );
+        } else {
+            lines.push(recoveryInfo.recoveryKeyError || 'No recovery key could be generated for this session.');
+        }
+
+        zip.file('RECOVERY-README.txt', lines.join('\n'));
+    }
+
+    if (onProgress) onProgress(0.92, 'Compressing files...');
+    const zipBlob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+        if (onProgress) {
+            onProgress(0.92 + (metadata.percent / 100) * 0.08, `Compressing files... ${Math.round(metadata.percent)}%`);
+        }
+    });
     downloadBlob(zipBlob, `notes-backup-${new Date().toISOString().split('T')[0]}.zip`);
 }
 
@@ -900,98 +1029,106 @@ async function exportNotesToFile(format = 'json') {
     const statusEl = document.getElementById('exportStatus');
     const messageEl = document.getElementById('modal-message');
 
+    // Lock the format choice in and show the progress bar
+    document.querySelectorAll('input[name="exportFormat"]').forEach((el) => { el.disabled = true; });
     btn.disabled = true;
+    setExportProgress(0, 'Starting export...');
 
     messageEl.textContent = 'Fetching notes...';
     statusEl.textContent = 'Exporting...';
     statusEl.style.color = 'var(--text-dim)';
 
     try {
-        const {
-            decryptedNotes,
-            failedNotes
-        } = await fetchAndDecryptNotes(
-            (current, total, message) => {
-                messageEl.textContent = message;
-
-                if (statusEl && total > 0) {
-                    statusEl.textContent =
-                        `Decrypting ${current}/${total}`;
-                }
+        const { decryptedNotes, failedNotes } = await fetchAndDecryptNotes((current, total, message) => {
+            messageEl.textContent = message;
+            if (total > 0) {
+                setExportProgress((current / total) * 0.6, message);
+                statusEl.textContent = `Decrypting ${current}/${total}`;
             }
-        );
+        });
 
-        // NEVER export ciphertext.
+        if (decryptedNotes.length === 0 && failedNotes.length > 0) {
+            throw new Error(`All ${failedNotes.length} notes failed to decrypt. Nothing could be exported.`);
+        }
+
+        // If some (but not all) notes failed, still export what succeeded and
+        // attach a recovery key so the rest can be decrypted manually later.
+        let recoveryInfo = null;
         if (failedNotes.length > 0) {
-            throw new Error(
-                `${failedNotes.length} note${
-                    failedNotes.length === 1 ? '' : 's'
-                } could not be decrypted. Nothing was exported to prevent encrypted ciphertext from being included.`
-            );
+            setExportProgress(0.62, 'Preparing recovery key...');
+            let recoveryKeyB64 = null;
+            let recoveryKeyError = null;
+            try {
+                const key = await getSessionMasterKey();
+                if (key) {
+                    const raw = await crypto.subtle.exportKey('raw', key);
+                    recoveryKeyB64 = _b64FromBuf(raw);
+                } else {
+                    recoveryKeyError = 'No local session key was available to export.';
+                }
+            } catch (err) {
+                console.warn('[Export] Could not export raw recovery key:', err);
+                recoveryKeyError = "This session's key isn't exportable, so no recovery key could be generated.";
+            }
+            recoveryInfo = { failedNotes, recoveryKeyB64, recoveryKeyError };
         }
 
         if (format === 'zip') {
-            await exportNotesAsZip(
-                decryptedNotes,
-                messageEl
-            );
+            await exportNotesAsZip(decryptedNotes, (fraction, label) => setExportProgress(fraction, label), recoveryInfo);
         } else {
-            exportNotesAsJson(decryptedNotes);
+            setExportProgress(0.7, 'Building JSON file...');
+            exportNotesAsJson(decryptedNotes, recoveryInfo);
         }
 
-        const noteWord =
-            decryptedNotes.length === 1
-                ? 'note'
-                : 'notes';
+        setExportProgress(1, 'Done!');
 
-        statusEl.textContent =
-            `✓ Exported ${decryptedNotes.length} ${noteWord}`;
+        const noteWord = decryptedNotes.length === 1 ? 'note' : 'notes';
 
-        statusEl.style.color = 'var(--accent)';
-
-        messageEl.textContent =
-            format === 'zip'
+        if (failedNotes.length > 0) {
+            statusEl.textContent = `⚠ Exported ${decryptedNotes.length} ${noteWord}, ${failedNotes.length} failed`;
+            statusEl.style.color = 'var(--accent1)';
+            messageEl.textContent = recoveryInfo.recoveryKeyB64
+                ? `${failedNotes.length} note(s) couldn't be decrypted — a recovery key was included in your download so you can recover them manually.`
+                : `${failedNotes.length} note(s) couldn't be decrypted and were left out. ${recoveryInfo.recoveryKeyError}`;
+            showNotification(
+                'Export finished with issues',
+                `${failedNotes.length} note(s) failed to decrypt.${recoveryInfo.recoveryKeyB64 ? ' A recovery key was included.' : ''}`,
+                'error'
+            );
+        } else {
+            statusEl.textContent = `✓ Exported ${decryptedNotes.length} ${noteWord}`;
+            statusEl.style.color = 'var(--accent)';
+            messageEl.textContent = format === 'zip'
                 ? 'ZIP backup created and downloaded successfully.'
                 : 'JSON backup created and downloaded successfully.';
-
-        showNotification(
-            'Export complete',
-            `Exported ${decryptedNotes.length} ${noteWord} as ${format.toUpperCase()}.`,
-            'success'
-        );
+            showNotification('Export complete', `Exported ${decryptedNotes.length} ${noteWord} as ${format.toUpperCase()}.`, 'success');
+        }
 
         btn.textContent = 'Done';
         btn.disabled = false;
         btn.onclick = window.closeCustomModal;
-
     } catch (error) {
         console.error('Export error:', error);
 
         statusEl.textContent = '✕ Export failed';
         statusEl.style.color = 'var(--accent1)';
+        messageEl.textContent = error.message || 'Could not export notes.';
+        showNotification('Export failed', error.message || 'Could not export notes.', 'error');
 
-        messageEl.textContent =
-            error.message || 'Could not export notes.';
-
-        showNotification(
-            'Export failed',
-            error.message || 'Could not export notes.',
-            'error'
-        );
-
+        document.querySelectorAll('input[name="exportFormat"]').forEach((el) => { el.disabled = false; });
         btn.textContent = 'Try Again';
         btn.disabled = false;
     }
 }
 
-// ---------- Import ----------
+// ---------- Import Files (single files -> "Imports" folder) ----------
 
-window.promptImportNotes = () => {
-    document.getElementById('modal-title').textContent = 'Import Notes';
-    document.getElementById('modal-message').textContent = 'Select one or more files to import.';
+window.promptImportFiles = () => {
+    document.getElementById('modal-title').textContent = 'Import Files';
+    document.getElementById('modal-message').textContent = 'Select one or more files. Each becomes a new note in your "Imports" folder.';
     document.getElementById('modal-input-container').innerHTML = `
-        <input id="notesImportFileInput" type="file" multiple accept=".json,.txt,.md,.pdf,.docx,application/json,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="width:100%; padding: 10px 0;" />
-        <p style="font-size: 13px; color: var(--text-dim); margin: 10px 0 0 0;">Supports JSON backups (full restore), plus .txt, .md, .pdf, and .docx — each becomes its own note.</p>
+        <input id="notesImportFileInput" type="file" multiple accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="width:100%; padding: 10px 0;" />
+        <p style="font-size: 13px; color: var(--text-dim); margin: 10px 0 0 0;">Supports .txt, .md, .pdf, and .docx. For a full backup restore (.json/.zip), use "Restore Backup" instead.</p>
     `;
     const confirmBtn = document.getElementById('modal-confirm-btn');
     confirmBtn.textContent = 'Upload';
@@ -1004,23 +1141,92 @@ window.promptImportNotes = () => {
     ProfileDialog.openWithAnimation(ProfileDialog.lastSourceEl);
 };
 
-async function extractTextFromPdf(file) {
+function textToHtml(text) {
+    const paragraphs = (text || '').split(/\n\s*\n/); // blank-line separated
+    return paragraphs
+        .map((para) => para.trim())
+        .filter((para) => para.length > 0)
+        .map((para) => `<p>${escapeHtml(para).replace(/\n/g, '<br>')}</p>`)
+        .join('');
+}
+
+function markdownToHtml(text) {
+    if (window.marked) {
+        try {
+            return typeof window.marked.parse === 'function' ? window.marked.parse(text) : window.marked(text);
+        } catch (err) {
+            console.warn('[Import] Markdown parse failed, falling back to plain text:', err);
+        }
+    }
+    return textToHtml(text);
+}
+
+// Reconstructs rough paragraphs from pdf.js's positioned text items, since a
+// PDF has no inherent paragraph markup — grouped by line, then split into
+// paragraphs wherever the vertical gap between lines is unusually large.
+async function extractHtmlFromPdf(file) {
     if (!window.pdfjsLib) throw new Error('PDF library failed to load.');
     const buffer = await file.arrayBuffer();
     const pdf = await window.pdfjsLib.getDocument({ data: buffer }).promise;
-    const pageTexts = [];
+    const pageHtml = [];
+
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        pageTexts.push(textContent.items.map((item) => item.str).join(' '));
+
+        // Group text items into lines by vertical position
+        const lines = [];
+        let currentLine = null;
+        const Y_TOLERANCE = 2;
+
+        for (const item of textContent.items) {
+            const y = item.transform[5];
+            if (!currentLine || Math.abs(currentLine.y - y) > Y_TOLERANCE) {
+                currentLine = { y, text: item.str };
+                lines.push(currentLine);
+            } else {
+                const needsSpace = currentLine.text && !currentLine.text.endsWith(' ') && !item.str.startsWith(' ');
+                currentLine.text += (needsSpace ? ' ' : '') + item.str;
+            }
+        }
+
+        // PDF space has y increasing upward — sort top-to-bottom for reading order
+        lines.sort((a, b) => b.y - a.y);
+
+        const gaps = [];
+        for (let i = 1; i < lines.length; i++) gaps.push(Math.abs(lines[i - 1].y - lines[i].y));
+        const typicalGap = gaps.length ? gaps.sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 14;
+
+        const paragraphs = [];
+        let currentPara = [];
+        let prevY = null;
+
+        for (const line of lines) {
+            const text = line.text.trim();
+            if (!text) continue;
+            if (prevY !== null && Math.abs(prevY - line.y) > typicalGap * 1.6 && currentPara.length) {
+                paragraphs.push(currentPara.join(' '));
+                currentPara = [];
+            }
+            currentPara.push(text);
+            prevY = line.y;
+        }
+        if (currentPara.length) paragraphs.push(currentPara.join(' '));
+
+        if (paragraphs.length) {
+            pageHtml.push(paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join(''));
+        }
     }
-    return pageTexts.join('\n\n');
+
+    return pageHtml.join('<div><br></div>');
 }
 
-async function extractTextFromDocx(file) {
+// mammoth embeds images as base64 data URIs by default, which matches this
+// app's existing offline-image fallback format, so they come through intact.
+async function extractHtmlFromDocx(file) {
     if (!window.mammoth) throw new Error('DOCX library failed to load.');
     const buffer = await file.arrayBuffer();
-    const result = await window.mammoth.extractRawText({ arrayBuffer: buffer });
+    const result = await window.mammoth.convertToHtml({ arrayBuffer: buffer });
     return result.value || '';
 }
 
@@ -1029,34 +1235,43 @@ function titleFromFilename(filename) {
     return base.replace(/[-_]+/g, ' ').trim() || 'Untitled';
 }
 
-// Builds a {title, content} note from a single non-JSON file.
+// Builds a {title, content} note from a single plain file, converting it to
+// proper HTML rather than dumping raw extracted text into the note body.
 async function noteFromPlainFile(file) {
     const ext = getFileExtension(file.name);
-    let text = '';
+    let html = '';
+    let rawText = '';
+    let title = titleFromFilename(file.name);
 
     if (ext === 'pdf') {
-        text = await extractTextFromPdf(file);
+        html = await extractHtmlFromPdf(file);
     } else if (ext === 'docx') {
-        text = await extractTextFromDocx(file);
-    } else {
-        text = await file.text(); // .txt, .md, and anything else readable as plain text
-    }
-
-    let title = titleFromFilename(file.name);
-    if (ext === 'md') {
-        // Prefer a leading "# Heading" as the title over the filename
-        const headingMatch = text.match(/^\s*#\s+(.+)$/m);
+        html = await extractHtmlFromDocx(file);
+        const container = document.createElement('div');
+        container.innerHTML = html;
+        const firstHeading = container.querySelector('h1, h2');
+        if (firstHeading && firstHeading.textContent.trim()) {
+            title = firstHeading.textContent.trim();
+            firstHeading.remove();
+            html = container.innerHTML;
+        }
+    } else if (ext === 'md') {
+        rawText = await file.text();
+        const headingMatch = rawText.match(/^\s*#\s+(.+)$/m);
         if (headingMatch) {
             title = headingMatch[1].trim();
-            text = text.replace(headingMatch[0], '').trim();
+            rawText = rawText.replace(headingMatch[0], '').trim();
         }
+        html = markdownToHtml(rawText);
+    } else {
+        rawText = await file.text(); // .txt and anything else readable as plain text
+        html = textToHtml(rawText);
     }
 
     return {
         title,
-        content: text.trim(),
+        content: html.trim(),
         paper_style: 'blank',
-        folder_id: null,
         pinned: false
     };
 }
@@ -1073,7 +1288,7 @@ async function importNotesFromFile() {
     }
 
     const files = Array.from(fileInput.files);
-    const SUPPORTED_EXTS = ['json', 'txt', 'md', 'pdf', 'docx'];
+    const SUPPORTED_EXTS = ['txt', 'md', 'pdf', 'docx'];
 
     btn.disabled = true;
     messageEl.textContent = 'Reading file(s)...';
@@ -1087,13 +1302,13 @@ async function importNotesFromFile() {
         for (const file of files) {
             const ext = getFileExtension(file.name);
 
-            if (ext === 'json') {
-                const text = await file.text();
-                const parsed = JSON.parse(text);
-                const notesFromJson = Array.isArray(parsed.notes) ? parsed.notes : [];
-                importedNotes = importedNotes.concat(notesFromJson);
+            if (ext === 'json' || ext === 'zip') {
+                // Backups go through Restore Backup instead, so their metadata
+                // (folders, pins, styles) is preserved rather than flattened.
+                console.warn('[Import] Skipping backup file in Import Files flow:', file.name);
+                skipped += 1;
             } else if (SUPPORTED_EXTS.includes(ext)) {
-                messageEl.textContent = `Extracting text from ${file.name}...`;
+                messageEl.textContent = `Converting ${file.name}...`;
                 importedNotes.push(await noteFromPlainFile(file));
             } else {
                 console.warn('[Import] Skipping unsupported file:', file.name);
@@ -1102,37 +1317,31 @@ async function importNotesFromFile() {
         }
 
         if (importedNotes.length === 0) {
-            throw new Error('No importable notes found in the selected file(s).');
+            throw new Error('No importable files found. (.json/.zip backups use "Restore Backup" instead.)');
         }
+
+        messageEl.textContent = 'Finding your Imports folder...';
+        const importsFolderId = await getOrCreateImportsFolder();
 
         messageEl.textContent = `Encrypting ${importedNotes.length} notes...`;
 
         const rows = [];
         for (const note of importedNotes) {
-            const title = note.title || '';
-            const content = note.content || '';
             rows.push({
-                title: title.startsWith('enc:')
-                ? title
-                : await encryptWithMasterKey(title),
-                
-                content: content.startsWith('enc:')
-                ? content
-                : await encryptWithMasterKey(content),
-
+                title: await encryptWithMasterKey(note.title || ''),
+                content: await encryptWithMasterKey(note.content || ''),
                 paper_style: note.paper_style || 'blank',
                 user_id: currentUser.id,
-                folder_id: note.folder_id || null,
-                pinned: note.pinned || false,
-
-                created_at: note.created_at || new Date().toISOString(),
-                updated_at: note.updated_at || new Date().toISOString()
-});
+                folder_id: importsFolderId,
+                pinned: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            });
         }
 
         messageEl.textContent = 'Uploading encrypted notes...';
 
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('notes')
             .insert(rows);
 
@@ -1142,9 +1351,9 @@ async function importNotesFromFile() {
         statusEl.textContent = `✓ Imported ${rows.length} ${noteWord}`;
         statusEl.style.color = 'var(--accent)';
         messageEl.textContent = skipped > 0
-            ? `Notes uploaded successfully. Skipped ${skipped} unsupported file${skipped === 1 ? '' : 's'}.`
-            : 'Notes uploaded successfully.';
-        showNotification('Import complete', `Imported ${rows.length} ${noteWord}.`, 'success');
+            ? `Added to your Imports folder. Skipped ${skipped} unsupported file${skipped === 1 ? '' : 's'}.`
+            : 'Added to your Imports folder.';
+        showNotification('Import complete', `Imported ${rows.length} ${noteWord} into "Imports".`, 'success');
         btn.textContent = 'Done';
         btn.disabled = false;
         btn.onclick = window.closeCustomModal;
@@ -1153,7 +1362,237 @@ async function importNotesFromFile() {
         statusEl.textContent = '✕ Import failed';
         statusEl.style.color = 'var(--accent1)';
         messageEl.textContent = `Import failed: ${error.message || 'Invalid file.'}`;
-        showNotification('Import failed', error.message || 'Invalid backup file.', 'error');
+        showNotification('Import failed', error.message || 'Invalid file.', 'error');
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+    }
+}
+
+// ---------- Restore Backup (.json / .zip, full fidelity) ----------
+
+function mimeFromExt(ext) {
+    const map = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif' };
+    return map[ext] || 'image/png';
+}
+
+// Reads every file under images/ in the zip and returns a map of
+// "images/filename.ext" -> base64 data URL, so placeholders can be re-inflated.
+async function buildImageDataUrlMap(zip) {
+    const map = {};
+    const paths = Object.keys(zip.files).filter((p) => p.startsWith('images/') && !zip.files[p].dir);
+
+    for (const path of paths) {
+        const base64 = await zip.files[path].async('base64');
+        const ext = getFileExtension(path);
+        map[path] = `data:${mimeFromExt(ext)};base64,${base64}`;
+    }
+
+    return map;
+}
+
+// Turns a plain-text note body (with "[Image: images/...]" placeholders) back
+// into HTML, re-inflating each placeholder as a real <img> tag.
+function restoreContentFromZipText(bodyText, imageDataUrlByPath) {
+    const withImages = (bodyText || '').replace(/\[Image: (images\/[^\]]+)\]/g, (match, path) => {
+        const dataUrl = imageDataUrlByPath[path];
+        return dataUrl ? `<img src="${dataUrl}" style="max-width:95%;border-radius:12px;" />` : '[Image unavailable]';
+    });
+    return textToHtml(withImages);
+}
+
+// Parses a backup .zip into restorable notes. Prefers backup-manifest.json
+// for full-fidelity restore (folder/pin/style/dates); falls back to reading
+// notes/*.txt directly for older zips exported before the manifest existed.
+async function restoreNotesFromZip(zip) {
+    const imageMap = await buildImageDataUrlMap(zip);
+    const manifestFile = zip.file('backup-manifest.json');
+    let manifest = null;
+
+    if (manifestFile) {
+        try {
+            const manifestText = await manifestFile.async('string');
+            const parsed = JSON.parse(manifestText);
+            if (parsed && parsed.notozBackup) manifest = parsed;
+        } catch (err) {
+            console.warn('[Restore] Could not parse backup-manifest.json:', err);
+        }
+    }
+
+    const restoredNotes = [];
+
+    if (manifest && Array.isArray(manifest.notes)) {
+        for (const entry of manifest.notes) {
+            const txtFile = zip.file(entry.textFile);
+            let body = '';
+            if (txtFile) {
+                const raw = await txtFile.async('string');
+                const heading = entry.title || 'Untitled';
+                const header = `${heading}\n${'='.repeat(heading.length)}\n\n`;
+                body = raw.startsWith(header) ? raw.slice(header.length) : raw;
+            }
+            restoredNotes.push({
+                title: entry.title || 'Untitled',
+                content: restoreContentFromZipText(body, imageMap),
+                paper_style: entry.paper_style || 'blank',
+                folder_id: entry.folder_id || null,
+                pinned: !!entry.pinned,
+                created_at: entry.created_at || undefined,
+                updated_at: entry.updated_at || undefined
+            });
+        }
+        return { notes: restoredNotes, hadManifest: true };
+    }
+
+    // Fallback for zips without a manifest (older exports) — parse the
+    // "Title\n=====\n\n" header off each notes/*.txt by hand.
+    const txtPaths = Object.keys(zip.files).filter((p) => p.startsWith('notes/') && p.endsWith('.txt') && !zip.files[p].dir);
+
+    for (const path of txtPaths) {
+        const raw = await zip.files[path].async('string');
+        const lines = raw.split('\n');
+        let title = 'Untitled';
+        let body = raw;
+
+        if (lines[0] && lines[1] && /^=+$/.test(lines[1].trim())) {
+            title = lines[0].trim();
+            body = lines.slice(3).join('\n');
+        }
+
+        restoredNotes.push({
+            title,
+            content: restoreContentFromZipText(body, imageMap),
+            paper_style: 'blank',
+            folder_id: null,
+            pinned: false
+        });
+    }
+
+    return { notes: restoredNotes, hadManifest: false };
+}
+
+window.promptRestoreBackup = () => {
+    document.getElementById('modal-title').textContent = 'Restore Backup';
+    document.getElementById('modal-message').textContent = "Select a backup file created by this app's export (.json or .zip). Folders, pins, and styles are restored as they were.";
+    document.getElementById('modal-input-container').innerHTML = `
+        <input id="restoreBackupFileInput" type="file" accept=".json,.zip,application/json,application/zip" style="width:100%; padding: 10px 0;" />
+        <p style="font-size: 13px; color: var(--text-dim); margin: 10px 0 0 0;">Only backups exported from this app are supported. For plain text, Markdown, PDF, or Word files, use "Import File/Notes" instead.</p>
+    `;
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+    confirmBtn.textContent = 'Restore';
+    confirmBtn.style.background = 'var(--accent)';
+    confirmBtn.disabled = false;
+    confirmBtn.onclick = async () => {
+        await restoreBackupFromFile();
+    };
+    document.getElementById('custom-modal-overlay').style.display = 'flex';
+    ProfileDialog.openWithAnimation(ProfileDialog.lastSourceEl);
+};
+
+async function restoreBackupFromFile() {
+    const fileInput = document.getElementById('restoreBackupFileInput');
+    const messageEl = document.getElementById('modal-message');
+    const statusEl = document.getElementById('exportStatus');
+    const btn = document.getElementById('modal-confirm-btn');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showNotification('No file selected', 'Please choose a backup file to restore.', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const ext = getFileExtension(file.name);
+
+    if (!['json', 'zip'].includes(ext)) {
+        showNotification('Unsupported file', 'Restore only accepts .json or .zip backups exported from this app.', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    setExportProgress(0, 'Reading backup...');
+    messageEl.textContent = 'Reading backup file...';
+    statusEl.textContent = 'Restoring...';
+    statusEl.style.color = 'var(--text-dim)';
+
+    try {
+        let restoredNotes = [];
+
+        if (ext === 'json') {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+            const recognized = parsed && (parsed.notozBackup === true || Array.isArray(parsed.notes));
+            if (!recognized) throw new Error('This file is not a recognized backup. Use "Import Files" for plain notes.');
+            restoredNotes = Array.isArray(parsed.notes) ? parsed.notes : [];
+        } else {
+            if (!window.JSZip) throw new Error('ZIP library failed to load.');
+            setExportProgress(0.1, 'Unpacking ZIP...');
+            const zip = await window.JSZip.loadAsync(file);
+            const { notes } = await restoreNotesFromZip(zip);
+            restoredNotes = notes;
+        }
+
+        if (restoredNotes.length === 0) {
+            throw new Error('No notes found in this backup.');
+        }
+
+        setExportProgress(0.4, 'Checking folders...');
+
+        // Original folder_ids may point at folders that no longer exist —
+        // fall back to no folder rather than failing the whole restore.
+        const referencedFolderIds = [...new Set(restoredNotes.map((n) => n.folder_id).filter(Boolean))];
+        let validFolderIds = new Set();
+        if (referencedFolderIds.length > 0) {
+            const { data: existingFolders } = await supabase
+                .from('folders')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .in('id', referencedFolderIds);
+            validFolderIds = new Set((existingFolders || []).map((f) => f.id));
+        }
+
+        const rows = [];
+        for (let i = 0; i < restoredNotes.length; i++) {
+            const note = restoredNotes[i];
+            const title = note.title || '';
+            const content = note.content || '';
+            setExportProgress(0.5 + (i / restoredNotes.length) * 0.4, `Encrypting note ${i + 1} of ${restoredNotes.length}...`);
+            messageEl.textContent = `Encrypting note ${i + 1} of ${restoredNotes.length}...`;
+
+            rows.push({
+                title: title.startsWith('enc:') ? title : await encryptWithMasterKey(title),
+                content: content.startsWith('enc:') ? content : await encryptWithMasterKey(content),
+                paper_style: note.paper_style || 'blank',
+                user_id: currentUser.id,
+                folder_id: validFolderIds.has(note.folder_id) ? note.folder_id : null,
+                pinned: !!note.pinned,
+                created_at: note.created_at || new Date().toISOString(),
+                updated_at: note.updated_at || new Date().toISOString()
+            });
+        }
+
+        setExportProgress(0.92, 'Uploading restored notes...');
+        messageEl.textContent = 'Uploading restored notes...';
+
+        const { error } = await supabase
+            .from('notes')
+            .insert(rows);
+
+        if (error) throw error;
+
+        setExportProgress(1, 'Done!');
+        const noteWord = rows.length === 1 ? 'note' : 'notes';
+        statusEl.textContent = `✓ Restored ${rows.length} ${noteWord}`;
+        statusEl.style.color = 'var(--accent)';
+        messageEl.textContent = 'Backup restored successfully.';
+        showNotification('Restore complete', `Restored ${rows.length} ${noteWord}.`, 'success');
+        btn.textContent = 'Done';
+        btn.disabled = false;
+        btn.onclick = window.closeCustomModal;
+    } catch (error) {
+        console.error('Restore error:', error);
+        statusEl.textContent = '✕ Restore failed';
+        statusEl.style.color = 'var(--accent1)';
+        messageEl.textContent = `Restore failed: ${error.message || 'Invalid backup file.'}`;
+        showNotification('Restore failed', error.message || 'Invalid backup file.', 'error');
         btn.textContent = 'Try Again';
         btn.disabled = false;
     }

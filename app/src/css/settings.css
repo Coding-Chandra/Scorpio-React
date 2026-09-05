@@ -1270,3 +1270,7 @@ summary:focus-visible,
 .modal-btn:active {
     animation: buttonPressDown 0.1s ease-out forwards;
 }
+
+:root[data-ui="md3e"] body {
+  background-color: var(--md-browser-bg, var(--bg-main));
+}

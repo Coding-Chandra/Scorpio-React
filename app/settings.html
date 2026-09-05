@@ -3,8 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
     <title>- Settings</title>
-    <script>(function () {const root = document.documentElement;const ui = localStorage.getItem("ui-theme") || "ios";root.setAttribute("data-ui", ui);const mode = localStorage.getItem("notozApp_theme");if (mode) {root.setAttribute("data-theme", mode);}if (ui === "md3e") {const hex = localStorage.getItem("md3e-seed") || "#6750A4";const v = hex.replace("#","");root.style.setProperty("--md-seed",`${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);}})();</script>
+        <script>
+            (function () {
+                const root = document.documentElement;
+                const ui = localStorage.getItem('ui-theme') || 'ios';
+                const mode = localStorage.getItem('notozApp_theme') || 'dark';
+                const seed = localStorage.getItem('md3e-seed') || '#6750A4';
+                const hex = seed.replace('#', '');
+                const validHex = /^[0-9a-f]{6}$/i.test(hex) ? hex : '6750A4';
+                const channels = [0, 2, 4].map((offset) => parseInt(validHex.slice(offset, offset + 2), 16));
+                const base = mode === 'dark' ? [28, 27, 31] : [255, 255, 255];
+                const weight = mode === 'dark' ? 0.12 : 0.06;
+                const background = '#' + channels.map((channel, index) =>
+                    Math.round(base[index] * (1 - weight) + channel * weight).toString(16).padStart(2, '0')
+                ).join('');
+
+                root.setAttribute('data-ui', ui);
+                root.setAttribute('data-theme', mode);
+                root.style.setProperty('--md-seed', channels.join(','));
+                root.style.setProperty('--md-browser-bg', background);
+
+                const themeColor = document.querySelector('meta[name="theme-color"]');
+                if (themeColor) {
+                    themeColor.setAttribute('content', ui === 'md3e'
+                        ? background
+                        : (mode === 'light' ? '#F2F2F7' : '#000000'));
+                }
+            })();
+        </script>
     <link rel="icon" type="image/png" href="./src/assets/icons/logo.png">
     <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
     <link rel="stylesheet" href="./src/css/settings.css">
@@ -70,12 +98,38 @@
                 </span>
             </div>
         </div>
+        
+    </div>
+    
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
+        <div class="row clickable" onclick="toggleSecurityMonitor()">
+            <span class="label">Security Monitor</span>
+            <span id="securityMonitorStatus" class="value" style="font-size: 14px;">Loading...</span>
+        </div>
+        <div class="row clickable" onclick="setSecurityMonitorResponse(getSecurityMonitorStatus().response === 'notify' ? 'logout' : 'notify')">
+            <span class="label">Security Response</span>
+            <span id="securityMonitorResponse" class="value" style="font-size: 14px;">Notify only</span>
+        </div>
+        <div class="row clickable" onclick="copySecurityMonitorReport()">
+            <span class="label">Copy Security Report</span>
+            <span class="value" style="font-size: 14px;">Copy</span>
+        </div>
+        <div class="row clickable" onclick="clearSecurityMonitorHistory()">
+            <span class="label">Clear Security History</span>
+            <span id="securityMonitorEventCount" class="value" style="font-size: 14px;">0 events</span>
+        </div>
+    </div>
+
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.4s">
         <div class="row clickable" id="updateCacheBtn" onclick="showUpdateCacheModal()">
             <span class="label" style="color: var(--accent);">Updates</span>
             <div id="updateCacheStatus" style="display:flex; align-items:center; gap: 8px;">
                 <span id="updateCacheText" class="value" style="font-size: 14px;">Check for Updates</span>
                 <svg id="updateCacheIcon" class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
+        </div>
+        <div class="row" style="cursor: default;">
+            <span id="buildNumberDisplay" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">Build: vX.XX.XXX</span>
         </div>
     </div>
 
@@ -86,7 +140,7 @@
                 <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
             </div>
         </div>
-    </div>
+    </div>    
 
     <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
         <div class="row clickable" onclick="openPortal('./src/pages/about.html')">
@@ -103,16 +157,10 @@
         </div>
     </div>
 
-    <div class="settings-group animate-list-item-in" style="animation-delay: 0.4s">
-        <div class="row" style="cursor: default;">
-            <span id="buildNumberDisplay" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">Build: vX.XX.XXX</span>
-        </div>
+    <div class="settings-group animate-list-item-in" style="animation-delay: 0.5s">
         <div class="row clickable" onclick="showSignOutModal()">
             <span class="label">Log Out</span>
         </div>
-    </div>
-
-    <div class="settings-group animate-list-item-in" style="animation-delay: 0.5s">
         <div class="row clickable" onclick="showDeleteModal()">
             <span class="label" style="color: var(--accent1);">Delete Account</span>
             <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
@@ -120,6 +168,9 @@
     </div>
     <div class="settings-group">
     </div>
+    <div class="settings-group">
+    </div>
+    
 </div>
 
 <div id="portal-layer">

@@ -76,7 +76,7 @@ function showNotification(title, message, type = 'info') {
             : 'ℹ'}
             <span>${title}</span>
         </div>
-        <div style="opacity: 0.9; font-size: 13px; margin-left: 24px;">${message}</div>
+        <div class="notif-message" style="opacity: 0.9; font-size: 13px; margin-left: 24px;">${message}</div>
     `;
 
     container.appendChild(notification);
