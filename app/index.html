@@ -96,7 +96,7 @@
   <link rel="stylesheet" href="./src/css/grid-view.css" loading="lazy">
   <link rel="manifest" href="../manifest.json">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script>
     (function () {
       function setVh() {
@@ -223,7 +223,7 @@
       <div class="notes-scroll-area" id="notesListContainer"></div>
 
       <div class="list-header">
-        <input type="text" id="searchInput" class="search-bar" placeholder=" Search" oninput="app.handleSearch(this.value)">
+        <input type="text" id="searchInput" class="search-bar" placeholder=" Search" oninput="app.handleSearch(this.value)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <div style="display: flex; align-items: flex-end; gap: 2px;">
           <button class="mobile-nav-new-note" onclick="app.createNewNote()" title="New Note" aria-label="New Note">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -423,7 +423,7 @@
     <div class="dialog-panel">
       <div id="dialogTitle" class="dialog-title"></div>
       <div id="dialogMessage" class="dialog-message" style="display:none;"></div>
-      <input id="dialogInput" class="dialog-input" style="display:none;" />
+      <input id="dialogInput" class="dialog-input" type="text" name="folderName" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false" inputmode="text" style="display:none;" />
       <div class="dialog-actions">
         <button id="dialogCancelBtn" class="dialog-btn dialog-btn-cancel" type="button">Cancel</button>
         <button id="dialogConfirmBtn" class="dialog-btn dialog-btn-confirm" type="button">OK</button>
@@ -434,7 +434,6 @@
   </script>
   <script src="./src/js/animation-utils.js"></script>
   <script src="./src/js/offline-sync.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="./src/js/app.js"></script>
   <script src="./src/js/grid-view.js"></script>
   <script src="./src/js/avatars.js"></script>

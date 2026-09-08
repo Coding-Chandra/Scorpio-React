@@ -820,6 +820,27 @@ function applyUI(ui) {
     localStorage.setItem("ui-theme", ui);
 }
 
+function updateSettingsThemeColor(ui, theme) {
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (!themeColor) return;
+
+    let color = theme === 'light' ? '#F2F2F7' : '#000000';
+    if (ui === 'nothing') {
+        color = theme === 'light' ? '#F3F3F3' : '#000000';
+    } else if (ui === 'md3e') {
+        const seed = (localStorage.getItem('md3e-seed') || '#6750A4').replace('#', '');
+        const channels = [0, 2, 4].map((offset) => parseInt(seed.slice(offset, offset + 2), 16));
+        const base = theme === 'dark' ? [28, 27, 31] : [255, 255, 255];
+        const weight = theme === 'dark' ? 0.12 : 0.06;
+        color = '#' + channels.map((channel, index) =>
+            Math.round(base[index] * (1 - weight) + channel * weight).toString(16).padStart(2, '0')
+        ).join('');
+    }
+
+    themeColor.setAttribute('content', color);
+    document.documentElement.style.setProperty('--md-browser-bg', color);
+}
+
 function applyTheme(mode) {
     const actualTheme = mode === 'system'
         ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
@@ -827,6 +848,8 @@ function applyTheme(mode) {
 
     document.documentElement.setAttribute("data-theme", actualTheme);
     localStorage.setItem("notozApp_theme", mode);
+    window.updateThemeColor?.(document.documentElement.getAttribute('data-ui'), actualTheme);
+    updateSettingsThemeColor(document.documentElement.getAttribute('data-ui'), actualTheme);
 
     // Keep portal pages in sync too
     const frame = document.getElementById("portal-frame");

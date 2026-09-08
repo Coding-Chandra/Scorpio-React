@@ -10,7 +10,8 @@
      2. Base / iOS grid layout (the default look)
      3. MD3E (Material You) grid layout
      4. Nothing OS grid layout
-     5. Small screens / reduced motion
+     5. List <-> Grid switch animation
+     6. Small screens / reduced motion
    ===================================================== */
 
 /* =====================================================
@@ -312,7 +313,39 @@ html[data-ui="nothing"] .grid-mode .folder-item .folder-more-btn {
 }
 
 /* =====================================================
-   5. SMALL SCREENS / REDUCED MOTION
+   5. LIST <-> GRID SWITCH ANIMATION
+   Used by animateContainerSwitch() in grid-view.js: every
+   note/folder item fades+shrinks out (gridViewLeave), the
+   layout swaps while invisible, then the new layout's items
+   fade+grow back in with a stagger (gridViewEnter). Kept
+   theme-neutral like the rest of this file — same feel in
+   iOS, MD3E, and Nothing OS.
+   ===================================================== */
+
+@keyframes gridViewLeave {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+}
+
+@keyframes gridViewEnter {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* =====================================================
+   6. SMALL SCREENS / REDUCED MOTION
    ===================================================== */
 
 @media (max-width: 380px) {

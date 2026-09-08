@@ -2839,6 +2839,7 @@ app.applyTheme = function (theme) {
     const actualTheme = theme === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
     document.documentElement.setAttribute('data-theme', actualTheme);
     localStorage.setItem('notozApp_theme', theme);
+    window.updateThemeColor?.(document.documentElement.getAttribute('data-ui'), actualTheme);
     this.updateThemeToggleIcon();
 };
 

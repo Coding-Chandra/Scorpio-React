@@ -355,6 +355,7 @@ border-top: none;
 }
 :root[data-ui="nothing"] .editor-glass-layer{
   border-radius: 1px;
+  background: transparent;
 }
 
 /* Focus — animated dot underline */

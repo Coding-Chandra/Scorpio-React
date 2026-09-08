@@ -6,6 +6,8 @@
     const MAX_EVENTS = 50;
     const COOLDOWN_MS = 5000;
     const consoleThreshold = 160;
+    const keyboardThreshold = 150; // slightly under consoleThreshold; viewport shrink below this is treated as UI chrome (URL bar collapse etc.), not keyboard
+    const KEYBOARD_SETTLE_MS = 250; // Android keyboard slide animation is ~200-300ms; wait it out before evaluating
     const suspiciousKeys = ['notes_master_key'];
 
     let enabled = localStorage.getItem('security_monitor_disabled') !== 'true';
@@ -13,6 +15,7 @@
     let lastEventAt = {};
     let rotationInProgress = false;
     let rotationTimer = null;
+    let keyboardSettleTimer = null;
 
     function getOrientationState() {
         const orientation = screen.orientation;
@@ -23,16 +26,37 @@
         };
     }
 
+    function getViewportHeight() {
+        return window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    }
+
     let lastOrientation = getOrientationState();
+    // Tallest viewport height seen since the last orientation settle. Any large shrink
+    // from this peak means something is covering part of the screen — almost always the
+    // on-screen keyboard on Android, since there's no local devtools panel to dock on
+    // a touch-only device. This is intentionally independent of document.activeElement,
+    // because focus can briefly move to <body> while tabbing between fields with the
+    // keyboard still fully open.
+    let maxViewportHeight = getViewportHeight();
 
     function scheduleOrientationCheck() {
         rotationInProgress = true;
         clearTimeout(rotationTimer);
         rotationTimer = setTimeout(() => {
             lastOrientation = getOrientationState();
+            maxViewportHeight = getViewportHeight(); // width/height swap on rotate, so the old peak is meaningless
             rotationInProgress = false;
             checkConsole();
         }, 700);
+    }
+
+    function scheduleKeyboardCheck() {
+        clearTimeout(keyboardSettleTimer);
+        keyboardSettleTimer = setTimeout(() => {
+            const height = getViewportHeight();
+            if (height > maxViewportHeight) maxViewportHeight = height;
+            checkConsole();
+        }, KEYBOARD_SETTLE_MS);
     }
 
     function readEvents() {
@@ -64,12 +88,14 @@
         console.log('%cThis is a browser feature meant for developers.\nIf someone told you to copy/paste something here to "unlock a feature", "get free stuff", or "fix your account" - it is a scam that gives them control of your account. Do not paste anything you don\'t fully understand.', 'color:#e6e6e6;font-size:15px;line-height:1.5');
     }
 
+    function isTouchDevice() {
+        return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    }
+
     function isKeyboardVisible() {
-        const active = document.activeElement;
-        const editing = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
-        const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        const viewport = window.visualViewport;
-        return touchDevice && editing && ((viewport && window.innerHeight - viewport.height > consoleThreshold) || (!viewport && window.innerHeight < screen.height - consoleThreshold));
+        if (!isTouchDevice()) return false;
+        const height = getViewportHeight();
+        return maxViewportHeight - height > keyboardThreshold;
     }
 
     function checkConsole() {
@@ -225,13 +251,13 @@
             orientation.type !== lastOrientation.type ||
             orientation.media !== lastOrientation.media;
         if (orientationChanged) scheduleOrientationCheck();
-        else checkConsole();
+        else scheduleKeyboardCheck();
     });
     window.addEventListener('orientationchange', scheduleOrientationCheck);
     screen.orientation?.addEventListener('change', scheduleOrientationCheck);
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', checkConsole);
-    document.addEventListener('focusin', () => setTimeout(checkConsole, 50));
-    document.addEventListener('focusout', () => setTimeout(checkConsole, 50));
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleKeyboardCheck);
+    document.addEventListener('focusin', scheduleKeyboardCheck);
+    document.addEventListener('focusout', scheduleKeyboardCheck);
     window.addEventListener('storage', scanStorage);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') { checkConsole(); scanStorage(); }
