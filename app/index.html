@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, interactive-widget=resizes-content">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-title" content="Notoz">
@@ -99,13 +99,30 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <script>
     (function () {
-      function setVh() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', vh + 'px');
+      const root = document.documentElement;
+      const viewport = window.visualViewport;
+      let frame = 0;
+      let largestHeight = window.innerHeight;
+
+      function setViewportHeight() {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => {
+          const height = viewport?.height || window.innerHeight;
+          if (height > largestHeight) largestHeight = height;
+
+          root.style.setProperty('--vh', `${height * 0.01}px`);
+          root.classList.toggle('keyboard-visible', largestHeight - height > 120);
+          root.classList.add('viewport-ready');
+        });
       }
-      setVh();
-      window.addEventListener('resize', setVh);
-      window.addEventListener('orientationchange', setVh);
+
+      setViewportHeight();
+      window.addEventListener('resize', setViewportHeight, { passive: true });
+      window.addEventListener('orientationchange', () => {
+        largestHeight = window.innerHeight;
+        setViewportHeight();
+      }, { passive: true });
+      viewport?.addEventListener('resize', setViewportHeight, { passive: true });
     })();
   </script>
 </head>
@@ -434,12 +451,14 @@
   </script>
   <script src="./src/js/animation-utils.js"></script>
   <script src="./src/js/offline-sync.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="./src/js/app.js"></script>
   <script src="./src/js/grid-view.js"></script>
   <script src="./src/js/avatars.js"></script>
   <script src="./src/js/md3e-enhance.js" defer loading="lazy"></script>
   <script>
     window.addEventListener("message", (e) => {
+      if (e.origin !== window.location.origin) return;
       if (!e.data || !e.data.type) return;
 
       const wallpaperMap = {

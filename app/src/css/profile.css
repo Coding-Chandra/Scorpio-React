@@ -83,6 +83,29 @@ html[data-ui="nothing"] .profile-avatar {
     width: 100%;
 }
 
+.import-progress {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 12px 0 18px;
+    color: var(--text-dim);
+    font-size: 13px;
+}
+
+.import-spinner {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: importSpinner 0.75s linear infinite;
+}
+
+@keyframes importSpinner {
+    to { transform: rotate(360deg); }
+}
+
 /* iOS Modal */
 html[data-ui="ios"] .modal-box {
     border-radius: 14px;

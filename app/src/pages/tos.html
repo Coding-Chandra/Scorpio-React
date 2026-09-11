@@ -256,7 +256,7 @@
     };
     updateTheme(localStorage.getItem('notozApp_theme') || 'light');
     window.addEventListener('message', (e) => {
-        if (e.data?.type === 'INIT_THEME') updateTheme(e.data.theme);
+        if (e.origin === window.location.origin && e.data?.type === 'INIT_THEME') updateTheme(e.data.theme);
     });
     window.addEventListener('storage', (e) => {
         if (e.key === 'notozApp_theme') updateTheme(e.newValue);

@@ -21,8 +21,17 @@ let CURRENT_USER_ID = null;
 // through this first. Requires DOMPurify to be loaded on the page BEFORE
 // this script (e.g. <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>).
 // ============================================================================
-const NOTE_HTML_ALLOWED_TAGS = ['div', 'br', 'p', 'h1', 'h2', 'h3', 'span', 'b', 'strong', 'i', 'em', 'u', 'strike', 's', 'img'];
-const NOTE_HTML_ALLOWED_ATTR = ['style', 'src', 'class', 'contenteditable'];
+const NOTE_HTML_ALLOWED_TAGS = [
+    'div', 'br', 'p', 'h1', 'h2', 'h3',
+    'span', 'b', 'strong', 'i', 'em', 'u', 'strike', 's', 'del', 'ins',
+    'small', 'mark', 'sub', 'sup', 'a', 'img',
+    'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'hr',
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'
+];
+const NOTE_HTML_ALLOWED_ATTR = [
+    'style', 'class', 'contenteditable', 'href', 'target', 'rel',
+    'src', 'alt', 'title', 'width', 'height', 'colspan', 'rowspan'
+];
 
 function sanitizeNoteHtml(html) {
     if (!html) return '';

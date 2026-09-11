@@ -151,6 +151,11 @@
             gap: 7.5px;
         }
 
+        html.viewport-ready #app,
+        html.viewport-ready .pane {
+            transition: height 260ms var(--ios-ease);
+        }
+
         .pane {
             height: 100%;
             display: flex;
@@ -1731,12 +1736,14 @@
         @media (max-width: 768px) {
             body {
                 padding: 0;
+                border: 0;
             }
             #app {
                 flex-direction: column;
                 height: calc(var(--vh) * 100);
                 padding: 0;
                 gap: 0;
+                border: 0;
             }
             .pane {
                 width: 100%;
@@ -1762,6 +1769,7 @@
             #notes-list-pane.glass-panel,
             #editor-pane.glass-panel-strong {
                 border-radius: 0;
+                border-top: none;
                 border-left: none;
                 border-right: none;
                 border-bottom: none;

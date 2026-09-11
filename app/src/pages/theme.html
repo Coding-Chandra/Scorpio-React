@@ -562,19 +562,19 @@ applySeed(seed);
 function setUI(v) {
   localStorage.setItem(UI_KEY, v);
   applyUI(v);
-  window.parent.postMessage({ type: "SET_UI_THEME", theme: v }, "*");
+  window.parent.postMessage({ type: "SET_UI_THEME", theme: v }, window.location.origin);
 }
 
 function setMode(v) {
   localStorage.setItem(MODE_KEY, v);
   applyMode(v);
-  window.parent.postMessage({ type: "SET_THEME", theme: v }, "*");
+  window.parent.postMessage({ type: "SET_THEME", theme: v }, window.location.origin);
 }
 
 function setPreset(hex) {
   localStorage.setItem(SEED_KEY, hex);
   applySeed(hex);
-  window.parent.postMessage({ type: "SET_MD3E_COLOR", color: hex }, "*");
+  window.parent.postMessage({ type: "SET_MD3E_COLOR", color: hex }, window.location.origin);
 }
 
 function applyUI(v) {

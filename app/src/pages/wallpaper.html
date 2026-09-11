@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Wallpaper</title>
 <link rel="icon" type="image/png" href="../assets/icons/logo.png">
 <link rel="apple-touch-icon" href="../assets/icons/logo.png">
@@ -985,7 +985,7 @@ function setUITheme(ui) {
   applyPageModeForUI(ui);
   syncUIPicker(ui);
   closeUIPicker();
-  window.parent.postMessage({ type: 'SET_UI_THEME', theme: ui }, '*');
+  window.parent.postMessage({ type: 'SET_UI_THEME', theme: ui }, window.location.origin);
 }
 
 /* =====================================================
@@ -1082,7 +1082,7 @@ function handlePresetTap(hex) {
   });
 
   updateStatus();
-  window.parent.postMessage({ type: 'SET_MD3E_COLOR', color: hex }, '*');
+  window.parent.postMessage({ type: 'SET_MD3E_COLOR', color: hex }, window.location.origin);
 }
 
 function applySeedVar(hex) {
@@ -1175,7 +1175,7 @@ function notifyParent() {
     wallpaper: id,
     label:     card?.label || 'Wallpaper',
     disabled:  isDisabled()
-  }, '*');
+  }, window.location.origin);
 }
 
 /* =====================================================

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>User Profile</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png">
     <link rel="apple-touch-icon" href="../assets/icons/logo.png">
@@ -23,17 +23,6 @@
     <link rel="stylesheet" href="../css/animations.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="../css/avatars.css">
-    <!-- Import/Export format support -->
-    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
-    <script>
-        // pdf.js needs an explicit worker URL when loaded this way
-        if (window.pdfjsLib) {
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-        }
-    </script>
     </head>
 <body>
 <div class="container animate-fade-in">

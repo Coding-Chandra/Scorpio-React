@@ -1,5 +1,5 @@
 // TOP OF FILE: Import Supabase directly from the CDN
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/+esm'
 
 const SUPABASE_URL = 'https://scorpio-native-app.webg.workers.dev';
 const SUPABASE_ANON_KEY = 'sb_publishable_mAXfLlr54xCYHL4aXCnRmg_0BULcwxs';
@@ -1123,12 +1123,58 @@ async function exportNotesToFile(format = 'json') {
 
 // ---------- Import Files (single files -> "Imports" folder) ----------
 
+const IMPORT_LIBRARY_SOURCES = {
+    dompurify: ['https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js', 'DOMPurify'],
+    jszip: ['https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js', 'JSZip'],
+    pdfjs: ['https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js', 'pdfjsLib'],
+    mammoth: ['https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js', 'mammoth'],
+    marked: ['https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js', 'marked']
+};
+const importLibraryPromises = new Map();
+
+function loadImportLibrary(name) {
+    const source = IMPORT_LIBRARY_SOURCES[name];
+    if (!source) return Promise.reject(new Error(`Unknown import library: ${name}`));
+    const [url, globalName] = source;
+    if (window[globalName]) return Promise.resolve(window[globalName]);
+    if (importLibraryPromises.has(name)) return importLibraryPromises.get(name);
+
+    const promise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.async = true;
+        script.onload = () => window[globalName]
+            ? resolve(window[globalName])
+            : reject(new Error(`${name} library loaded without its expected global.`));
+        script.onerror = () => reject(new Error(`Could not load ${name} library.`));
+        document.head.appendChild(script);
+    });
+    importLibraryPromises.set(name, promise);
+    return promise;
+}
+
+async function ensureImportLibraries(files) {
+    const extensions = new Set(files.map((file) => getFileExtension(file.name)));
+    const libraries = ['dompurify'];
+    if (extensions.has('pdf')) libraries.push('pdfjs');
+    if (extensions.has('docx')) libraries.push('mammoth');
+    if (extensions.has('md')) libraries.push('marked');
+    await Promise.all(libraries.map((name) => loadImportLibrary(name)));
+    if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    }
+}
+
 window.promptImportFiles = () => {
     document.getElementById('modal-title').textContent = 'Import Files';
     document.getElementById('modal-message').textContent = 'Select one or more files. Each becomes a new note in your "Imports" folder.';
     document.getElementById('modal-input-container').innerHTML = `
-        <input id="notesImportFileInput" type="file" multiple accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="width:100%; padding: 10px 0;" />
-        <p style="font-size: 13px; color: var(--text-dim); margin: 10px 0 0 0;">Supports .txt, .md, .pdf, and .docx. For a full backup restore (.json/.zip), use "Restore Backup" instead.</p>
+        <input id="notesImportFileInput" type="file" multiple accept=".txt,.md,.pdf,.docx,.html,.htm,.png,.jpg,.jpeg,.webp,.gif,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/html,image/*" style="width:100%; padding: 10px 0;" />
+        <p style="font-size: 13px; color: var(--text-dim); margin: 10px 0 0 0;">Supports text, Markdown, PDF, Word, HTML, and image files. For a full backup restore (.json/.zip), use "Restore Backup" instead.</p>
+        <div id="importProgress" class="import-progress" hidden aria-live="polite">
+            <span class="import-spinner" aria-hidden="true"></span>
+            <span id="importProgressText">Preparing import...</span>
+        </div>
     `;
     const confirmBtn = document.getElementById('modal-confirm-btn');
     confirmBtn.textContent = 'Upload';
@@ -1161,61 +1207,124 @@ function markdownToHtml(text) {
     return textToHtml(text);
 }
 
-// Reconstructs rough paragraphs from pdf.js's positioned text items, since a
-// PDF has no inherent paragraph markup — grouped by line, then split into
-// paragraphs wherever the vertical gap between lines is unusually large.
+function pdfTextItemsToHtml(items) {
+    const positioned = items
+        .filter((item) => item.str && item.str.trim())
+        .map((item) => ({
+            text: item.str.trim(),
+            x: item.transform[4],
+            y: item.transform[5],
+            size: Math.max(1, Math.abs(item.transform[0]) || item.height || 12),
+            width: item.width || 0
+        }));
+
+    if (!positioned.length) return '';
+
+    const sizes = positioned.map((item) => item.size).sort((a, b) => a - b);
+    const bodySize = sizes[Math.floor(sizes.length / 2)] || 12;
+    const lines = [];
+    const tolerance = Math.max(2, bodySize * 0.35);
+
+    for (const item of positioned.sort((a, b) => b.y - a.y || a.x - b.x)) {
+        const line = lines.find((candidate) => Math.abs(candidate.y - item.y) <= tolerance);
+        if (line) {
+            const previous = line.items[line.items.length - 1];
+            const gap = item.x - (previous.x + previous.width);
+            line.items.push(item);
+            line.text += (gap > Math.max(1, item.size * 0.12) ? ' ' : '') + item.text;
+            line.size = Math.max(line.size, item.size);
+        } else {
+            lines.push({ y: item.y, size: item.size, items: [item], text: item.text });
+        }
+    }
+
+    lines.sort((a, b) => b.y - a.y);
+    const gaps = lines.slice(1).map((line, index) => Math.abs(lines[index].y - line.y));
+    const typicalGap = gaps.length ? gaps.slice().sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : bodySize * 1.3;
+    const blocks = [];
+    let current = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const previous = lines[i - 1];
+        const gap = previous ? Math.abs(previous.y - line.y) : 0;
+        const startsNewBlock = current.length && (gap > typicalGap * 1.65 || line.size > bodySize * 1.35);
+        if (startsNewBlock) {
+            blocks.push(current);
+            current = [];
+        }
+        current.push(line);
+    }
+    if (current.length) blocks.push(current);
+
+    const html = [];
+    let listItems = [];
+    let listType = null;
+    const flushList = () => {
+        if (!listItems.length) return;
+        html.push(`<${listType}>${listItems.map((item) => `<li>${item}</li>`).join('')}</${listType}>`);
+        listItems = [];
+        listType = null;
+    };
+
+    for (const block of blocks) {
+        const blockText = block.map((line) => line.text.trim()).filter(Boolean);
+        if (!blockText.length) continue;
+        const first = blockText[0];
+        const bulletMatch = first.match(/^([\u2022\u25E6\u25AA\u25CF]|[-*])\s+(.*)$/);
+        const numberMatch = first.match(/^\d+[.)]\s+(.*)$/);
+
+        if (bulletMatch || numberMatch) {
+            const nextType = numberMatch ? 'ol' : 'ul';
+            if (listType && listType !== nextType) flushList();
+            listType = nextType;
+            const content = numberMatch ? numberMatch[1] : bulletMatch[2];
+            listItems.push(escapeHtml([content, ...blockText.slice(1)].join(' ')));
+            continue;
+        }
+        flushList();
+
+        const text = escapeHtml(blockText.join(' '));
+        const isHeading = block.length === 1 && block[0].size >= bodySize * 1.35;
+        html.push(isHeading ? `<h2>${text}</h2>` : `<p>${text}</p>`);
+    }
+    flushList();
+    return html.join('');
+}
+
+async function renderPdfPageAsDataUrl(page) {
+    const viewport = page.getViewport({ scale: 1.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    return `<p class="imported-image"><img src="${canvas.toDataURL('image/png')}" alt="Imported PDF page" style="max-width:100%;height:auto;" /></p>`;
+}
+
 async function extractHtmlFromPdf(file) {
     if (!window.pdfjsLib) throw new Error('PDF library failed to load.');
     const buffer = await file.arrayBuffer();
     const pdf = await window.pdfjsLib.getDocument({ data: buffer }).promise;
+    if (pdf.numPages > IMPORT_LIMITS.maxPdfPages) {
+        throw new Error(`PDF has ${pdf.numPages} pages; the limit is ${IMPORT_LIMITS.maxPdfPages}.`);
+    }
     const pageHtml = [];
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
+        const reconstructed = pdfTextItemsToHtml(textContent.items);
+        const operatorList = await page.getOperatorList();
+        const imageOps = [
+            window.pdfjsLib.OPS?.paintImageMaskXObject,
+            window.pdfjsLib.OPS?.paintImageXObject,
+            window.pdfjsLib.OPS?.paintInlineImageXObject
+        ].filter((value) => value !== undefined);
+        const containsImage = operatorList.fnArray.some((operator) => imageOps.includes(operator));
 
-        // Group text items into lines by vertical position
-        const lines = [];
-        let currentLine = null;
-        const Y_TOLERANCE = 2;
-
-        for (const item of textContent.items) {
-            const y = item.transform[5];
-            if (!currentLine || Math.abs(currentLine.y - y) > Y_TOLERANCE) {
-                currentLine = { y, text: item.str };
-                lines.push(currentLine);
-            } else {
-                const needsSpace = currentLine.text && !currentLine.text.endsWith(' ') && !item.str.startsWith(' ');
-                currentLine.text += (needsSpace ? ' ' : '') + item.str;
-            }
-        }
-
-        // PDF space has y increasing upward — sort top-to-bottom for reading order
-        lines.sort((a, b) => b.y - a.y);
-
-        const gaps = [];
-        for (let i = 1; i < lines.length; i++) gaps.push(Math.abs(lines[i - 1].y - lines[i].y));
-        const typicalGap = gaps.length ? gaps.sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 14;
-
-        const paragraphs = [];
-        let currentPara = [];
-        let prevY = null;
-
-        for (const line of lines) {
-            const text = line.text.trim();
-            if (!text) continue;
-            if (prevY !== null && Math.abs(prevY - line.y) > typicalGap * 1.6 && currentPara.length) {
-                paragraphs.push(currentPara.join(' '));
-                currentPara = [];
-            }
-            currentPara.push(text);
-            prevY = line.y;
-        }
-        if (currentPara.length) paragraphs.push(currentPara.join(' '));
-
-        if (paragraphs.length) {
-            pageHtml.push(paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join(''));
-        }
+        // A full-page raster preserves scanned/embedded imagery, but adding it
+        // beside reconstructed text duplicates every text glyph on the page.
+        pageHtml.push(containsImage ? await renderPdfPageAsDataUrl(page) : reconstructed);
     }
 
     return pageHtml.join('<div><br></div>');
@@ -1226,8 +1335,87 @@ async function extractHtmlFromPdf(file) {
 async function extractHtmlFromDocx(file) {
     if (!window.mammoth) throw new Error('DOCX library failed to load.');
     const buffer = await file.arrayBuffer();
-    const result = await window.mammoth.convertToHtml({ arrayBuffer: buffer });
+    const result = await window.mammoth.convertToHtml({
+        arrayBuffer: buffer,
+        convertImage: window.mammoth.images.imgElement((image) => image.read('base64').then((base64) => ({
+            src: `data:${image.contentType};base64,${base64}`
+        })))
+    });
     return result.value || '';
+}
+
+async function extractHtmlFile(file) {
+    const html = await file.text();
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    container.querySelectorAll('script, style, link, meta, iframe, object, embed, form').forEach((element) => element.remove());
+    container.querySelectorAll('*').forEach((element) => {
+        [...element.attributes].forEach((attribute) => {
+            if (attribute.name.toLowerCase().startsWith('on')) element.removeAttribute(attribute.name);
+        });
+    });
+    return container.body?.innerHTML || container.innerHTML;
+}
+
+async function extractImageFile(file) {
+    const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error || new Error('Could not read image.'));
+        reader.readAsDataURL(file);
+    });
+
+    const image = await new Promise((resolve, reject) => {
+        const element = new Image();
+        element.onload = () => resolve(element);
+        element.onerror = () => reject(new Error('Could not decode image.'));
+        element.src = dataUrl;
+    });
+    const scale = Math.min(1, IMPORT_LIMITS.maxImageDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+    const compactDataUrl = canvas.toDataURL('image/webp', 0.82);
+    return `<p class="imported-image"><img src="${compactDataUrl}" alt="${escapeHtml(titleFromFilename(file.name))}" style="max-width:100%;height:auto;" /></p>`;
+}
+
+const IMPORT_LIMITS = {
+    maxFileBytes: 20 * 1024 * 1024,
+    maxPdfPages: 100,
+    maxImageDimension: 2400
+};
+
+const IMPORT_HTML_ALLOWED_TAGS = [
+    'div', 'br', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'span', 'b', 'strong', 'i', 'em', 'u', 'strike', 's', 'del', 'ins',
+    'small', 'mark', 'sub', 'sup', 'a', 'img', 'ul', 'ol', 'li',
+    'blockquote', 'pre', 'code', 'hr', 'table', 'thead', 'tbody', 'tfoot',
+    'tr', 'th', 'td'
+];
+const IMPORT_HTML_ALLOWED_ATTR = [
+    'style', 'class', 'href', 'target', 'rel', 'src', 'alt', 'title',
+    'width', 'height', 'colspan', 'rowspan'
+];
+
+function sanitizeImportedHtml(html) {
+    if (!html) return '';
+    if (window.DOMPurify) {
+        return window.DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: IMPORT_HTML_ALLOWED_TAGS,
+            ALLOWED_ATTR: IMPORT_HTML_ALLOWED_ATTR
+        });
+    }
+
+    const fallback = document.createElement('div');
+    fallback.innerHTML = html;
+    fallback.querySelectorAll('script, style, link, meta, iframe, object, embed, form').forEach((element) => element.remove());
+    fallback.querySelectorAll('*').forEach((element) => {
+        [...element.attributes].forEach((attribute) => {
+            if (attribute.name.toLowerCase().startsWith('on')) element.removeAttribute(attribute.name);
+        });
+    });
+    return fallback.innerHTML;
 }
 
 function titleFromFilename(filename) {
@@ -1263,6 +1451,10 @@ async function noteFromPlainFile(file) {
             rawText = rawText.replace(headingMatch[0], '').trim();
         }
         html = markdownToHtml(rawText);
+    } else if (ext === 'html' || ext === 'htm') {
+        html = await extractHtmlFile(file);
+    } else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext) || file.type.startsWith('image/')) {
+        html = await extractImageFile(file);
     } else {
         rawText = await file.text(); // .txt and anything else readable as plain text
         html = textToHtml(rawText);
@@ -1270,7 +1462,7 @@ async function noteFromPlainFile(file) {
 
     return {
         title,
-        content: html.trim(),
+        content: sanitizeImportedHtml(html.trim()),
         paper_style: 'blank',
         pinned: false
     };
@@ -1288,16 +1480,26 @@ async function importNotesFromFile() {
     }
 
     const files = Array.from(fileInput.files);
-    const SUPPORTED_EXTS = ['txt', 'md', 'pdf', 'docx'];
+    const SUPPORTED_EXTS = ['txt', 'md', 'pdf', 'docx', 'html', 'htm', 'png', 'jpg', 'jpeg', 'webp', 'gif'];
+    const progressEl = document.getElementById('importProgress');
+    const progressTextEl = document.getElementById('importProgressText');
 
     btn.disabled = true;
-    messageEl.textContent = 'Reading file(s)...';
+    progressEl?.removeAttribute('hidden');
+    const setProgress = (text) => {
+        if (progressTextEl) progressTextEl.textContent = text;
+        messageEl.textContent = text;
+    };
+    setProgress('Reading file(s)...');
     statusEl.textContent = 'Importing...';
     statusEl.style.color = 'var(--text-dim)';
 
     try {
+        setProgress('Preparing import tools...');
+        await ensureImportLibraries(files);
         let importedNotes = [];
         let skipped = 0;
+        const failed = [];
 
         for (const file of files) {
             const ext = getFileExtension(file.name);
@@ -1308,8 +1510,17 @@ async function importNotesFromFile() {
                 console.warn('[Import] Skipping backup file in Import Files flow:', file.name);
                 skipped += 1;
             } else if (SUPPORTED_EXTS.includes(ext)) {
-                messageEl.textContent = `Converting ${file.name}...`;
-                importedNotes.push(await noteFromPlainFile(file));
+                if (file.size > IMPORT_LIMITS.maxFileBytes) {
+                    failed.push(`${file.name} (over 20 MB)`);
+                    continue;
+                }
+                setProgress(`Converting ${file.name}...`);
+                try {
+                    importedNotes.push(await noteFromPlainFile(file));
+                } catch (error) {
+                    console.warn(`[Import] Could not convert ${file.name}:`, error);
+                    failed.push(`${file.name} (${error.message || 'conversion failed'})`);
+                }
             } else {
                 console.warn('[Import] Skipping unsupported file:', file.name);
                 skipped += 1;
@@ -1317,13 +1528,14 @@ async function importNotesFromFile() {
         }
 
         if (importedNotes.length === 0) {
-            throw new Error('No importable files found. (.json/.zip backups use "Restore Backup" instead.)');
+            const detail = failed.length ? ` Failed: ${failed.join(', ')}` : '';
+            throw new Error(`No files could be imported. (.json/.zip backups use "Restore Backup" instead.)${detail}`);
         }
 
-        messageEl.textContent = 'Finding your Imports folder...';
+        setProgress('Finding your Imports folder...');
         const importsFolderId = await getOrCreateImportsFolder();
 
-        messageEl.textContent = `Encrypting ${importedNotes.length} notes...`;
+        setProgress(`Encrypting ${importedNotes.length} notes...`);
 
         const rows = [];
         for (const note of importedNotes) {
@@ -1339,7 +1551,7 @@ async function importNotesFromFile() {
             });
         }
 
-        messageEl.textContent = 'Uploading encrypted notes...';
+        setProgress('Uploading encrypted notes...');
 
         const { error } = await supabase
             .from('notes')
@@ -1350,8 +1562,12 @@ async function importNotesFromFile() {
         const noteWord = rows.length === 1 ? 'note' : 'notes';
         statusEl.textContent = `✓ Imported ${rows.length} ${noteWord}`;
         statusEl.style.color = 'var(--accent)';
-        messageEl.textContent = skipped > 0
-            ? `Added to your Imports folder. Skipped ${skipped} unsupported file${skipped === 1 ? '' : 's'}.`
+        progressEl?.setAttribute('hidden', '');
+        const notices = [];
+        if (skipped > 0) notices.push(`skipped ${skipped} unsupported file${skipped === 1 ? '' : 's'}`);
+        if (failed.length) notices.push(`failed ${failed.length} file${failed.length === 1 ? '' : 's'}`);
+        messageEl.textContent = notices.length
+            ? `Added to your Imports folder; ${notices.join(' and ')}.`
             : 'Added to your Imports folder.';
         showNotification('Import complete', `Imported ${rows.length} ${noteWord} into "Imports".`, 'success');
         btn.textContent = 'Done';
@@ -1361,6 +1577,7 @@ async function importNotesFromFile() {
         console.error('Import error:', error);
         statusEl.textContent = '✕ Import failed';
         statusEl.style.color = 'var(--accent1)';
+        progressEl?.setAttribute('hidden', '');
         messageEl.textContent = `Import failed: ${error.message || 'Invalid file.'}`;
         showNotification('Import failed', error.message || 'Invalid file.', 'error');
         btn.textContent = 'Try Again';
@@ -1523,7 +1740,7 @@ async function restoreBackupFromFile() {
             if (!recognized) throw new Error('This file is not a recognized backup. Use "Import Files" for plain notes.');
             restoredNotes = Array.isArray(parsed.notes) ? parsed.notes : [];
         } else {
-            if (!window.JSZip) throw new Error('ZIP library failed to load.');
+            await loadImportLibrary('jszip');
             setExportProgress(0.1, 'Unpacking ZIP...');
             const zip = await window.JSZip.loadAsync(file);
             const { notes } = await restoreNotesFromZip(zip);

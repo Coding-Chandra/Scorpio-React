@@ -74,10 +74,12 @@ function showNotification(title, message, type = 'info') {
                 <path d="M12 2a4 4 0 0 0-4 4c0 2.38-1.19 4.39-2.3 6.09C4.65 13.7 3.5 15.28 3.5 17.5a2.5 2.5 0 0 0 2.5 2.5h12a2.5 2.5 0 0 0 2.5-2.5c0-2.22-1.15-3.8-2.2-5.41C17.19 10.39 16 8.38 16 6a4 4 0 0 0-4-4zm-3 19a3 3 0 0 0 6 0z"/>
                 </svg>`
             : 'ℹ'}
-            <span>${title}</span>
+            <span></span>
         </div>
-        <div class="notif-message" style="opacity: 0.9; font-size: 13px; margin-left: 24px;">${message}</div>
+        <div class="notif-message" style="opacity: 0.9; font-size: 13px; margin-left: 24px;"></div>
     `;
+    notification.querySelector('div[style*="font-weight"] span').textContent = String(title ?? '');
+    notification.querySelector('.notif-message').textContent = String(message ?? '');
 
     container.appendChild(notification);
 

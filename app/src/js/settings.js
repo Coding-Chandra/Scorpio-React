@@ -35,7 +35,7 @@ const applyThemeUI = (theme) => {
     const displayTheme = theme === 'system' ? 'System' : theme.charAt(0).toUpperCase() + theme.slice(1);
     document.getElementById('currentThemeDisplay').textContent = displayTheme;
     const frame = document.getElementById('portal-frame');
-    if (frame?.contentWindow) frame.contentWindow.postMessage({ type: 'INIT_THEME', theme }, '*');
+    if (frame?.contentWindow) frame.contentWindow.postMessage({ type: 'INIT_THEME', theme }, window.location.origin);
 };
 
 // --- Portal Control ---
@@ -605,10 +605,12 @@ function showNotification(title, message, type = 'info') {
                 <path d="M12 2a4 4 0 0 0-4 4c0 2.38-1.19 4.39-2.3 6.09C4.65 13.7 3.5 15.28 3.5 17.5a2.5 2.5 0 0 0 2.5 2.5h12a2.5 2.5 0 0 0 2.5-2.5c0-2.22-1.15-3.8-2.2-5.41C17.19 10.39 16 8.38 16 6a4 4 0 0 0-4-4zm-3 19a3 3 0 0 0 6 0z"/>
                 </svg>` 
             : 'ℹ'}
-            <span>${title}</span>
+            <span></span>
         </div>
-        <div style="opacity: 0.9; font-size: 13px; margin-left: 24px;">${message}</div>
+        <div style="opacity: 0.9; font-size: 13px; margin-left: 24px;"></div>
     `;
+    notification.querySelector('div[style*="font-weight"] span').textContent = String(title ?? '');
+    notification.querySelector('div[style*="opacity"]').textContent = String(message ?? '');
 
     container.appendChild(notification);
 
@@ -854,7 +856,7 @@ function applyTheme(mode) {
     // Keep portal pages in sync too
     const frame = document.getElementById("portal-frame");
     if (frame?.contentWindow) {
-        frame.contentWindow.postMessage({ type: 'INIT_THEME', theme: mode }, '*');
+        frame.contentWindow.postMessage({ type: 'INIT_THEME', theme: mode }, window.location.origin);
     }
 }
 
@@ -946,15 +948,18 @@ function updateSettingsNotificationUI() {
 }
 
 window.addEventListener("message", (event) => {
+    const portalFrame = document.getElementById('portal-frame');
+    if (event.origin !== window.location.origin || (portalFrame && event.source !== portalFrame.contentWindow)) return;
     if (!event.data || !event.data.type) return;
 
     switch (event.data.type) {
         case "SET_UI_THEME": {
+            if (!['ios', 'md3e', 'nothing'].includes(event.data.theme)) break;
             applyUI(event.data.theme);
             applyWallpaperUI();
             const frame = document.getElementById("portal-frame");
             if (frame?.contentWindow) {
-                frame.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, "*");
+                frame.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, window.location.origin);
             }
             const uiLabels = { ios: "iOS", md3e: "Material You", nothing: "Nothing OS" };
             showNotification(
@@ -966,10 +971,11 @@ window.addEventListener("message", (event) => {
         }
 
         case "SET_THEME": {
+            if (!['light', 'dark', 'system'].includes(event.data.theme)) break;
             applyTheme(event.data.theme);
             const frame2 = document.getElementById("portal-frame");
             if (frame2?.contentWindow) {
-                frame2.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, "*");
+                frame2.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, window.location.origin);
             }
             showNotification(
                 "Theme Updated",
@@ -980,10 +986,11 @@ window.addEventListener("message", (event) => {
         }
 
         case "SET_MD3E_COLOR": {
+            if (!/^#[0-9a-f]{6}$/i.test(event.data.color || '')) break;
             applyMD3EAccent(event.data.color);
             const frame3 = document.getElementById("portal-frame");
             if (frame3?.contentWindow) {
-                frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notozApp_theme") }, "*");
+                frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notozApp_theme") }, window.location.origin);
             }
             showNotification(
                 "Accent Color Updated",

@@ -44,7 +44,7 @@
       "name": "Profile",
       "short_name": "Profile",
       "description": "View your profile",
-      "url": "/app/pages/profile"
+      "url": "/app/src/pages/profile.html"
     },
     {
       "name": "New Note",

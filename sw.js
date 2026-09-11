@@ -1,4 +1,4 @@
-const CACHE_NAME = 'notoj-app-v2.1.02';
+const CACHE_NAME = 'notoj-app-v2.3.02';
 const BASE = self.registration.scope;
 const urlsToCache = [
   './',
@@ -33,15 +33,15 @@ const urlsToCache = [
 
   // Wallpapers
   // iOS wallpapers
-  'app/src/assets/wallpapers/imd/imd1.jpg',
-  'app/src/assets/wallpapers/imd/imd2.jpg',
-  'app/src/assets/wallpapers/imd/imd3.jpg',
-  'app/src/assets/wallpapers/imd/imd4.jpg',
+  'app/src/assets/wallpaper/imd/imd1.jpg',
+  'app/src/assets/wallpaper/imd/imd2.jpg',
+  'app/src/assets/wallpaper/imd/imd3.jpg',
+  'app/src/assets/wallpaper/imd/imd4.jpg',
   // Nothing wallpapers
-  'app/src/assets/wallpapers/n/nos1.jpg',
-  'app/src/assets/wallpapers/n/nos2.jpg',
-  'app/src/assets/wallpapers/n/nos3.jpg',
-  'app/src/assets/wallpapers/n/nos4.jpg'
+  'app/src/assets/wallpaper/n/nos1.jpg',
+  'app/src/assets/wallpaper/n/nos2.jpg',
+  'app/src/assets/wallpaper/n/nos3.jpg',
+  'app/src/assets/wallpaper/n/nos4.jpg'
 
 ].map(p => new URL(p, BASE).toString());
 
@@ -128,6 +128,7 @@ self.addEventListener('fetch', event => {
 // MESSAGE HANDLER
 // ============================================================================
 self.addEventListener('message', event => {
+  if (event.origin !== self.location.origin || !event.source) return;
   if (!event.data || !event.data.type) return;
   console.log('[SW] Message received:', event.data.type);
 

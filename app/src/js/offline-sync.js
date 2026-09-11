@@ -20,7 +20,7 @@
 // =====================================================
 
 const DB_NAME = 'notozApp';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 // Store names
 const STORES = {
@@ -60,6 +60,21 @@ async function initializeDatabase() {
         const queueStore = database.createObjectStore(STORES.syncQueue, { keyPath: 'id', autoIncrement: true });
         queueStore.createIndex('action', 'action', { unique: false });
         queueStore.createIndex('timestamp', 'timestamp', { unique: false });
+        queueStore.createIndex('user_id', 'user_id', { unique: false });
+      } else if (event.oldVersion < 2) {
+        const queueStore = event.target.transaction.objectStore(STORES.syncQueue);
+        if (!queueStore.indexNames.contains('user_id')) {
+          queueStore.createIndex('user_id', 'user_id', { unique: false });
+        }
+        queueStore.openCursor().onsuccess = (cursorEvent) => {
+          const cursor = cursorEvent.target.result;
+          if (!cursor) return;
+          const item = cursor.value;
+          if (!item.user_id && item.data?.user_id) {
+            cursor.update({ ...item, user_id: item.data.user_id });
+          }
+          cursor.continue();
+        };
       }
 
       // Metadata store (last sync time, etc)
@@ -101,12 +116,18 @@ async function saveNoteOffline(noteData) {
       offline: true
     };
 
+    if (!note.user_id) {
+      reject(new Error('Cannot save an offline note without an authenticated user.'));
+      return;
+    }
+
     // Save note locally
     const noteSaveRequest = notesStore.put(note);
 
     // Add to sync queue
     const queueItem = {
       action: 'upsert',
+      user_id: note.user_id,
       noteId: noteId,
       data: note,
       timestamp: timestamp,
@@ -129,6 +150,8 @@ async function saveNoteOffline(noteData) {
  */
 async function deleteNoteOffline(noteId) {
   if (!db) await initializeDatabase();
+  const user = await getCurrentUser();
+  if (!user?.id) throw new Error('Cannot delete an offline note without an authenticated user.');
 
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORES.notes, STORES.syncQueue], 'readwrite');
@@ -139,6 +162,7 @@ async function deleteNoteOffline(noteId) {
 
     const queueItem = {
       action: 'delete',
+      user_id: user.id,
       noteId: noteId,
       timestamp: new Date().toISOString(),
       retries: 0,
@@ -182,7 +206,7 @@ async function getNotesOffline(userId) {
 /**
  * Get a single note from local storage
  */
-async function getNoteOffline(noteId) {
+async function getNoteOffline(noteId, userId) {
   if (!db) await initializeDatabase();
 
   return new Promise((resolve, reject) => {
@@ -192,7 +216,8 @@ async function getNoteOffline(noteId) {
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
-      resolve(request.result || null);
+      const note = request.result || null;
+      resolve(note && (!userId || note.user_id === userId) ? note : null);
     };
   });
 }
@@ -243,18 +268,19 @@ async function syncWithSupabase() {
     if (!db) await initializeDatabase();
 
     // Get all pending sync operations
-    const queueItems = await getQueueItems();
-    console.log('[Sync] Found', queueItems.length, 'items to sync');
-
-    if (queueItems.length === 0) {
-      isSyncing = false;
-      return;
-    }
-
     // Get current user
     const user = await getCurrentUser();
     if (!user) {
       console.error('[Sync] ❌ No user logged in');
+      isSyncing = false;
+      return;
+    }
+
+    // Only process operations belonging to the active account.
+    const queueItems = await getQueueItems(user.id);
+    console.log('[Sync] Found', queueItems.length, 'items to sync');
+
+    if (queueItems.length === 0) {
       isSyncing = false;
       return;
     }
@@ -330,7 +356,7 @@ async function syncNoteUpsert(queueItem, user) {
   if (error) throw error;
 
   // Update local copy to mark as synced
-  await updateNoteSync(noteData.id, true);
+  await updateNoteSync(noteData.id, true, user.id);
 
   console.log('[Sync] ✓ Upserted note:', noteData.id);
 }
@@ -357,7 +383,7 @@ async function syncNoteDeletion(queueItem, user) {
 /**
  * Update note's sync status
  */
-async function updateNoteSync(noteId, synced) {
+async function updateNoteSync(noteId, synced, userId) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORES.notes], 'readwrite');
     const store = transaction.objectStore(STORES.notes);
@@ -367,7 +393,7 @@ async function updateNoteSync(noteId, synced) {
 
     getRequest.onsuccess = () => {
       const note = getRequest.result;
-      if (note) {
+      if (note && (!userId || note.user_id === userId)) {
         note.synced = synced;
         note.offline = !synced;
         const updateRequest = store.put(note);
@@ -390,14 +416,17 @@ async function updateNoteSync(noteId, synced) {
 /**
  * Get all pending sync queue items
  */
-function getQueueItems() {
+function getQueueItems(userId) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORES.syncQueue], 'readonly');
     const store = transaction.objectStore(STORES.syncQueue);
     const request = store.getAll();
 
     request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => resolve(request.result.filter((item) => {
+      const ownerId = item.user_id || item.data?.user_id;
+      return !userId || ownerId === userId;
+    }));
   });
 }
 
