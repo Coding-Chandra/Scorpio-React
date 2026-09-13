@@ -1380,7 +1380,11 @@ const app = {
 
         // Update list preview immediately
         this.updateNoteItemInList(note.id);
-        document.getElementById('editorDateDisplay').innerText = Utils.formatDateTime(note.updated_at);
+        const editorWordCount = document.getElementById('editorWordCount');
+        if (editorWordCount) {
+            const wordCount = Utils.stripHtml(String(note.content || '')).trim().split(/\s+/).filter(Boolean).length;
+            editorWordCount.textContent = `${wordCount} ${wordCount === 1 ? 'word' : 'words'}`;
+        }
         if (this.ui.isMobile) this.renderMobileNav();
 
         // Offline: save locally and queue for sync (store decrypted — IndexedDB is local)
@@ -2025,7 +2029,16 @@ app.renderEditor = function () {
     inputArea.className = 'editor-inputs';
     if (note.paper_style) inputArea.classList.add(`style-${note.paper_style}`);
 
-    document.getElementById('editorDateDisplay').innerText = Utils.formatDateTime(note.updated_at);
+    const editorFolderDisplay = document.getElementById('editorFolderDisplay');
+    if (editorFolderDisplay) {
+        const folder = (this.folders || []).find(item => item.id === note.folder_id);
+        editorFolderDisplay.textContent = folder?.name || (note.folder_id ? 'Folder' : 'All Notes');
+    }
+    const editorWordCount = document.getElementById('editorWordCount');
+    if (editorWordCount) {
+        const wordCount = Utils.stripHtml(String(note.content || '')).trim().split(/\s+/).filter(Boolean).length;
+        editorWordCount.textContent = `${wordCount} ${wordCount === 1 ? 'word' : 'words'}`;
+    }
 
     editorPinBtn.querySelector('svg').style.fill = note.pinned ? 'var(--accent-color)' : 'none';
     editorPinBtn.querySelector('svg').style.stroke = note.pinned ? 'var(--accent-color)' : '#666';
@@ -2090,6 +2103,7 @@ app.renderMobileNav = function () {
             </div>
         `;
     }
+
 };
 
 // ============================================================================

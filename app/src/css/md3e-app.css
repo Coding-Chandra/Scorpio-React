@@ -276,7 +276,13 @@
   left: 2vh;
   right: 2vh;
   border-radius: 22px;
-  background-color: color-mix(in srgb, var(--editor-bg-glass) 70%, rgba(var(--md-seed), 1.48));
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgba(var(--md-seed), 1.48));
+  backdrop-filter: blur(3px) saturate(2);
+}
+:root[data-ui="md3e"] .mobile-nav-left,
+:root[data-ui="md3e"] .mobile-nav-title,
+:root[data-ui="md3e"] .mobile-nav-right{
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgba(var(--md-seed), 1.48));
   backdrop-filter: blur(3px) saturate(2);
 }
 

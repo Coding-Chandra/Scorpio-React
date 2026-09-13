@@ -54,31 +54,41 @@
 }
 
 /* =====================================================
-   1b. FOLDER-VIEW BUTTON (sidebar header)
-   Folders view has no mobile nav bar of its own, so its
-   more-view trigger sits in the sidebar header next to the
-   account button instead. Desktop keeps the sidebar's
-   original look — this button only appears at the same
-   mobile breakpoint the app already switches layouts at.
+    1b. NOTES-VIEW BUTTON
    ===================================================== */
 
-.sidebar-header-actions {
+.view-toggle-btn {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
+    justify-content: center;
 }
 
-#folderViewBtn {
+#notesViewBtn {
     display: none;
 }
 
-@media (max-width: 1024px) {
-    #folderViewBtn {
+@media (min-width: 1025px) {
+    #notesViewBtn {
         display: flex;
-        align-items: center;
-        justify-content: center;
     }
+}
+
+.view-toggle-btn:hover {
+    background: var(--active-item-bg-sidebar);
+    color: var(--text-primary);
+}
+
+.view-toggle-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 .view-opt-label{
@@ -138,6 +148,7 @@
 .grid-mode .note-item .note-title {
     white-space: normal;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -147,6 +158,7 @@
     flex: 1;
     white-space: normal;
     display: -webkit-box;
+    line-clamp: 4;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -214,6 +226,7 @@
     font-size: 13px;
     white-space: normal;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;

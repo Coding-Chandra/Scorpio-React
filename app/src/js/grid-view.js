@@ -76,6 +76,7 @@
 
         const folderBtn = document.getElementById('folderViewBtn');
         if (folderBtn) folderBtn.innerHTML = TRIGGER_ICON;
+
     }
 
     /* ---------------------------------------------------
@@ -237,19 +238,16 @@
     };
 
     /* ---------------------------------------------------
-       Folders view has no mobile nav bar at all, so its
-       more-view trigger lives in the sidebar header instead
-       — right next to the account button, shown on mobile
-       only (see grid-view.css for the breakpoint).
+    Notes view exposes the view trigger beside search/new note.
     --------------------------------------------------- */
-    function wireFolderViewButton() {
-        const btn = document.getElementById('folderViewBtn');
+    function wireNotesViewButton() {
+        const btn = document.getElementById('notesViewBtn');
         if (!btn || btn.dataset.gridViewBound) return;
         btn.dataset.gridViewBound = 'true';
         btn.innerHTML = TRIGGER_ICON;
         btn.title = 'View options';
         btn.setAttribute('aria-label', 'View options');
-        btn.addEventListener('click', (ev) => app.openViewOptionsMenu(ev, 'folders'));
+        btn.addEventListener('click', (ev) => app.openViewOptionsMenu(ev, 'notes'));
     }
 
     /* ---------------------------------------------------
@@ -259,7 +257,7 @@
     function init() {
         applyContainerClass('notes');
         applyContainerClass('folders');
-        wireFolderViewButton();
+        wireNotesViewButton();
         updateTriggerIcons();
     }
 

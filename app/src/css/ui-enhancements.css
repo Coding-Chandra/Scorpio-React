@@ -307,7 +307,7 @@ html[data-theme="dark"] .note-item:active::before {
    13. RESPONSIVE UI IMPROVEMENTS
    ===================================================== */
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .new-note-fab {
     bottom: 80px;
     right: 16px;
@@ -380,7 +380,7 @@ textarea:focus-visible {
 /* Material You - Sharp, Modern look */
 html[data-ui="md3e"] button,
 html[data-ui="md3e"] .icon-btn {
-  border-radius: 8px;
+  border-radius: 80px;
   font-weight: 500;
   letter-spacing: 0.5px;
 }

@@ -145,6 +145,13 @@
   background: var(--bg-card-t);
 }
 
+:root[data-ui="nothing"] .mobile-nav-left,
+:root[data-ui="nothing"] .mobile-nav-title,
+:root[data-ui="nothing"] .mobile-nav-right{
+  backdrop-filter: blur(4px) saturate(1.5);
+  background: var(--bg-card-t);
+}
+
 :root[data-ui="nothing"] .btn {
   font-family: var(--font-family-ui);
   border-bottom: #55555570 1px solid;

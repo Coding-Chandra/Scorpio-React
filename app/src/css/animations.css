@@ -602,7 +602,7 @@
 }
 
 /* Slower animations on mobile */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .animate-slide-in,
   .animate-slide-out,
   .animate-list-item-in,
