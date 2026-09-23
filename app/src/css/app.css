@@ -1092,7 +1092,7 @@
 
         #editor-pane {
             flex-grow: 1;
-            padding-top: 9vh;
+            padding-top: 0vh;
             border: none;
         }
         #editor-pane.glass-panel-strong {
@@ -1873,7 +1873,7 @@
             }
 
             #editor-pane .editor-inputs {
-                padding: 2px 7px 1vh 7px;
+                padding: 9vh 7px 1vh 7px;
                 scroll-padding-top: 2px;
                 overscroll-behavior: contain;
                 -webkit-overflow-scrolling: touch;
@@ -2653,8 +2653,8 @@ html[data-ui="nothing"] .notif{
     }
 
     #app {
-        padding: 16px;
-        gap: 8px;
+        padding: 7px;
+        gap: 7px;
     }
 
     .pane,
@@ -2714,11 +2714,6 @@ html[data-ui="nothing"] .notif{
     .folder-item,
     .note-item {
         border-radius: 8px;
-    }
-
-    .folder-item.active,
-    .note-item.active {
-        box-shadow: inset 3px 0 0 var(--accent-color);
     }
 
     .sidebar-actions {
@@ -2785,7 +2780,7 @@ html[data-ui="nothing"] .notif{
     }
 
     .editor-inputs {
-        padding: 78px clamp(32px, 6vw, 96px) 72px;
+        padding: 78px clamp(32px, 4vw, 96px) 72px;
     }
 
     input.note-title-input {

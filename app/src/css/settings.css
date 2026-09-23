@@ -125,7 +125,7 @@ body::before {
   border: 0.5px solid var(--sep);
   padding: 12px 20px;
   min-height: 48px;
-  transition: background-color 0.6s;
+  transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease;
   transform: scaleX(0.99);
 }
 
@@ -1273,4 +1273,1718 @@ summary:focus-visible,
 
 :root[data-ui="md3e"] body {
   background-color: var(--md-browser-bg, var(--bg-main));
+}
+
+/* =====================================================
+   DESKTOP SETTINGS LAYOUT
+===================================================== */
+@media (min-width: 760px) {
+  body {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 920px;
+    height: auto;
+    min-height: 100vh;
+    padding: 52px 40px 80px;
+    overflow: visible;
+  }
+
+  .header-main { padding: 0 0 28px; }
+  .header-main h1 { font-size: 40px; }
+
+  .settings-group { margin-bottom: 22px; }
+
+  .row {
+    min-height: 58px;
+    padding: 14px 22px;
+    transform: none;
+  }
+
+  .row.clickable:hover {
+    background-color: color-mix(in srgb, var(--bg-secondary) 88%, var(--accent) 12%);
+  }
+
+  #portal-layer { padding-top: 0; }
+
+  .portal-nav {
+    height: 64px;
+    padding: 0 28px;
+  }
+
+  #portal-frame {
+    max-width: 1100px;
+    align-self: center;
+  }
+
+  .modal-box {
+    width: min(460px, 92vw);
+    max-width: 460px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container { max-width: 980px; }
+}
+
+
+
+/* =====================================================
+   DESKTOP OS-STYLE SETTINGS
+   Persistent sidebar + detail pane.
+   Only true page-based sections use an iframe.
+===================================================== */
+#desktop-settings-shell { display: none; }
+
+@media (min-width: 900px) {
+    html, body {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    body { background: var(--bg-main); }
+
+    body > .container { display: none; }
+
+    #desktop-settings-shell {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        grid-template-columns: 272px minmax(0, 1fr);
+        overflow: hidden;
+        background: var(--bg-main);
+        color: var(--text-main);
+    }
+
+    .desktop-settings-sidebar {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 24px 14px 16px;
+        background: color-mix(in srgb, var(--bg-secondary) 94%, var(--accent) 6%);
+        border-right: 1px solid var(--sep);
+    }
+
+    .desktop-settings-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 8px 18px;
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .desktop-back-home {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 10px;
+        background: var(--bg-active);
+        color: var(--text-main);
+        cursor: pointer;
+    }
+
+    .desktop-back-home svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+    }
+
+    .desktop-settings-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 38px;
+        margin: 0 4px 16px;
+        padding: 0 11px;
+        border: 1px solid var(--sep);
+        border-radius: 11px;
+        background: var(--bg-main);
+        color: var(--text-dim);
+    }
+
+    .desktop-settings-search svg {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    .desktop-settings-search input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text-main);
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .desktop-settings-nav {
+        display: grid;
+        gap: 3px;
+        overflow: auto;
+        scrollbar-width: none;
+    }
+
+    .desktop-settings-nav::-webkit-scrollbar { display: none; }
+
+    .desktop-settings-item {
+        width: 100%;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 9px 12px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--text-main);
+        font: inherit;
+        font-size: 14px;
+        text-align: left;
+        cursor: pointer;
+        transition: background .16s ease, color .16s ease;
+    }
+
+    .desktop-settings-item:hover { background: var(--bg-active); }
+
+    .desktop-settings-item.active {
+        background: color-mix(in srgb, var(--accent) 16%, var(--bg-active));
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    .desktop-settings-item.search-hidden { display: none; }
+
+    .settings-item-icon {
+        width: 22px;
+        display: inline-grid;
+        place-items: center;
+        color: currentColor;
+        opacity: .85;
+    }
+
+    .desktop-settings-sidebar-footer {
+        margin-top: auto;
+        padding: 14px 10px 0;
+        color: var(--text-dim);
+        font-size: 11px;
+        opacity: .7;
+    }
+
+    .desktop-settings-detail {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-main);
+    }
+
+    .desktop-settings-detail-header {
+        min-height: 96px;
+        display: flex;
+        align-items: center;
+        padding: 24px 44px 20px;
+        border-bottom: 1px solid var(--sep);
+    }
+
+    .desktop-settings-eyebrow {
+        margin-bottom: 4px;
+        color: var(--text-dim);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .desktop-settings-detail-header h1 {
+        margin: 0;
+        color: var(--text-main);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -.4px;
+    }
+
+    .desktop-settings-content {
+        min-width: 0;
+        min-height: 0;
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+
+    #desktop-settings-frame {
+        display: none;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        border: 0;
+        background: var(--bg-main);
+    }
+
+    #desktop-settings-frame.visible { display: block; }
+
+    .desktop-native-content {
+        display: none;
+        height: 100%;
+        overflow: auto;
+        padding: 34px 44px 60px;
+    }
+
+    .desktop-native-content.visible { display: block; }
+
+    .desktop-native-section { display: none; max-width: 780px; }
+    .desktop-native-section.active { display: block; }
+
+    .desktop-section-intro { margin-bottom: 22px; }
+
+    .desktop-section-intro h2 {
+        margin: 0 0 7px;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .desktop-section-intro p {
+        margin: 0;
+        max-width: 680px;
+        color: var(--text-dim);
+        line-height: 1.55;
+        font-size: 14px;
+    }
+
+    .desktop-card,
+    .desktop-build-card {
+        margin-bottom: 16px;
+        padding: 0 18px;
+        border: 1px solid var(--sep);
+        border-radius: 16px;
+        background: var(--bg-secondary);
+    }
+
+    .desktop-card-row {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+    }
+
+    .desktop-card-row > div {
+        min-width: 0;
+        display: grid;
+        gap: 4px;
+    }
+
+    .desktop-card-row strong {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .desktop-card-row span {
+        color: var(--text-dim);
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .desktop-divider {
+        height: 1px;
+        background: var(--sep);
+    }
+
+    .desktop-action-switch {
+        position: relative;
+        width: 48px;
+        height: 28px;
+        flex: 0 0 auto;
+        border: 1px solid var(--sep);
+        border-radius: 999px;
+        background: var(--bg-active);
+        cursor: pointer;
+    }
+
+    .desktop-action-switch span {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--text-main);
+        transition: transform .18s ease;
+    }
+
+    .desktop-action-switch.on {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+
+    .desktop-action-switch.on span { transform: translateX(20px); }
+
+    .desktop-action-button {
+        min-width: 92px;
+        min-height: 38px;
+        padding: 8px 13px;
+        border: 0;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .desktop-action-button.secondary {
+        background: var(--bg-active);
+        color: var(--text-main);
+    }
+
+    .desktop-wide-button {
+        width: 100%;
+        min-height: 46px;
+        padding: 10px 12px;
+        border: 0;
+        border-bottom: 1px solid var(--sep);
+        background: transparent;
+        color: var(--text-main);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .desktop-wide-button:last-child { border-bottom: 0; }
+    .desktop-wide-button:hover { background: var(--bg-active); }
+
+    .desktop-wide-button.danger { color: var(--accent1); }
+
+    .desktop-build-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 58px;
+        padding: 0 18px;
+    }
+
+    .desktop-build-card span {
+        color: var(--text-dim);
+        font-size: 13px;
+    }
+
+    .desktop-build-card strong {
+        font-size: 13px;
+    }
+
+    html[data-ui="nothing"] .desktop-settings-sidebar {
+        background: var(--bg-card);
+        border-right-color: var(--border-color);
+    }
+
+    html[data-ui="nothing"] .desktop-settings-item.active {
+        background: var(--bg-elevated);
+        color: var(--accent-color);
+    }
+
+    html[data-ui="md3e"] .desktop-settings-sidebar {
+        background: var(--md-surface-1, var(--bg-secondary));
+    }
+
+    html[data-ui="md3e"] .desktop-settings-item.active {
+        background: var(--active-item-bg, color-mix(in srgb, var(--accent) 16%, var(--bg-active)));
+        color: var(--accent-color, var(--accent));
+    }
+}
+
+@media (min-width: 1280px) {
+    #desktop-settings-shell { grid-template-columns: 292px minmax(0, 1fr); }
+    .desktop-settings-detail-header { padding-left: 56px; padding-right: 56px; }
+    .desktop-native-content { padding-left: 56px; padding-right: 56px; }
+}
+
+
+/* =====================================================
+   DESKTOP POLISH / THEME-AWARE SYSTEM
+===================================================== */
+:root {
+    --desktop-surface-hover: color-mix(in srgb, var(--bg-secondary) 82%, var(--accent) 18%);
+    --desktop-surface-active: color-mix(in srgb, var(--bg-secondary) 74%, var(--accent) 26%);
+    --desktop-accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+    --desktop-accent-mid: color-mix(in srgb, var(--accent) 24%, transparent);
+    --desktop-danger-soft: color-mix(in srgb, var(--accent1) 10%, transparent);
+}
+
+@media (min-width: 900px) {
+    #desktop-settings-shell,
+    .desktop-settings-sidebar,
+    .desktop-settings-detail,
+    .desktop-settings-detail-header,
+    .desktop-card,
+    .desktop-build-card,
+    .desktop-settings-search,
+    .desktop-settings-item,
+    .desktop-action-button,
+    .desktop-action-switch,
+    .desktop-wide-button,
+    .desktop-response-dialog,
+    .desktop-response-option {
+        transition:
+            background-color .22s ease,
+            color .22s ease,
+            border-color .22s ease,
+            box-shadow .22s ease,
+            transform .18s ease;
+    }
+
+    .desktop-settings-sidebar {
+        background: color-mix(in srgb, var(--bg-secondary) 92%, var(--accent) 8%);
+        border-right: 1px solid var(--sep);
+        box-shadow: 8px 0 30px rgba(0,0,0,.035);
+    }
+
+    .desktop-settings-brand {
+        min-height: 46px;
+    }
+
+    .desktop-settings-brand > div:last-child {
+        display: grid;
+        gap: 2px;
+    }
+
+    .desktop-settings-brand strong {
+        font-size: 20px;
+        line-height: 1.1;
+    }
+
+    .desktop-settings-brand span {
+        color: var(--text-dim);
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .desktop-settings-search {
+        min-height: 40px;
+        background: var(--bg-main);
+        border-color: var(--sep);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.025);
+    }
+
+    .desktop-settings-search:focus-within {
+        border-color: color-mix(in srgb, var(--accent) 60%, var(--sep));
+        box-shadow: 0 0 0 3px var(--desktop-accent-soft);
+    }
+
+    .desktop-settings-search kbd {
+        padding: 3px 6px;
+        border: 1px solid var(--sep);
+        border-radius: 6px;
+        background: var(--bg-secondary);
+        color: var(--text-dim);
+        font: inherit;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    .desktop-nav-group {
+        display: grid;
+        gap: 2px;
+        margin-bottom: 18px;
+    }
+
+    .desktop-nav-heading {
+        padding: 0 11px 6px;
+        color: var(--text-dim);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+    }
+
+    .desktop-settings-item {
+        min-height: 42px;
+        border: 1px solid transparent;
+        color: var(--text-main);
+    }
+
+    .desktop-settings-item:hover {
+        background: var(--desktop-surface-hover);
+    }
+
+    .desktop-settings-item.active {
+        background: var(--desktop-surface-active);
+        border-color: var(--desktop-accent-mid);
+        color: var(--accent);
+        box-shadow: inset 3px 0 0 var(--accent), 0 1px 2px rgba(0,0,0,.035);
+    }
+
+    .desktop-settings-item.active::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        margin-left: auto;
+        border-radius: 999px;
+        background: currentColor;
+        box-shadow: 0 0 0 3px var(--desktop-accent-soft);
+    }
+
+    .settings-item-icon {
+        width: 19px;
+        height: 19px;
+        flex: 0 0 19px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.85;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .desktop-settings-item.active .settings-item-icon {
+        filter: drop-shadow(0 0 5px var(--desktop-accent-mid));
+    }
+
+    .desktop-settings-detail {
+        background:
+            radial-gradient(circle at 100% 0,
+                var(--desktop-accent-soft),
+                transparent 36%),
+            var(--bg-main);
+    }
+
+    .desktop-settings-detail-header {
+        background: color-mix(in srgb, var(--bg-main) 90%, var(--accent) 10%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .desktop-settings-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--text-dim);
+        font-size: 12px;
+    }
+
+    .desktop-settings-breadcrumb strong {
+        color: var(--text-main);
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .desktop-settings-detail-header p {
+        margin: 8px 0 0;
+        color: var(--text-dim);
+        font-size: 13px;
+    }
+
+    .desktop-settings-content {
+        background: transparent;
+    }
+
+    .desktop-native-content {
+        max-width: 980px;
+        width: 100%;
+        padding-top: 42px;
+    }
+
+    .desktop-native-section {
+        max-width: 820px;
+    }
+
+    .desktop-section-kicker {
+        display: inline-flex;
+        margin-bottom: 7px;
+        color: var(--accent);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+    }
+
+    .desktop-section-kicker.danger-kicker {
+        color: var(--accent1);
+    }
+
+    .desktop-section-intro h2 {
+        font-size: clamp(24px, 2vw, 30px);
+        letter-spacing: -.025em;
+    }
+
+    .desktop-section-intro p {
+        max-width: 650px;
+        font-size: 14px;
+    }
+
+    .desktop-card,
+    .desktop-build-card {
+        border: 1px solid color-mix(in srgb, var(--sep) 85%, var(--accent) 15%);
+        border-radius: 18px;
+        background: color-mix(in srgb, var(--bg-secondary) 96%, var(--accent) 4%);
+        box-shadow:
+            0 1px 2px rgba(0,0,0,.025),
+            0 12px 30px rgba(0,0,0,.035);
+    }
+
+    .desktop-card:hover {
+        border-color: color-mix(in srgb, var(--sep) 65%, var(--accent) 35%);
+    }
+
+    .desktop-card-row {
+        min-height: 76px;
+    }
+
+    .desktop-card-row strong {
+        font-size: 14px;
+    }
+
+    .desktop-card-row span,
+    .desktop-action-leading span {
+        max-width: 560px;
+    }
+
+    .desktop-action-button {
+        box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    .desktop-action-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 22%, transparent);
+    }
+
+    .desktop-action-button.secondary {
+        background: var(--bg-active);
+        color: var(--text-main);
+        border: 1px solid var(--sep);
+        box-shadow: none;
+    }
+
+    .desktop-action-button.danger-button {
+        background: var(--accent1);
+        color: #fff;
+        box-shadow: 0 7px 20px color-mix(in srgb, var(--accent1) 20%, transparent);
+    }
+
+    .desktop-action-switch {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sep) 75%, transparent);
+    }
+
+    .desktop-action-switch.on {
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 24%, transparent);
+    }
+
+    .desktop-wide-button {
+        padding: 11px 13px;
+        border-radius: 10px;
+    }
+
+    .desktop-wide-button svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .desktop-wide-button:hover {
+        background: var(--desktop-accent-soft);
+    }
+
+    .desktop-wide-button small {
+        color: var(--text-dim);
+        font-size: 12px;
+    }
+
+    .desktop-build-card {
+        background: var(--bg-secondary);
+    }
+
+    .account-action-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 22px;
+        min-height: 94px;
+        padding: 18px 20px;
+    }
+
+    .desktop-action-leading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .desktop-action-leading > div:last-child {
+        min-width: 0;
+        display: grid;
+        gap: 5px;
+    }
+
+    .desktop-action-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--desktop-accent-soft);
+        color: var(--accent);
+    }
+
+    .desktop-action-icon.danger {
+        background: var(--desktop-danger-soft);
+        color: var(--accent1);
+    }
+
+    .desktop-action-icon svg {
+        width: 21px;
+        height: 21px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .account-action-card.destructive {
+        border-color: color-mix(in srgb, var(--accent1) 22%, var(--sep));
+        background: color-mix(in srgb, var(--bg-secondary) 95%, var(--accent1) 5%);
+    }
+
+    /* ---------------- Response dialog ---------------- */
+    .desktop-response-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 12000;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity .18s ease, visibility .18s ease;
+    }
+
+    .desktop-response-modal.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .desktop-response-backdrop {
+        position: absolute;
+        inset: 0;
+        background: color-mix(in srgb, var(--bg-main) 42%, transparent);
+        backdrop-filter: blur(14px) saturate(1.2);
+        -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    }
+
+    .desktop-response-dialog {
+        position: relative;
+        z-index: 1;
+        width: min(540px, 92vw);
+        border: 1px solid var(--sep);
+        border-radius: 22px;
+        background: var(--bg-secondary);
+        color: var(--text-main);
+        box-shadow:
+            0 30px 90px rgba(0,0,0,.24),
+            0 8px 24px rgba(0,0,0,.08);
+        overflow: hidden;
+        transform: translateY(8px) scale(.98);
+    }
+
+    .desktop-response-modal.open .desktop-response-dialog {
+        transform: translateY(0) scale(1);
+    }
+
+    .desktop-response-header {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 24px 24px 18px;
+        border-bottom: 1px solid var(--sep);
+    }
+
+    .desktop-response-header h2 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -.02em;
+    }
+
+    .desktop-response-header p {
+        margin: 7px 0 0;
+        color: var(--text-dim);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .desktop-response-close {
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--sep);
+        border-radius: 10px;
+        background: var(--bg-main);
+        color: var(--text-dim);
+        cursor: pointer;
+    }
+
+    .desktop-response-close:hover {
+        color: var(--text-main);
+        background: var(--bg-active);
+    }
+
+    .desktop-response-close svg {
+        width: 17px;
+        height: 17px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+    }
+
+    .desktop-response-options {
+        display: grid;
+        gap: 8px;
+        padding: 18px 20px 14px;
+    }
+
+    .desktop-response-option {
+        position: relative;
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr) 26px;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--sep);
+        border-radius: 15px;
+        background: var(--bg-main);
+        color: var(--text-main);
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .desktop-response-option:hover {
+        background: var(--desktop-surface-hover);
+        border-color: color-mix(in srgb, var(--sep) 62%, var(--accent) 38%);
+    }
+
+    .desktop-response-option.selected {
+        border-color: var(--accent);
+        background: var(--desktop-accent-soft);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+    }
+
+    .desktop-response-option-icon {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: var(--bg-secondary);
+        color: var(--text-dim);
+    }
+
+    .desktop-response-option.selected .desktop-response-option-icon {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .desktop-response-option-icon svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.85;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .desktop-response-option-copy {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+    }
+
+    .desktop-response-option-copy strong {
+        font-size: 14px;
+    }
+
+    .desktop-response-option-copy small {
+        color: var(--text-dim);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .desktop-response-option-check {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border: 1.5px solid var(--sep);
+        border-radius: 999px;
+        color: transparent;
+        justify-self: end;
+    }
+
+    .desktop-response-option.selected .desktop-response-option-check {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .desktop-response-option-check svg {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .desktop-response-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 9px;
+        padding: 14px 20px 18px;
+        border-top: 1px solid var(--sep);
+        background: color-mix(in srgb, var(--bg-secondary) 86%, var(--accent) 14%);
+    }
+
+    .desktop-response-cancel,
+    .desktop-response-save {
+        min-width: 94px;
+        min-height: 40px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    .desktop-response-cancel {
+        border: 1px solid var(--sep);
+        background: var(--bg-main);
+        color: var(--text-main);
+    }
+
+    .desktop-response-save {
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    body.desktop-response-open {
+        overflow: hidden;
+    }
+
+    /* iOS */
+    html[data-ui="ios"] .desktop-settings-sidebar {
+        border-right-color: color-mix(in srgb, var(--sep) 85%, var(--accent) 15%);
+    }
+
+    html[data-ui="ios"] .desktop-response-dialog {
+        border-radius: 24px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(28px) saturate(1.25);
+        -webkit-backdrop-filter: blur(28px) saturate(1.25);
+    }
+
+    html[data-ui="ios"] .desktop-response-option {
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--bg-secondary) 82%, transparent);
+    }
+
+    /* Nothing OS */
+    html[data-ui="nothing"] .desktop-settings-sidebar {
+        background: var(--bg-card);
+        border-right-color: var(--border-color);
+        box-shadow: none;
+    }
+
+    html[data-ui="nothing"] .desktop-settings-item {
+        border-radius: 6px;
+        font-family: var(--font-family, "Geist", sans-serif);
+    }
+
+    html[data-ui="nothing"] .desktop-settings-item.active {
+        background: var(--bg-elevated);
+        color: var(--accent-color);
+        box-shadow: inset 3px 0 0 var(--accent-color);
+    }
+
+    html[data-ui="nothing"] .desktop-settings-detail {
+        background: var(--bg-main);
+    }
+
+    html[data-ui="nothing"] .desktop-settings-detail-header {
+        background: var(--bg-main);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    html[data-ui="nothing"] .desktop-card {
+        border-radius: var(--radius-md, 8px);
+        border-color: var(--border-color);
+        background: var(--bg-card);
+        box-shadow: none;
+    }
+
+    html[data-ui="nothing"] .desktop-action-icon,
+    html[data-ui="nothing"] .desktop-response-option-icon {
+        border-radius: var(--radius-sm, 6px);
+    }
+
+    html[data-ui="nothing"] .desktop-response-dialog {
+        border-radius: 10px;
+        background: var(--bg-card);
+        box-shadow: 0 24px 70px rgba(0,0,0,.28);
+    }
+
+    html[data-ui="nothing"] .desktop-response-option {
+        border-radius: 7px;
+        background: var(--bg-main);
+    }
+
+    /* Material You / MD3E */
+    html[data-ui="md3e"] .desktop-settings-sidebar {
+        background: var(--md-surface-1, var(--bg-secondary));
+        border-right-color: var(--border-color, var(--sep));
+    }
+
+    html[data-ui="md3e"] .desktop-settings-item {
+        border-radius: 14px;
+        font-family: "Google Sans", sans-serif;
+    }
+
+    html[data-ui="md3e"] .desktop-settings-item.active {
+        background: var(--active-item-bg, var(--desktop-accent-soft));
+        color: var(--accent-color, var(--accent));
+        box-shadow: none;
+    }
+
+    html[data-ui="md3e"] .desktop-settings-detail,
+    html[data-ui="md3e"] .desktop-settings-detail-header {
+        font-family: "Google Sans", sans-serif;
+    }
+
+    html[data-ui="md3e"] .desktop-card {
+        border-radius: 24px;
+        border-color: color-mix(in srgb, var(--border-color, var(--sep)) 85%, var(--accent-color, var(--accent)) 15%);
+    }
+
+    html[data-ui="md3e"] .desktop-action-button,
+    html[data-ui="md3e"] .desktop-response-save {
+        border-radius: 999px;
+        text-transform: none;
+    }
+
+    html[data-ui="md3e"] .desktop-response-dialog {
+        border-radius: 28px;
+        background: var(--md-surface-1, var(--bg-secondary));
+    }
+
+    html[data-ui="md3e"] .desktop-response-option {
+        border-radius: 20px;
+    }
+}
+
+@media (max-width: 899px) {
+    .desktop-response-modal {
+        padding: 12px;
+    }
+
+    .desktop-response-dialog {
+        width: min(520px, calc(100vw - 24px));
+        border-radius: 22px;
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+    }
+
+    .desktop-response-option {
+        grid-template-columns: 38px minmax(0, 1fr) 24px;
+    }
+}
+
+
+/* =====================================================
+   V5 — Desktop shell only.
+   The sub-settings UI intentionally reuses the existing
+   mobile .settings-group / .row / .label / .value /
+   .notifToggle component system.
+===================================================== */
+#desktop-settings-shell {
+    display: none;
+}
+
+@media (min-width: 900px) {
+    html, body {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    body {
+        background: var(--bg-main);
+    }
+
+    body > .container {
+        display: none;
+    }
+
+    #desktop-settings-shell {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        grid-template-columns: 252px minmax(0, 1fr);
+        overflow: hidden;
+        background: var(--bg-main);
+        color: var(--text-main);
+    }
+
+    .desktop-settings-sidebar {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 20px 12px 14px;
+        background: var(--bg-main);
+        border-right: 1px solid var(--sep);
+    }
+
+    .desktop-settings-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 38px;
+        padding: 0 7px 12px;
+    }
+
+    .desktop-settings-brand > span,
+    .desktop-settings-brand strong {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -.15px;
+    }
+
+    .desktop-settings-brand > div {
+        display: grid;
+    }
+
+    .desktop-settings-brand > div span {
+        display: none;
+    }
+
+    .desktop-back-home {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+    }
+
+    .desktop-back-home:hover {
+        background: var(--bg-active);
+        color: var(--text-main);
+    }
+
+    .desktop-back-home svg {
+        width: 17px;
+        height: 17px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.1;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .desktop-settings-search {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 36px;
+        margin: 0 3px 14px;
+        padding: 0 10px;
+        border: 1px solid var(--sep);
+        border-radius: 10px;
+        background: var(--bg-secondary);
+        color: var(--text-dim);
+    }
+
+    .desktop-settings-search:focus-within {
+        border-color: var(--sep);
+        box-shadow: none;
+    }
+
+    .desktop-settings-search svg {
+        width: 15px;
+        height: 15px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+    }
+
+    .desktop-settings-search input {
+        width: 100%;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text-main);
+        font: inherit;
+        font-size: 13px;
+    }
+
+    .desktop-settings-nav {
+        min-width: 0;
+        display: grid;
+        gap: 2px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .desktop-settings-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .desktop-nav-group {
+        display: grid;
+        gap: 2px;
+        margin-bottom: 12px;
+    }
+
+    .desktop-nav-heading {
+        padding: 5px 10px 5px;
+        color: var(--text-dim);
+        font-size: 10px;
+        font-weight: 650;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+    }
+
+    .desktop-settings-item {
+        width: 100%;
+        min-height: 39px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 7px 9px;
+        border: 1px solid transparent;
+        border-radius: 9px;
+        background: transparent;
+        color: var(--text-main);
+        font: inherit;
+        font-size: 13px;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .desktop-settings-item:hover {
+        background: var(--bg-active);
+    }
+
+    .desktop-settings-item.active {
+        background: var(--bg-active);
+        color: var(--text-main);
+        box-shadow: inset 2px 0 0 var(--accent);
+    }
+
+    .desktop-settings-item.active .settings-item-icon {
+        color: var(--accent);
+    }
+
+    .desktop-settings-item.search-hidden {
+        display: none;
+    }
+
+    .settings-item-icon {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .desktop-settings-sidebar-footer {
+        margin-top: auto;
+        padding: 12px 10px 0;
+        color: var(--text-dim);
+        font-size: 11px;
+        opacity: .7;
+    }
+
+    .desktop-settings-detail {
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-main);
+    }
+
+    .desktop-settings-detail-header {
+        min-height: 68px;
+        display: flex;
+        align-items: center;
+        padding: 14px 32px;
+        background: var(--bg-main);
+        border-bottom: 1px solid var(--sep);
+    }
+
+    .desktop-settings-detail-header h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -.2px;
+    }
+
+    .desktop-settings-detail-header p {
+        margin: 4px 0 0;
+        color: var(--text-dim);
+        font-size: 12px;
+    }
+
+    .desktop-settings-content {
+        min-width: 0;
+        min-height: 0;
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+
+    #desktop-settings-frame {
+        display: none;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: var(--bg-main);
+    }
+
+    #desktop-settings-frame.visible {
+        display: block;
+    }
+
+    .desktop-native-content {
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        padding: 26px 32px 50px;
+    }
+
+    .desktop-native-content.visible {
+        display: block;
+    }
+
+    .desktop-native-section {
+        display: none;
+        width: min(720px, 100%);
+    }
+
+    .desktop-native-section.active {
+        display: block;
+    }
+
+    .desktop-sub-intro {
+        margin: 0 0 16px;
+    }
+
+    .desktop-sub-intro h2 {
+        margin: 0 0 4px;
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -.15px;
+    }
+
+    .desktop-sub-intro p {
+        margin: 0;
+        max-width: 650px;
+        color: var(--text-dim);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /*
+      IMPORTANT:
+      No desktop .row/.settings-group/.notifToggle component recreation
+      here. These intentionally come from settings.css above.
+    */
+    .desktop-native-content .settings-group {
+        margin-bottom: 18px;
+    }
+
+    .desktop-native-content .row {
+        transform: none;
+        min-height: 54px;
+        padding: 12px 16px;
+    }
+
+    .desktop-native-content .label {
+        font-size: 15px;
+    }
+
+    .desktop-native-content .value {
+        font-size: 13px;
+    }
+
+    .desktop-native-content .notifToggle {
+        cursor: pointer;
+    }
+
+    /* Keep grouped-row corners exactly from the mobile component rules. */
+    .desktop-native-content .settings-group .row {
+        box-shadow: none;
+    }
+
+    /* Small desktop spacing correction only; actual visual component styling
+       remains the shared mobile settings CSS. */
+    .desktop-native-content .row.clickable:hover {
+        background-color: var(--bg-active);
+    }
+
+    /* Theme selectors only adapt the shell. */
+    html[data-ui="nothing"] .desktop-settings-sidebar {
+        background: var(--bg-main);
+        border-right-color: var(--border-color);
+    }
+
+    html[data-ui="nothing"] .desktop-settings-item.active {
+        background: var(--bg-active);
+        color: var(--text-main);
+        box-shadow: inset 2px 0 0 var(--accent-color);
+    }
+
+    html[data-ui="md3e"] .desktop-settings-sidebar {
+        background: var(--bg-main);
+        border-right-color: var(--border-color);
+    }
+
+    html[data-ui="md3e"] .desktop-settings-item.active {
+        background: var(--bg-active);
+        color: var(--text-main);
+        box-shadow: inset 2px 0 0 var(--accent-color, var(--accent));
+    }
+}
+
+@media (min-width: 1280px) {
+    #desktop-settings-shell {
+        grid-template-columns: 264px minmax(0, 1fr);
+    }
+
+    .desktop-settings-detail-header {
+        padding-left: 38px;
+        padding-right: 38px;
+    }
+
+    .desktop-native-content {
+        padding-left: 38px;
+        padding-right: 38px;
+    }
+}
+
+/* Keep the security-response modal visually restrained and component-like. */
+.desktop-response-backdrop {
+    background: rgba(0,0,0,.28);
+}
+
+.desktop-response-dialog {
+    background: var(--bg-secondary);
+    border: 1px solid var(--sep);
+    border-radius: 18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.18);
+}
+
+.desktop-response-header {
+    padding: 18px 20px 14px;
+}
+
+.desktop-response-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.desktop-response-header p {
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+.desktop-response-options {
+    padding: 12px 14px;
+    gap: 5px;
+}
+
+.desktop-response-option {
+    min-height: 52px;
+    padding: 8px 10px;
+    border-radius: 11px;
+    background: var(--bg-main);
+    border-color: var(--sep);
+}
+
+.desktop-response-option.selected {
+    background: var(--bg-active);
+    border-color: var(--accent);
+    box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.desktop-response-option-icon {
+    background: var(--bg-active);
+}
+
+.desktop-response-option.selected .desktop-response-option-icon {
+    background: var(--bg-active);
+    color: var(--accent);
+}
+
+.desktop-response-footer {
+    padding: 11px 14px 13px;
+    background: var(--bg-secondary);
+}
+
+.desktop-response-cancel,
+.desktop-response-save {
+    min-height: 36px;
+    border-radius: 9px;
+    font-size: 12px;
+    box-shadow: none;
+}
+
+/* =====================================================
+   V6 — desktop composition polish
+   Native settings keep the shared mobile components.
+===================================================== */
+@media (min-width: 900px) {
+    .desktop-native-content {
+        display: none;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        padding: 28px 32px 54px;
+    }
+
+    .desktop-native-content.visible {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .desktop-native-section {
+        display: none;
+        width: min(720px, 100%);
+    }
+
+    .desktop-native-section.active {
+        display: block;
+    }
+
+    .desktop-native-section.settings-page-enter {
+        animation: desktopSettingsPageIn 220ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    .desktop-native-section.settings-page-enter .settings-group {
+        animation: desktopSettingsItemIn 260ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    .desktop-native-section.settings-page-enter .settings-group:nth-child(1) { animation-delay: 20ms; }
+    .desktop-native-section.settings-page-enter .settings-group:nth-child(2) { animation-delay: 50ms; }
+    .desktop-native-section.settings-page-enter .settings-group:nth-child(3) { animation-delay: 80ms; }
+    .desktop-native-section.settings-page-enter .settings-group:nth-child(4) { animation-delay: 110ms; }
+
+    /* Security: exactly two columns × two rows, while every item
+       remains the same shared .settings-group/.row component. */
+    .desktop-security-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        align-items: start;
+    }
+
+    .desktop-security-grid .settings-group {
+        margin-bottom: 0;
+        min-width: 0;
+    }
+
+    .desktop-security-grid .row {
+        min-height: 58px;
+    }
+
+    .desktop-native-section:not([data-native-section="security"]) {
+        margin-inline: auto;
+    }
+
+    #desktop-settings-frame.visible {
+        display: block;
+    }
+}
+
+@keyframes desktopSettingsPageIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes desktopSettingsItemIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .desktop-native-section.settings-page-enter,
+    .desktop-native-section.settings-page-enter .settings-group {
+        animation: none !important;
+    }
+}
+
+@media (max-width: 1100px) and (min-width: 900px) {
+    .desktop-native-content {
+        padding-left: 26px;
+        padding-right: 26px;
+    }
+
+    .desktop-security-grid {
+        gap: 10px;
+    }
 }
