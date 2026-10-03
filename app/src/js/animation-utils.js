@@ -173,9 +173,13 @@ const AnimationUtils = {
    * @param {function} onComplete - Callback
    */
   toast: (element, direction = 'in', onComplete = null) => {
-    const animationName = direction === 'in' ? 'toastSlideIn' : 'toastSlideOut';
+    const animationName =
+        direction === 'in'
+            ? 'toastSlideInTop'
+            : 'toastSlideOutTop';
+
     AnimationUtils.animate(element, animationName, 300, onComplete);
-  },
+},
 
   /**
    * Swipe-dismiss a toast/notification to the right.

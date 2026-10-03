@@ -1,0 +1,1448 @@
+/* =========================================================
+   NOTOZ — LOCKED FOLDER UI
+   ---------------------------------------------------------
+   Background:
+     The actual Notoz page remains visible underneath.
+
+   Themes:
+     ios      = macOS / iOS inspired
+     md3e     = Material 3 Expressive / Pixel inspired
+     nothing  = Nothing OS inspired
+
+   This file owns presentation only.
+   Authentication remains inside lf.js.
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap");
+
+/* =========================================================
+   FOUNDATION
+   ========================================================= */
+
+.lf-ui-overlay,
+.lf-ui-overlay * {
+  box-sizing: border-box;
+}
+
+.lf-ui-overlay [hidden] {
+  display: none !important;
+}
+
+.lf-ui-overlay {
+  --lf-red: rgb(215, 25, 33);
+
+  --lf-blue: #007aff;
+
+  --lf-md3e-seed: #6750a4;
+
+  --lf-text: #ffffff;
+
+  --lf-text-secondary: rgba(255, 255, 255, 0.68);
+
+  --lf-control: rgba(255, 255, 255, 0.14);
+
+  --lf-control-strong: rgba(255, 255, 255, 0.2);
+
+  --lf-control-border: rgba(255, 255, 255, 0.12);
+
+  position: fixed;
+  inset: 0;
+
+  z-index: 2147483000;
+
+  width: 100vw;
+  height: 100dvh;
+
+  overflow: hidden;
+
+  display: grid;
+  place-items: center;
+
+  isolation: isolate;
+
+  color: var(--lf-text);
+
+  color-scheme: dark;
+
+  font-family: var(
+    --font-family,
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    "Segoe UI",
+    sans-serif
+  );
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  /*
+   * IMPORTANT:
+   * No wallpaper.
+   * No replacement background.
+   *
+   * The actual Notoz DOM is underneath.
+   */
+  background: rgba(0, 0, 0, 0.12);
+
+  backdrop-filter: blur(20px) saturate(1.08);
+
+  -webkit-backdrop-filter: blur(20px) saturate(1.08);
+
+  animation: lf-ui-fade-in 0.28s ease-out both;
+}
+
+/* =========================================================
+   THEME ROOT
+   ========================================================= */
+
+/*
+ * Notoz already resolves light/dark/system to:
+ *
+ *   html[data-theme="light"]
+ *   html[data-theme="dark"]
+ *
+ * The overlay simply follows that value.
+ */
+
+/* =========================================================
+   LIGHT / DARK BASE TREATMENT
+   ========================================================= */
+
+.lf-ui-overlay[data-theme="light"] {
+  --lf-text: #111111;
+
+  --lf-text-secondary: rgba(0, 0, 0, 0.62);
+
+  color-scheme: light;
+
+  color: #111111;
+
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lf-ui-overlay[data-theme="dark"] {
+  --lf-text: #ffffff;
+
+  --lf-text-secondary: rgba(255, 255, 255, 0.68);
+
+  color-scheme: dark;
+
+  color: #ffffff;
+
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* =========================================================
+   iOS
+   ========================================================= */
+
+.lf-ui-overlay[data-ui="ios"] {
+  background: rgba(0, 0, 0, 0.12);
+
+  backdrop-filter: blur(18px) saturate(1.12);
+
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.lf-ui-overlay[data-ui="ios"][data-theme="light"] {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================================
+  MD3E
+  ---------------------------------------------------------
+  One seed-tinted fullscreen lock surface.
+  ========================================================= */
+
+.lf-ui-overlay[data-ui="md3e"] {
+  background: color-mix(
+    in srgb,
+    var(--lf-md3e-seed) 19%,
+    rgba(255, 255, 255, 0.08)
+  );
+
+  backdrop-filter: blur(28px) saturate(1.24);
+
+  -webkit-backdrop-filter: blur(28px) saturate(1.24);
+}
+
+.lf-ui-overlay[data-ui="md3e"][data-theme="light"] {
+  background: color-mix(
+    in srgb,
+    var(--lf-md3e-seed) 20%,
+    rgba(255, 255, 255, 0.18)
+  );
+}
+
+.lf-ui-overlay[data-ui="md3e"][data-theme="dark"] {
+  background: color-mix(in srgb, var(--lf-md3e-seed) 23%, rgba(0, 0, 0, 0.1));
+}
+
+/* =========================================================
+   NOTHING OS
+   ---------------------------------------------------------
+   Transparent monochrome glass.
+   No theme tint.
+   ========================================================= */
+
+.lf-ui-overlay[data-ui="nothing"] {
+  --lf-red: rgb(215, 25, 33);
+
+  background: rgba(0, 0, 0, 0.2);
+
+  backdrop-filter: blur(18px) saturate(0.92);
+
+  -webkit-backdrop-filter: blur(18px) saturate(0.92);
+}
+
+.lf-ui-overlay[data-ui="nothing"][data-theme="light"] {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================
+  MAIN LOCK CONTENT
+  ---------------------------------------------------------
+  Theme surfaces belong to the fullscreen overlay, not a nested card.
+  ========================================================= */
+
+.lf-ui-card {
+  width: min(390px, 90vw);
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  padding: 24px;
+
+  text-align: center;
+
+  background: transparent;
+
+  border: 0;
+
+  box-shadow: none;
+
+  animation: lf-ui-card-in 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* =========================================================
+   AVATAR
+   ========================================================= */
+
+.lf-ui-avatar {
+  width: 88px;
+
+  height: 88px;
+
+  margin-bottom: 15px;
+
+  display: grid;
+
+  place-items: center;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  color: #171717;
+
+  border: 1px solid rgba(255, 255, 255, 0.28);
+
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
+
+  backdrop-filter: blur(20px) saturate(1.25);
+
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+
+  font-size: 28px;
+
+  font-weight: 600;
+}
+
+.lf-ui-avatar-inner {
+  width: 100%;
+
+  height: 100%;
+
+  display: grid;
+
+  place-items: center;
+}
+
+.lf-ui-avatar-value {
+  display: block;
+
+  line-height: 1;
+}
+
+/* =========================================================
+   USERNAME
+   ========================================================= */
+
+.lf-ui-title {
+  margin: 0;
+
+  color: var(--lf-text);
+
+  font-size: 21px;
+
+  line-height: 1.2;
+
+  font-weight: 400;
+
+  letter-spacing: -0.015em;
+
+  text-shadow: 0 2px 9px rgba(0, 0, 0, 0.3);
+}
+
+.lf-ui-overlay[data-ui="nothing"] .lf-ui-title {
+  font-family: "Geist", sans-serif;
+}
+
+.lf-ui-overlay[data-theme="light"] .lf-ui-title {
+  text-shadow: 0 1px 5px rgba(255, 255, 255, 0.22);
+}
+
+.lf-ui-subtitle {
+  margin: 5px 0 0;
+
+  color: var(--lf-text-secondary);
+
+  font-size: 12px;
+}
+
+.lf-ui-subtitle:empty {
+  display: none;
+}
+
+/* =========================================================
+   DESKTOP INPUT
+   ---------------------------------------------------------
+   iOS keeps the password field.
+   MD3E/Nothing deliberately do not show a pill.
+   ========================================================= */
+
+.lf-ui-pin-wrap {
+  position: relative;
+
+  width: 252px;
+
+  margin-top: 13px;
+}
+
+.lf-ui-pin {
+  width: min(252px, 100%);
+
+  margin-top: 13px;
+
+  height: 38px;
+
+  padding: 0 14px;
+
+  border: 0;
+
+  outline: none;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.76);
+
+  color: #111111;
+
+  font-family: inherit;
+
+  font-size: 12px;
+
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.14);
+
+  backdrop-filter: blur(18px);
+
+  -webkit-backdrop-filter: blur(18px);
+
+  transition:
+    background 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.lf-ui-pin::placeholder {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.lf-ui-pin:focus {
+  background: rgba(255, 255, 255, 0.92);
+
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.22),
+    0 7px 20px rgba(0, 0, 0, 0.16);
+}
+
+.lf-ui-pin:disabled {
+  opacity: 0.65;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-pin {
+  border: 1px solid color-mix(in srgb, var(--lf-md3e-seed) 34%, transparent);
+
+  border-radius: 18px;
+
+  background: color-mix(in srgb, var(--lf-md3e-seed) 12%, #ffffff);
+
+  color: #1c1b1f;
+}
+
+.lf-ui-overlay[data-ui="md3e"][data-theme="dark"] .lf-ui-pin {
+  background: color-mix(in srgb, var(--lf-md3e-seed) 18%, #1c1b1f);
+
+  color: #e6e1e5;
+}
+
+.lf-ui-overlay[data-ui="nothing"] .lf-ui-pin {
+  border: 1px solid var(--lf-control-border);
+
+  border-radius: 8px;
+
+  background: color-mix(in srgb, var(--lf-text) 8%, transparent);
+
+  color: var(--lf-text);
+}
+
+.lf-ui-overlay[data-theme="light"] .lf-ui-pin::placeholder {
+  color: rgba(0, 0, 0, 0.58);
+}
+
+.lf-ui-overlay[data-ui="nothing"][data-theme="light"] .lf-ui-pin {
+  border-color: rgba(0, 0, 0, 0.18);
+
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.lf-ui-overlay[data-theme="dark"] .lf-ui-pin::placeholder {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.lf-ui-keypad-toggle {
+  width: 36px;
+
+  min-width: 36px;
+
+  height: 36px;
+
+  padding: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  justify-content: center;
+}
+
+.lf-ui-keypad-toggle svg {
+  width: 19px;
+
+  height: 19px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   DESKTOP SUBMIT
+   ========================================================= */
+
+.lf-ui-submit {
+  position: absolute;
+
+  top: 3px;
+
+  right: 3px;
+
+  width: 25px;
+
+  height: 25px;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  display: grid;
+
+  place-items: center;
+
+  background: rgba(0, 0, 0, 0.23);
+
+  color: #ffffff;
+
+  font: inherit;
+
+  font-size: 13px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
+}
+
+.lf-ui-submit:hover {
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.lf-ui-submit:active {
+  transform: scale(0.9);
+}
+
+/* =========================================================
+   iOS LIQUID / GLASS FILTER
+   ---------------------------------------------------------
+   Uses existing Notoz #lg-filter if present.
+   ========================================================= */
+
+.lf-ui-overlay[data-ui="ios"] .lf-ui-submit {
+  filter: url(#lg-filter);
+
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.lf-ui-error {
+  min-height: 17px;
+
+  margin-top: 7px;
+
+  color: var(--lf-text-secondary);
+
+  font-size: 11px;
+
+  line-height: 17px;
+
+  opacity: 0;
+
+  transition: opacity 0.16s ease;
+}
+
+.lf-ui-error.has-error {
+  opacity: 1;
+
+  color: var(--lf-text);
+}
+
+/* =========================================================
+   PASSCODE DOTS
+   ========================================================= */
+
+.lf-ui-dots {
+  display: none;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top: 15px;
+
+  min-height: 12px;
+}
+
+.lf-ui-dot {
+  width: 8px;
+
+  height: 8px;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  border: 1.5px solid currentColor;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  background: transparent;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.lf-ui-dot.on {
+  background: currentColor;
+
+  transform: scale(1.04);
+}
+
+.lf-ui-overlay[data-theme="light"] .lf-ui-dot {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+/* =========================================================
+   KEYPAD
+   ---------------------------------------------------------
+   NO enclosing border.
+   NO artificial container.
+   ========================================================= */
+
+.lf-ui-pad {
+  display: none;
+
+  width: min(310px, 100%);
+
+  margin: 18px 0 0;
+
+  padding: 0;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  box-shadow: none;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 12px;
+}
+
+.lf-ui-pad:not([hidden]) {
+  display: grid;
+}
+
+.lf-ui-key {
+  position: relative;
+
+  width: 100%;
+
+  aspect-ratio: 1;
+
+  border: 0;
+
+  outline: none;
+
+  padding: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  font-family: inherit;
+
+  font-size: 27px;
+
+  font-weight: 400;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  user-select: none;
+
+  -webkit-tap-highlight-color: transparent;
+
+  color: #ffffff;
+
+  background: transparent;
+
+  box-shadow: none;
+}
+
+.lf-ui-key[data-empty="true"] {
+  visibility: hidden;
+
+  pointer-events: none;
+}
+
+.lf-ui-key[data-action="delete"] {
+  font-size: 19px;
+}
+
+/* =========================================================
+   iOS MOBILE KEYS
+   ========================================================= */
+
+.lf-ui-overlay[data-ui="ios"] .lf-ui-key {
+  height: auto;
+
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.2);
+
+  color: #ffffff;
+
+  backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+
+  -webkit-backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
+}
+
+.lf-ui-overlay[data-ui="ios"][data-theme="light"] .lf-ui-key {
+  background: rgba(0, 0, 0, 0.08);
+
+  color: #111111;
+}
+
+.lf-ui-overlay[data-ui="ios"] .lf-ui-key:active {
+  transform: scale(0.91);
+
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.lf-ui-overlay[data-ui="ios"][data-theme="light"] .lf-ui-key:active {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.lf-ui-overlay[data-ui="ios"] .lf-ui-key[data-action="delete"] {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* iOS small alphabet labels */
+
+.lf-ui-overlay[data-ui="ios"] .lf-ui-key[data-letters]::after {
+  content: attr(data-letters);
+
+  position: absolute;
+
+  left: 50%;
+
+  bottom: 25%;
+
+  transform: translateX(-50%);
+
+  font-size: 7px;
+
+  line-height: 1;
+
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  opacity: 0.78;
+}
+
+/* =========================================================
+   MD3E MOBILE KEYS
+   ========================================================= */
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key {
+  color: #ffffff;
+
+  background: color-mix(
+    in srgb,
+    var(--lf-md3e-seed) 29%,
+    rgba(255, 255, 255, 0.11)
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 5px 13px rgba(0, 0, 0, 0.08);
+
+  border-radius: 50%;
+
+  transition:
+    border-radius 0.42s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.2s cubic-bezier(0.2, 0.9, 0.2, 1),
+    background 0.16s ease;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key:active {
+  transform: scale(0.91);
+}
+
+.lf-ui-overlay[data-ui="md3e"][data-theme="light"] .lf-ui-key {
+  color: #1c1b1f;
+
+  background: color-mix(in srgb, var(--lf-md3e-seed) 24%, #ffffff);
+
+  border-color: color-mix(in srgb, var(--lf-md3e-seed) 35%, transparent);
+}
+
+/* M3 Expressive shape families */
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="circle"] {
+  border-radius: 50%;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="pill"] {
+  border-radius: 999px;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="squircle"] {
+  border-radius: 30%;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="soft"] {
+  border-radius: 42%;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="blob"] {
+  border-radius: 57% 43% 36% 64% / 48% 55% 45% 52%;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="cookie"] {
+  border-radius: 36% 64% 54% 46% / 58% 42% 58% 42%;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="flower"] {
+  border-radius: 48% 52% 67% 33% / 40% 61% 39% 60%;
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-key[data-shape="diamond"] {
+  border-radius: 22% 58% 22% 58% / 58% 22% 58% 22%;
+}
+
+/* =========================================================
+   NOTHING MOBILE
+   ========================================================= */
+
+.lf-ui-overlay[data-ui="nothing"] .lf-ui-key {
+  color: var(--lf-text);
+
+  background: transparent;
+
+  border: 1px solid transparent;
+
+  border-radius: 50%;
+
+  box-shadow: none;
+
+  transition:
+    transform 0.12s ease,
+    border-color 0.15s ease;
+}
+
+.lf-ui-overlay[data-ui="nothing"] .lf-ui-key:active {
+  transform: scale(0.91);
+
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.lf-ui-overlay[data-ui="nothing"] .lf-ui-key[data-action="delete"] {
+  font-size: 19px;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.lf-ui-actions {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 12px;
+}
+
+.lf-ui-length-card {
+  gap: 8px;
+}
+
+.lf-ui-length-options {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 14px;
+}
+
+.lf-ui-length-choice {
+  min-height: 78px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 3px;
+
+  border: 1px solid var(--lf-control-border);
+
+  border-radius: 16px;
+
+  background: color-mix(in srgb, var(--lf-text) 7%, transparent);
+
+  color: var(--lf-text);
+
+  font: inherit;
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.lf-ui-length-choice strong {
+  font-size: 22px;
+
+  font-weight: 600;
+}
+
+.lf-ui-length-choice span {
+  color: var(--lf-text-secondary);
+
+  font-size: 11px;
+}
+
+.lf-ui-length-choice[aria-pressed="true"] {
+  border-color: var(--lf-blue);
+
+  background: color-mix(in srgb, var(--lf-blue) 18%, transparent);
+}
+
+.lf-ui-overlay[data-ui="md3e"] .lf-ui-length-choice[aria-pressed="true"] {
+  border-color: var(--lf-md3e-seed);
+
+  background: color-mix(in srgb, var(--lf-md3e-seed) 22%, transparent);
+}
+
+.lf-ui-overlay[data-ui="nothing"] .lf-ui-length-choice[aria-pressed="true"] {
+  border-color: var(--lf-red);
+
+  background: color-mix(in srgb, var(--lf-red) 18%, transparent);
+}
+
+.lf-ui-length-choice:hover {
+  transform: translateY(-1px);
+}
+
+.lf-ui-overlay[data-theme="light"] .lf-ui-length-choice {
+  background: rgba(0, 0, 0, 0.045);
+
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.lf-ui-overlay[data-theme="light"] .lf-ui-length-choice[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--lf-blue) 12%, white);
+}
+
+.lf-ui-overlay[data-ui="md3e"][data-theme="light"]
+  .lf-ui-length-choice[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--lf-md3e-seed) 18%, white);
+}
+
+.lf-ui-overlay[data-ui="nothing"][data-theme="light"]
+  .lf-ui-length-choice[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--lf-red) 12%, white);
+}
+
+.lf-ui-action {
+  min-height: 30px;
+
+  padding: 5px 11px;
+
+  border: 0;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.1);
+
+  color: var(--lf-text-secondary);
+
+  font: inherit;
+
+  font-size: 11px;
+
+  cursor: pointer;
+
+  backdrop-filter: blur(10px);
+
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.lf-ui-action:hover {
+  background: rgba(255, 255, 255, 0.17);
+
+  color: var(--lf-text);
+}
+
+.lf-ui-action[hidden] {
+  display: none;
+}
+
+/* =========================================================
+   MD3E DESKTOP
+   ========================================================= */
+
+@media (min-width: 700px) {
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-card {
+    width: min(420px, 90vw);
+
+    padding: 34px 32px 30px;
+
+    background: transparent;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  /*
+   * MD3E desktop deliberately has no pill.
+   *
+   * PIN is entered from the physical keyboard.
+   * Dots provide the only visible PIN state.
+   */
+
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-pin-wrap {
+    position: absolute;
+
+    width: 1px;
+
+    height: 1px;
+
+    overflow: hidden;
+
+    opacity: 0;
+
+    pointer-events: none;
+  }
+
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-dots {
+    display: flex;
+  }
+}
+
+/* =========================================================
+   NOTHING DESKTOP
+   ========================================================= */
+
+@media (min-width: 700px) {
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-card {
+    width: min(400px, 90vw);
+
+    padding: 32px 30px 28px;
+
+    background: transparent;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-pin-wrap {
+    position: absolute;
+
+    width: 1px;
+
+    height: 1px;
+
+    overflow: hidden;
+
+    opacity: 0;
+
+    pointer-events: none;
+  }
+
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-dots {
+    display: flex;
+  }
+
+  .lf-ui-overlay[data-ui="nothing"][data-theme="light"] .lf-ui-dot {
+    color: rgba(0, 0, 0, 0.62);
+  }
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 699px) {
+  .lf-ui-overlay {
+    align-items: center;
+
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
+
+    backdrop-filter: blur(17px) saturate(1.08);
+
+    -webkit-backdrop-filter: blur(17px) saturate(1.08);
+  }
+
+  /*
+   * ALL mobile themes:
+   * no pill / no visible input.
+   */
+
+  .lf-ui-pin-wrap {
+    display: none !important;
+  }
+
+  .lf-ui-card {
+    width: min(390px, 100%);
+
+    max-height: calc(100dvh - 22px);
+
+    overflow: auto;
+
+    padding: 22px 18px 18px;
+
+    background: transparent;
+
+    border: 0;
+
+    border-radius: 0;
+
+    box-shadow: none;
+  }
+
+  .lf-ui-avatar {
+    width: 70px;
+
+    height: 70px;
+
+    margin-bottom: 11px;
+
+    font-size: 24px;
+  }
+
+  .lf-ui-title {
+    font-size: 20px;
+  }
+
+  .lf-ui-dots {
+    display: flex;
+
+    margin-top: 16px;
+  }
+
+  .lf-ui-pad {
+    display: grid;
+
+    width: min(308px, 100%);
+
+    margin-top: 18px;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 12px;
+  }
+
+  .lf-ui-key {
+    aspect-ratio: 1;
+
+    font-size: 27px;
+  }
+
+  .lf-ui-overlay[data-ui="ios"] .lf-ui-card {
+    background: transparent;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-card {
+    width: min(410px, 100%);
+
+    padding: 26px 18px 20px;
+
+    background: transparent;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-card {
+    width: min(400px, 100%);
+
+    padding: 24px 18px 20px;
+
+    background: transparent;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  .lf-ui-overlay[data-ui="nothing"][data-theme="light"] .lf-ui-card {
+    background: transparent;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  .lf-ui-actions {
+    margin-top: 14px;
+  }
+
+  .lf-ui-action {
+    min-height: 38px;
+
+    padding: 7px 14px;
+
+    font-size: 12px;
+  }
+}
+
+/* =========================================================
+   SETTINGS — PIN LENGTH
+   ========================================================= */
+
+.lf-settings-pin-length {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 18px;
+}
+
+.lf-settings-pin-length-copy {
+  min-width: 0;
+
+  flex: 1;
+}
+
+.lf-settings-pin-length-title {
+  color: var(--text-primary, var(--text-main, #111111));
+
+  font-size: 14px;
+
+  font-weight: 500;
+}
+
+.lf-settings-pin-length-description {
+  margin-top: 4px;
+
+  color: var(--text-secondary, var(--text-dim, #777777));
+
+  font-size: 12px;
+
+  line-height: 1.4;
+}
+
+.lf-settings-segmented {
+  display: flex;
+
+  flex-shrink: 0;
+
+  padding: 3px;
+
+  border-radius: 999px;
+
+  background: var(--segmented-bg, rgba(120, 120, 128, 0.14));
+
+  border: 1px solid var(--segmented-border, rgba(0, 0, 0, 0.08));
+}
+
+[data-theme="dark"] .lf-settings-segmented {
+  --segmented-bg: rgba(255, 255, 255, 0.1);
+
+  --segmented-border: rgba(255, 255, 255, 0.08);
+}
+
+.lf-settings-segment {
+  min-width: 72px;
+
+  height: 30px;
+
+  padding: 0 12px;
+
+  border: 0;
+
+  border-radius: 999px;
+
+  background: transparent;
+
+  color: var(--text-secondary, var(--text-dim, #777777));
+
+  font: inherit;
+
+  font-size: 12px;
+
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.lf-settings-segment.active {
+  background: var(--bg-card, rgba(255, 255, 255, 0.9));
+
+  color: var(--text-primary, var(--text-main, #111111));
+
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .lf-settings-segment.active {
+  background: rgba(255, 255, 255, 0.15);
+
+  color: var(--text-primary, #ffffff);
+
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 600px) {
+  .lf-settings-pin-length {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .lf-settings-segmented {
+    width: 100%;
+  }
+
+  .lf-settings-segment {
+    flex: 1;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.lf-ui-pin:focus-visible,
+.lf-ui-key:focus-visible,
+.lf-ui-action:focus-visible,
+.lf-ui-submit:focus-visible,
+.lf-ui-length-choice:focus-visible,
+.lf-settings-segment:focus-visible {
+  outline: 2px solid var(--lf-blue);
+
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   ANIMATION
+   ========================================================= */
+
+@keyframes lf-ui-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lf-ui-card-in {
+  from {
+    opacity: 0;
+
+    transform: translateY(8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lf-ui-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes lf-ui-success-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.045);
+  }
+}
+
+.lf-ui-overlay.lf-ui-success {
+  animation: lf-ui-fade-out 0.22s ease-in both;
+}
+
+.lf-ui-success .lf-ui-avatar {
+  animation: lf-ui-success-pop 0.22s ease-out both;
+}
+
+@keyframes lf-ui-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(3px);
+  }
+
+  60% {
+    transform: translateX(-2px);
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.lf-ui-shake {
+  animation: lf-ui-shake 0.3s ease;
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .lf-ui-overlay,
+  .lf-ui-card,
+  .lf-ui-shake,
+  .lf-ui-success,
+  .lf-ui-success .lf-ui-avatar {
+    animation: none !important;
+  }
+
+  .lf-ui-key,
+  .lf-ui-pin,
+  .lf-ui-submit,
+  .lf-ui-action,
+  .lf-settings-segment {
+    transition: none !important;
+  }
+}

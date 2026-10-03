@@ -1933,13 +1933,14 @@ app.renderFolders = function () {
 
     this.folders.forEach(folder => {
         const el = document.createElement('div');
-        el.className = `folder-item ${this.activeFolderId === folder.id ? 'active' : ''}`;
+        el.className = `folder-item ${this.activeFolderId === folder.id ? 'active' : ''}${folder.is_locked ? ' is-locked' : ''}`;
         el.setAttribute('data-folder-id', folder.id);
         el.innerHTML = `
             <div class="folder-main">
                 <svg class="folder-icon" viewBox="0 0 24 24">
                     <path d="M3.5 7.5h5.3c.5 0 .9.2 1.2.5l1 1c.3.3.7.5 1.2.5h7.3c.8 0 1.5.7 1.5 1.5v7.5c0 1.1-.9 2-2 2H4.5c-1.1 0-2-.9-2-2V9.5c0-1.1.9-2 2-2z"/>
                     <path d="M4.5 4.5h5c.5 0 1 .2 1.3.5l1.2 1.2"></path>
+                    ${folder.is_locked ? '<path d="M14.5 12v-1.4a2 2 0 0 1 4 0V12"></path><rect x="13.5" y="12" width="6" height="5.5" rx="1"></rect><path d="M16.5 14v1.5"></path>' : ''}
                 </svg>
                 <span>${Utils.escapeHtml(folder.name)}</span>
             </div>
@@ -2069,7 +2070,7 @@ app.renderMobileNav = function () {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
-            <div class="mobile-nav-title">${Utils.escapeHtml(folderName)}</div>
+            <div class="mobile-nav-title"><span class="mobile-nav-title-text">${Utils.escapeHtml(folderName)}</span></div>
             <div class="mobile-nav-right">
                 <button id="editNotesBtn" class="edit-notes-btn" onclick="app.toggleMultiSelect()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2092,8 +2093,11 @@ app.renderMobileNav = function () {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
-            <div class="mobile-nav-title">${Utils.escapeHtml(title)} <div class="editor-meta-info" id="mobileEditorDateDisplay">${note ? Utils.formatDateTime(note.updated_at) : ''}</div></div>
+            <div class="mobile-nav-title"><span class="mobile-nav-title-text">${Utils.escapeHtml(title)}</span><div class="editor-meta-info" id="mobileEditorDateDisplay">${note ? Utils.formatDateTime(note.updated_at) : ''}</div></div>
             <div class="mobile-nav-right">
+                <button id="mobileShareBtn" class="mobile-nav-share" onclick="app.toggleShareDropdownFromMobile(event)" title="Share note" aria-label="Share note" aria-haspopup="dialog" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0 4 4m-4-4L8 7"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+                </button>
                 <button class="mobile-nav-undo" onclick="app.performUndo()" title="Undo (Ctrl+Z)" aria-label="Undo">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 19q-.425 0-.712-.288T7 18t.288-.712T8 17h6.1q1.575 0 2.738-1T18 13.5 16.838 11 14.1 10H7.8l1.9 1.9q.275.275.275.7t-.275.7-.7.275-.7-.275L4.7 9.7q-.15-.15-.213-.325T4.426 9t.063-.375T4.7 8.3l3.6-3.6q.275-.275.7-.275t.7.275.275.7-.275.7L7.8 8h6.3q2.425 0 4.163 1.575T20 13.5t-1.737 3.925T14.1 19z"/></svg>
                 </button>

@@ -32,7 +32,7 @@ function showNotification(title, message, type = 'info') {
         document.body.appendChild(container);
     }
 
-    const MAX_NOTIFICATIONS = 1;
+    const MAX_NOTIFICATIONS = 2;
     const existing = container.children;
     if (existing.length >= MAX_NOTIFICATIONS) {
         const oldest = existing[0];

@@ -16,97 +16,151 @@ const supabase = (() => {
 let currentUser = null;
 
 // Animation helper
+// Completion is guaranteed by a fallback timer: `animationend` never fires if the keyframes
+// are missing, reduced-motion is on, or the element is hidden. It also bubbles up from
+// child elements, so only the element's own animation counts.
 const animate = (element, animationName, duration = 300, onComplete = null) => {
     if (!element) return;
-    element.style.animation = `${animationName} ${duration}ms ease-out forwards`;
-    
-    const handleAnimationEnd = () => {
+
+    let done = false;
+    let fallbackTimer = null;
+
+    const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(fallbackTimer);
         element.removeEventListener('animationend', handleAnimationEnd);
         element.style.animation = '';
         if (onComplete) onComplete();
     };
-    
+
+    const handleAnimationEnd = (event) => {
+        if (event.target === element) finish();
+    };
+
     element.addEventListener('animationend', handleAnimationEnd);
+    fallbackTimer = setTimeout(finish, duration + 120);
+    element.style.animation = `${animationName} ${duration}ms ease-out forwards`;
 };
 
 // --- Core UI & Theme ---
+// One default everywhere. This matches the first-paint script in settings.html
+// (it used to be 'dark' there, 'light' in load()/restoreThemeState, and 'system' for the portal).
+const DEFAULT_THEME_MODE = 'dark';
+const getThemeMode = () => localStorage.getItem('notozApp_theme') || DEFAULT_THEME_MODE;
+
+// Every iframe that can host a settings page: the mobile portal AND the desktop detail pane.
+// Previously only #portal-frame was ever messaged or trusted, so on desktop (General,
+// Appearance, Wallpaper & Colors) every message from the iframe was silently dropped.
+const getSettingsFrames = () => ['portal-frame', 'desktop-settings-frame']
+    .map((id) => document.getElementById(id))
+    .filter((frame) => frame && frame.contentWindow);
+
+const isSettingsFrameSource = (source) =>
+    !!source && getSettingsFrames().some((frame) => frame.contentWindow === source);
+
+function postToSettingsFrames(message) {
+    getSettingsFrames().forEach((frame) => {
+        try {
+            frame.contentWindow.postMessage(message, window.location.origin);
+        } catch (err) {
+            // Frame is mid-navigation; it gets another sync when it finishes loading.
+        }
+    });
+}
+
+// `theme` is always the light/dark/system MODE (what INIT_THEME has always meant).
+// `ui` and `seed` ride along so a page can pick up the full appearance in one message.
+function syncThemeToFrames() {
+    postToSettingsFrames({
+        type: 'INIT_THEME',
+        theme: getThemeMode(),
+        ui: localStorage.getItem('ui-theme') || 'ios',
+        seed: localStorage.getItem('md3e-seed') || '#6750A4'
+    });
+}
+window.syncThemeToFrames = syncThemeToFrames;
+
 const applyThemeUI = (theme) => {
     if (!theme) return;
     const displayTheme = theme === 'system' ? 'System' : theme.charAt(0).toUpperCase() + theme.slice(1);
-    document.getElementById('currentThemeDisplay').textContent = displayTheme;
-    const frame = document.getElementById('portal-frame');
-    if (frame?.contentWindow) frame.contentWindow.postMessage({ type: 'INIT_THEME', theme }, window.location.origin);
+    const display = document.getElementById('currentThemeDisplay');
+    if (display) display.textContent = displayTheme;
+    syncThemeToFrames();
 };
 
 // --- Portal Control ---
+let portalCloseTimer = null;
+let portalOpenId = 0;
+
 window.openPortal = (url) => {
     const frame = document.getElementById('portal-frame');
     const layer = document.getElementById('portal-layer');
-    
+
     if (!frame || !layer) {
         console.error('[Portal] Missing portal elements:', { frame: !!frame, layer: !!layer });
         return;
     }
-    
-    // Clear previous state
+
+    // closePortal() leaves timers pending (remove layer, then blank the frame).
+    // If one fires after this open, it wipes the page that was just opened.
+    clearTimeout(portalCloseTimer);
+    portalCloseTimer = null;
+    const openId = ++portalOpenId;
+
+    frame.style.transition = 'none';
     frame.style.opacity = '0';
     frame.style.display = 'block';
-    
-    // Set up load handler BEFORE changing src
-    const handleLoad = () => {
-        console.log('[Portal] Frame loaded:', url);
-        frame.style.opacity = '1';
+
+    const reveal = () => {
+        if (openId !== portalOpenId) return;
         frame.style.transition = 'opacity 0.4s ease-out';
-        applyThemeUI(localStorage.getItem('notozApp_theme') || 'system');
-    };
-    
-    const handleError = () => {
-        console.error('[Portal] Frame failed to load:', url);
         frame.style.opacity = '1';
     };
-    
-    frame.onload = handleLoad;
-    frame.onerror = handleError;
-    
-    // Now set src
+
+    // Set up load handler BEFORE changing src
+    frame.onload = () => {
+        if (openId !== portalOpenId) return;
+        if ((frame.getAttribute('src') || 'about:blank') === 'about:blank') return;
+        console.log('[Portal] Frame loaded:', url);
+        reveal();
+        applyThemeUI(getThemeMode());
+        // Some pages only attach their message listener after async init, so send once more.
+        setTimeout(() => { if (openId === portalOpenId) syncThemeToFrames(); }, 350);
+    };
+
     frame.src = url;
-    
-    // Show portal layer
     layer.classList.add('active');
-    
-    // Animate portal entry
+
+    // Iframes don't reliably fire `error`. Never leave the frame invisible if load never fires.
+    setTimeout(reveal, 4000);
+
     const nav = layer.querySelector('.portal-nav');
-    if (nav) {
-        animate(nav, 'drawerSlideIn', 300);
-    }
+    if (nav) animate(nav, 'drawerSlideIn', 300);
 };
 
 window.closePortal = () => {
     const frame = document.getElementById('portal-frame');
     const layer = document.getElementById('portal-layer');
-    
+
     if (!layer) return;
-    
+
+    portalOpenId++; // invalidate any pending reveal/sync from the last open
     const nav = layer.querySelector('.portal-nav');
-    
-    // Animate portal exit
-    if (nav) {
-        animate(nav, 'drawerSlideOut', 300, () => {
-            layer.classList.remove('active');
-            frame.style.opacity = '0';
-            setTimeout(() => { 
-                frame.src = "about:blank";
-                frame.style.opacity = '0';
-            }, 200);
-        });
-    } else {
+    if (nav) animate(nav, 'drawerSlideOut', 300);
+
+    // Timer-driven on purpose. This used to wait for `animationend`, which can fail to
+    // fire and leave the portal stuck open.
+    clearTimeout(portalCloseTimer);
+    portalCloseTimer = setTimeout(() => {
         layer.classList.remove('active');
-        frame.style.opacity = '0';
-        setTimeout(() => { 
-            frame.src = "about:blank";
-            frame.style.opacity = '0';
-        }, 400);
-    }
+        if (frame) frame.style.opacity = '0';
+        // Blank the page only after the layer's 0.4s slide-out has finished.
+        portalCloseTimer = setTimeout(() => {
+            portalCloseTimer = null;
+            if (frame) frame.src = 'about:blank';
+        }, 450);
+    }, nav ? 300 : 0);
 };
 
 // --- Modal Control with Dialog Ripple Animation ---
@@ -731,22 +785,40 @@ async function performFullSignOut() {
 }
 
 async function load() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return window.location.href = './index.html';
+    // Local-only UI first. None of this needs the network, so it must not be held up
+    // (or skipped entirely) when the auth call below is slow or throws.
+    applyThemeUI(getThemeMode());
+    applyWallpaperUI();
+    updateSettingsNotificationUI();
+
+    let user = null;
+    let authFailed = false;
+    try {
+        const { data } = await supabase.auth.getUser();
+        user = data?.user || null;
+    } catch (err) {
+        authFailed = true;
+        console.warn('[Settings] getUser failed:', err);
+    }
+    if (!user) {
+        // Only bounce to the login page when we positively know there is no user.
+        if (!authFailed) window.location.href = './index.html';
+        return;
+    }
     currentUser = user;
-    
+
     const emailEl = document.getElementById('accEmail');
     const nameEl = document.getElementById('accountDisplayName');
     const avatarEl = document.getElementById('accountAvatar');
-    
+
     animate(emailEl, 'textFadeIn', 300, () => {
         emailEl.textContent = user.email;
     });
-    
+
     animate(nameEl, 'textFadeIn', 300, () => {
         nameEl.textContent = user.user_metadata?.display_name || user.email.split('@')[0];
     });
-    
+
     // ✅ LOAD AVATAR WITH PREFERENCES FROM DATABASE
     if (avatarEl && window.AdvancedAvatarGenerator) {
         try {
@@ -802,12 +874,9 @@ async function load() {
         }
     }
     
-    applyThemeUI(localStorage.getItem('notozApp_theme') || 'light');
-    applyWallpaperUI();
-    updateSettingsNotificationUI();
 }
 
-load();
+load().catch((err) => console.error('[Settings] load failed:', err));
 
 /* =====================================================
    LIVE THEME + UI + MD3E ACCENT SYNC (WITH PORTAL) 
@@ -853,11 +922,8 @@ function applyTheme(mode) {
     window.updateThemeColor?.(document.documentElement.getAttribute('data-ui'), actualTheme);
     updateSettingsThemeColor(document.documentElement.getAttribute('data-ui'), actualTheme);
 
-    // Keep portal pages in sync too
-    const frame = document.getElementById("portal-frame");
-    if (frame?.contentWindow) {
-        frame.contentWindow.postMessage({ type: 'INIT_THEME', theme: mode }, window.location.origin);
-    }
+    // Keep every settings iframe (mobile portal + desktop pane) in sync too
+    syncThemeToFrames();
 }
 
 // --- Live system theme updates (when mode === system) ---
@@ -896,6 +962,10 @@ function applyMD3EAccent(hex) {
     const b = parseInt(v.slice(4, 6), 16);
     document.documentElement.style.setProperty("--md-seed", `${r},${g},${b}`);
     localStorage.setItem("md3e-seed", hex);
+    updateSettingsThemeColor(
+        document.documentElement.getAttribute('data-ui'),
+        document.documentElement.getAttribute('data-theme')
+    );
 }
 
 function applyWallpaperUI() {
@@ -927,7 +997,7 @@ function applyWallpaperUI() {
 
 (function restoreThemeState() {
     const ui = localStorage.getItem("ui-theme") || "ios";
-    const theme = localStorage.getItem("notozApp_theme") || "light";
+    const theme = getThemeMode();
     const accent = localStorage.getItem("md3e-seed");
     applyUI(ui);
     applyTheme(theme);
@@ -948,19 +1018,19 @@ function updateSettingsNotificationUI() {
 }
 
 window.addEventListener("message", (event) => {
-    const portalFrame = document.getElementById('portal-frame');
-    if (event.origin !== window.location.origin || (portalFrame && event.source !== portalFrame.contentWindow)) return;
+    if (event.origin !== window.location.origin) return;
+    // Accept messages from EITHER settings iframe (mobile portal or desktop pane).
+    if (!isSettingsFrameSource(event.source)) return;
     if (!event.data || !event.data.type) return;
 
     switch (event.data.type) {
         case "SET_UI_THEME": {
             if (!['ios', 'md3e', 'nothing'].includes(event.data.theme)) break;
             applyUI(event.data.theme);
+            updateSettingsThemeColor(event.data.theme, document.documentElement.getAttribute('data-theme'));
             applyWallpaperUI();
-            const frame = document.getElementById("portal-frame");
-            if (frame?.contentWindow) {
-                frame.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, window.location.origin);
-            }
+            // Was: INIT_THEME with the UI name ('md3e') in the `theme` slot, which expects light/dark/system.
+            syncThemeToFrames();
             const uiLabels = { ios: "iOS", md3e: "Material You", nothing: "Nothing OS" };
             showNotification(
                 "Appearance Updated",
@@ -972,11 +1042,7 @@ window.addEventListener("message", (event) => {
 
         case "SET_THEME": {
             if (!['light', 'dark', 'system'].includes(event.data.theme)) break;
-            applyTheme(event.data.theme);
-            const frame2 = document.getElementById("portal-frame");
-            if (frame2?.contentWindow) {
-                frame2.contentWindow.postMessage({ type: "INIT_THEME", theme: event.data.theme }, window.location.origin);
-            }
+            applyTheme(event.data.theme); // also syncs the iframes
             showNotification(
                 "Theme Updated",
                 `Switched to ${event.data.theme} mode.`,
@@ -986,15 +1052,15 @@ window.addEventListener("message", (event) => {
         }
 
         case "SET_MD3E_COLOR": {
-            if (!/^#[0-9a-f]{6}$/i.test(event.data.color || '')) break;
-            applyMD3EAccent(event.data.color);
-            const frame3 = document.getElementById("portal-frame");
-            if (frame3?.contentWindow) {
-                frame3.contentWindow.postMessage({ type: "INIT_THEME", theme: localStorage.getItem("notozApp_theme") }, window.location.origin);
-            }
+            // The inline handler in settings.html reads `seed || color`; accept both here too.
+            let color = String(event.data.color || event.data.seed || '');
+            if (color && !color.startsWith('#')) color = '#' + color;
+            if (!/^#[0-9a-f]{6}$/i.test(color)) break;
+            applyMD3EAccent(color);
+            syncThemeToFrames();
             showNotification(
                 "Accent Color Updated",
-                `Color set to ${event.data.color}.`,
+                `Color set to ${color}.`,
                 "success"
             );
             break;
@@ -1002,11 +1068,10 @@ window.addEventListener("message", (event) => {
 
         case "WALLPAPER_CHANGED": {
             applyWallpaperUI();
+            const label = event.data.label;
             showNotification(
                 "Wallpaper Setting Saved",
-                event.data.label === "Nothing OS"
-                    ? "Nothing OS wallpaper selected."
-                    : "iOS wallpaper selected.",
+                label ? `${label} wallpaper selected.` : "Wallpaper selected.",
                 "success"
             );
             break;
@@ -1057,3 +1122,69 @@ window.showDeleteModal = showDeleteModal;
     // Initial check
     checkKeyboard();
 })();
+
+/* ===== Locked Folder ===== */
+LockedFolder.configure({ client: supabase });
+
+async function refreshLF() {
+  await LockedFolder.init();
+  const c = LockedFolder.getConfig();
+  const on = !!c?.enabled;
+  const bioOk = await LockedFolder.biometricAvailable();
+  document.querySelectorAll('[data-lf="status"]').forEach(e => e.textContent = on ? 'On' : 'Off');
+  document.querySelectorAll('[data-lf="bio"]').forEach(e => e.textContent = c?.biometric ? 'On' : 'Off');
+  document.querySelectorAll('[data-lf-when="on"]').forEach(e => {
+    const needsBio = e.hasAttribute('data-lf-bio');
+    e.style.display = on && (!needsBio || bioOk) ? '' : 'none';
+  });
+}
+
+function lockedFolderNotificationsEnabled() {
+    return localStorage.getItem('locked_folder_notifications_disabled') !== 'true';
+}
+
+function syncLockedFolderNotificationToggles() {
+    const enabled = lockedFolderNotificationsEnabled();
+
+    document.querySelectorAll('[data-locked-folder-notifications]').forEach(toggle => {
+        toggle.dataset.checked = String(enabled);
+        toggle.setAttribute('aria-checked', String(enabled));
+    });
+}
+
+function toggleLockedFolderNotifications() {
+    localStorage.setItem(
+        'locked_folder_notifications_disabled',
+        String(lockedFolderNotificationsEnabled())
+    );
+    syncLockedFolderNotificationToggles();
+}
+
+async function lfToggle() {
+  if (LockedFolder.isEnabled()) {
+    if (!confirm('Disable locked folder? Its notes will be moved to your last used folder (or "Unlocked Notes").')) return;
+    await LockedFolder.ui.disable();
+  } else {
+    // TEMP pickers: swap for your own UI later
+    const length = confirm('Use a 6-digit PIN? (Cancel = 4-digit)') ? 6 : 4;
+    const biometric = (await LockedFolder.biometricAvailable()) && confirm('Also enable fingerprint / Face ID?');
+    await LockedFolder.ui.enable({ length, biometric });
+  }
+  refreshLF();
+}
+async function lfChangePin() {
+    const config = LockedFolder.getConfig();
+    const length = await window.LockedFolderUI?.choosePinLength?.({
+        current: config?.pinLength === 6 ? 6 : 4
+    });
+    if (!length) return;
+  await LockedFolder.ui.changePin({ length });
+}
+async function lfToggleBio() {
+  await LockedFolder.ui.setBiometric(!LockedFolder.getConfig()?.biometric);
+  refreshLF();
+}
+
+window.addEventListener('lockedfolder:changed', refreshLF);
+document.addEventListener('DOMContentLoaded', refreshLF);
+document.addEventListener('DOMContentLoaded', syncLockedFolderNotificationToggles, { once: true });
