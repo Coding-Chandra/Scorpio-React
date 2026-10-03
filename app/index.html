@@ -447,7 +447,7 @@
   <div id="folderActionsMenu" class="dropdown-menu direction-down" role="menu" aria-hidden="true">
     <div class="row">
       <button class="btn" onclick="app.promptRenamePendingFolder()">Rename Folder</button>
-      <button class="btn" onclick="app.requestDeletePendingFolder()">Delete Folder</button>
+      <button class="btn" data-folder-action="delete" onclick="app.requestDeletePendingFolder()">Delete Folder</button>
     </div>
   </div>
   

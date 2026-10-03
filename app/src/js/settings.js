@@ -1161,16 +1161,137 @@ function toggleLockedFolderNotifications() {
 }
 
 async function lfToggle() {
-  if (LockedFolder.isEnabled()) {
-    if (!confirm('Disable locked folder? Its notes will be moved to your last used folder (or "Unlocked Notes").')) return;
-    await LockedFolder.ui.disable();
-  } else {
-    // TEMP pickers: swap for your own UI later
-    const length = confirm('Use a 6-digit PIN? (Cancel = 4-digit)') ? 6 : 4;
-    const biometric = (await LockedFolder.biometricAvailable()) && confirm('Also enable fingerprint / Face ID?');
-    await LockedFolder.ui.enable({ length, biometric });
-  }
-  refreshLF();
+    if (LockedFolder.isEnabled()) {
+        inputContainer.innerHTML = '';
+
+        openModal(
+            'Disable Locked Folder?',
+            'Your current PIN will be required. Its notes will move to your last used folder or Unlocked Notes.',
+            'Disable',
+            'var(--accent1)',
+            async () => {
+                const disabled = await LockedFolder.ui.disable();
+
+                if (disabled) {
+                    closeCustomModal();
+                    await refreshLF();
+                    return;
+                }
+
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Disable';
+            },
+            SettingsDialog.lastSourceEl
+        );
+
+        return;
+    }
+
+    const biometricAvailable = await LockedFolder.biometricAvailable();
+    let pinLength = 4;
+    let biometric = false;
+    let setupStep = 'pin';
+
+    function renderPinLengthStep() {
+        inputContainer.innerHTML = `
+            <div class="lf-setup-options">
+                <fieldset class="lf-setup-pin-section">
+                    <legend>PIN length</legend>
+                    <div class="lf-setup-pin-options" role="radiogroup" aria-label="PIN length">
+                        <button type="button" class="lf-setup-pin-option${pinLength === 4 ? ' selected' : ''}" data-create-pin-length="4" role="radio" aria-checked="${pinLength === 4}">
+                            <strong>4</strong><span>digits</span>
+                        </button>
+                        <button type="button" class="lf-setup-pin-option${pinLength === 6 ? ' selected' : ''}" data-create-pin-length="6" role="radio" aria-checked="${pinLength === 6}">
+                            <strong>6</strong><span>digits</span>
+                        </button>
+                    </div>
+                </fieldset>
+            </div>
+        `;
+
+        inputContainer.querySelectorAll('[data-create-pin-length]').forEach(button => {
+            button.addEventListener('click', () => {
+                pinLength = Number(button.dataset.createPinLength) === 6 ? 6 : 4;
+
+                inputContainer.querySelectorAll('[data-create-pin-length]').forEach(option => {
+                    const selected = Number(option.dataset.createPinLength) === pinLength;
+                    option.classList.toggle('selected', selected);
+                    option.setAttribute('aria-checked', String(selected));
+                });
+            });
+        });
+    }
+
+    function renderBiometricsStep() {
+        inputContainer.innerHTML = `
+            <div class="lf-setup-options">
+                <button type="button" class="lf-setup-back" aria-label="Back to PIN length">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+                    <span>PIN length</span>
+                </button>
+                <button type="button" class="lf-setup-biometrics" role="switch" aria-label="Enable biometrics" aria-checked="${biometric}" data-checked="${biometric}" ${biometricAvailable ? '' : 'disabled'}>
+                    <span class="lf-setup-biometrics-copy">
+                        <strong>Biometrics</strong>
+                        <span>${biometricAvailable ? 'Use fingerprint or face recognition to unlock' : 'Not available on this device'}</span>
+                    </span>
+                    <span class="notifToggle" data-checked="${biometric}" aria-hidden="true"><span class="notifThumb"></span></span>
+                </button>
+            </div>
+        `;
+
+        inputContainer.querySelector('.lf-setup-back').addEventListener('click', () => {
+            setupStep = 'pin';
+            renderPinLengthStep();
+            document.getElementById('modal-title').innerText = 'Create Locked Folder';
+            document.getElementById('modal-message').innerText =
+                'Step 1 of 2 · Choose a PIN length.';
+            confirmBtn.innerText = 'Next';
+        });
+
+        const biometricToggle = inputContainer.querySelector('.lf-setup-biometrics');
+        biometricToggle.addEventListener('click', () => {
+            biometric = !biometric;
+            biometricToggle.setAttribute('aria-checked', String(biometric));
+            biometricToggle.dataset.checked = String(biometric);
+            biometricToggle.querySelector('.notifToggle').dataset.checked = String(biometric);
+        });
+    }
+
+    renderPinLengthStep();
+
+    openModal(
+        'Create Locked Folder',
+        'Step 1 of 2 · Choose a PIN length.',
+        'Next',
+        'var(--accent)',
+        async () => {
+            if (setupStep === 'pin') {
+                setupStep = 'biometrics';
+                renderBiometricsStep();
+                document.getElementById('modal-title').innerText = 'Biometrics';
+                document.getElementById('modal-message').innerText =
+                    'Step 2 of 2 · Biometrics are optional.';
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Create';
+                return;
+            }
+
+            const enabled = await LockedFolder.ui.enable({
+                length: pinLength,
+                biometric
+            });
+
+            if (enabled) {
+                closeCustomModal();
+                await refreshLF();
+                return;
+            }
+
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Create';
+        },
+        SettingsDialog.lastSourceEl
+    );
 }
 async function lfChangePin() {
     const config = LockedFolder.getConfig();

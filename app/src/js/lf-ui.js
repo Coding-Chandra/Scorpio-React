@@ -318,6 +318,19 @@
                 return window.matchMedia('(max-width: 699px)').matches;
             }
 
+            function vibrateForKeyTap() {
+                if (
+                    !isMobile() ||
+                    typeof navigator.vibrate !== 'function'
+                ) {
+                    return;
+                }
+
+                try {
+                    navigator.vibrate(8);
+                } catch (_) {}
+            }
+
             function currentUi() {
                 return overlay.dataset.ui || 'ios';
             }
@@ -664,7 +677,10 @@
 
                     button.addEventListener(
                         'click',
-                        () => press(key)
+                        () => {
+                            vibrateForKeyTap();
+                            press(key);
+                        }
                     );
                 }
 

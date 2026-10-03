@@ -170,15 +170,15 @@
                     <div class="row clickable" data-lf-when="on" style="display:none" onclick="lfChangePin()">
                         <span class="label">Change PIN</span>
                     </div>
+                    <div class="row clickable" data-lf-when="on" data-lf-bio style="display:none" onclick="lfToggleBio()">
+                        <span class="label">Fingerprint / Face ID</span>
+                        <span class="value" data-lf="bio" style="font-size:14px;">Off</span>
+                    </div>
                     <div class="row" data-lf-when="on" style="display:none">
                         <span class="label">Locked Folder notifications</span>
                         <button type="button" class="notifToggle" data-locked-folder-notifications role="switch" aria-label="Locked Folder notifications" aria-checked="true" data-checked="true" onclick="toggleLockedFolderNotifications()">
                             <span class="notifThumb"></span>
                         </button>
-                    </div>
-                    <div class="row clickable" data-lf-when="on" data-lf-bio style="display:none" onclick="lfToggleBio()">
-                        <span class="label">Fingerprint / Face ID</span>
-                        <span class="value" data-lf="bio" style="font-size:14px;">Off</span>
                     </div>
                 </div>
             </div>
@@ -399,18 +399,20 @@
                                     <span class="label">Locked Folder</span>
                                     <span class="value" data-lf="status" style="font-size:14px;">Off</span>
                                 </div>
+                            </div>
+                            <div class="settings-group">
                                 <div class="row clickable" data-lf-when="on" style="display:none" onclick="lfChangePin()">
                                     <span class="label">Change PIN</span>
+                                </div>
+                                <div class="row clickable" data-lf-when="on" data-lf-bio style="display:none" onclick="lfToggleBio()">
+                                    <span class="label">Fingerprint / Face ID</span>
+                                    <span class="value" data-lf="bio" style="font-size:14px;">Off</span>
                                 </div>
                                 <div class="row" data-lf-when="on" style="display:none">
                                     <span class="label">Locked Folder notifications</span>
                                     <button type="button" class="notifToggle" data-locked-folder-notifications role="switch" aria-label="Locked Folder notifications" aria-checked="true" data-checked="true" onclick="toggleLockedFolderNotifications()">
                                         <span class="notifThumb"></span>
                                     </button>
-                                </div>
-                                <div class="row clickable" data-lf-when="on" data-lf-bio style="display:none" onclick="lfToggleBio()">
-                                    <span class="label">Fingerprint / Face ID</span>
-                                    <span class="value" data-lf="bio" style="font-size:14px;">Off</span>
                                 </div>
                             </div>
                         </section>

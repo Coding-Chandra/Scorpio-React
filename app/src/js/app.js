@@ -2826,6 +2826,12 @@ app.openFolderActionsMenu = function (ev, folderId) {
     if (!menu) return;
     menu.dataset.parentId = String(folderId);
 
+    const folder = (this.folders || []).find(
+        item => String(item.id) === String(folderId)
+    );
+    const deleteAction = menu.querySelector('[data-folder-action="delete"]');
+    if (deleteAction) deleteAction.hidden = !!folder?.is_locked;
+
     const x = ev.clientX || (ev.touches?.[0]?.clientX) || 20;
     const y = ev.clientY || (ev.touches?.[0]?.clientY) || 20;
 
@@ -2847,6 +2853,15 @@ app.promptRenamePendingFolder = function () {
 
 app.requestDeletePendingFolder = function () {
     if (!this.pendingFolderId) return;
+
+    const folder = (this.folders || []).find(
+        item => String(item.id) === String(this.pendingFolderId)
+    );
+    if (folder?.is_locked) {
+        this.closeDropdown('folderActionsMenu');
+        return;
+    }
+
     this.deleteFolder(this.pendingFolderId);
     this.closeDropdown('folderActionsMenu');
 };
