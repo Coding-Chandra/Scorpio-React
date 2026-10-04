@@ -49,6 +49,13 @@
     background: rgba(0, 0, 0, 0.08);
 }
 
+#viewOptionsMenu .dropdown-section-label {
+    padding: 6px 9px 2px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+}
+
 [data-theme="dark"] #viewOptionsMenu .dropdown-sep {
     background: rgba(255, 255, 255, 0.12);
 }
@@ -95,6 +102,23 @@
     display: flex;
     gap: 5px;
     align-items: flex-end;
+}
+
+#editNotesBtn {
+    position: relative;
+}
+
+#editNotesBtn.sort-active::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 7px;
+    height: 7px;
+    border: 2px solid var(--editor-bg-glass, #fff);
+    border-radius: 50%;
+    background: var(--accent-color, var(--accent));
+    pointer-events: none;
 }
 
 /* =====================================================

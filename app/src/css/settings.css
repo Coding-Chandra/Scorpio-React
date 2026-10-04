@@ -481,8 +481,8 @@ summary:focus-visible,
     position: fixed;
     inset: 0;
     background: var(--overlay-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 9999;
     display: none;
     align-items: center;
@@ -1190,7 +1190,7 @@ html[data-ui="md3e"] .notifToggle[data-checked="true"] .notifThumb {
 /* --- iOS Variants --- */
 html[data-ui="ios"] #custom-modal-overlay {
     background: var(--overlay-bg);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(4px);
 }
 
 html[data-ui="ios"] .modal-box {
@@ -1732,8 +1732,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
         align-items: center;
         padding: 14px 32px;
         background: var(--bg-main);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
         border-bottom: 1px solid var(--sep);
     }
 
@@ -2285,8 +2285,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(14px) saturate(1.2);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(4px) saturate(1.2);
+    -webkit-backdrop-filter: blur(4px) saturate(1.2);
 }
 
 .desktop-response-dialog {
@@ -2505,8 +2505,8 @@ body.desktop-response-open {
 html[data-ui="ios"] .desktop-response-dialog {
     border-radius: 24px;
     background: var(--glass-bg);
-    backdrop-filter: blur(28px) saturate(1.25);
-    -webkit-backdrop-filter: blur(28px) saturate(1.25);
+    backdrop-filter: blur(4px) saturate(1.25);
+    -webkit-backdrop-filter: blur(4px) saturate(1.25);
 }
 
 html[data-ui="ios"] .desktop-response-option {

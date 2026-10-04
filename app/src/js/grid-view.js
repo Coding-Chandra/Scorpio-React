@@ -27,13 +27,27 @@
     if (typeof app === 'undefined') return;
 
     const STORAGE_KEY = 'notozApp_viewMode';
+    const SORT_STORAGE_KEY = 'notozApp_sortMode';
+    const DEFAULT_SORT_MODE = 'updated-desc';
+    const SORT_OPTIONS = [
+        { value: 'updated-desc', label: 'Recently Updated' },
+        { value: 'updated-asc', label: 'Oldest Updated' },
+        { value: 'title-asc', label: 'Title A-Z' },
+        { value: 'title-desc', label: 'Title Z-A' }
+    ];
 
     function loadMode() {
         return localStorage.getItem(STORAGE_KEY) === 'grid' ? 'grid' : 'list';
     }
 
+    function loadSortMode() {
+        const savedMode = localStorage.getItem(SORT_STORAGE_KEY);
+        return SORT_OPTIONS.some((option) => option.value === savedMode) ? savedMode : DEFAULT_SORT_MODE;
+    }
+
     app.ui = app.ui || {};
     app.ui.viewMode = loadMode();
+    app.ui.notesSortMode = loadSortMode();
 
     /* ---------------------------------------------------
        Icon set
@@ -42,7 +56,7 @@
        - SELECT_ICON: the "Select Notes" shortcut
        - CHECK_ICON: marks whichever choice is active
     --------------------------------------------------- */
-    const TRIGGER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9.5h18"/><path d="M9.5 9.5v10.5"/></svg>`;
+    const TRIGGER_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>`;
 
     const LIST_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>`;
 
@@ -72,7 +86,10 @@
     --------------------------------------------------- */
     function updateTriggerIcons() {
         const editBtn = document.getElementById('editNotesBtn');
-        if (editBtn && !app.ui.multiSelect) editBtn.innerHTML = TRIGGER_ICON;
+        if (editBtn) {
+            editBtn.classList.toggle('sort-active', app.ui.notesSortMode !== DEFAULT_SORT_MODE);
+            if (!app.ui.multiSelect) editBtn.innerHTML = TRIGGER_ICON;
+        }
 
         const folderBtn = document.getElementById('folderViewBtn');
         if (folderBtn) folderBtn.innerHTML = TRIGGER_ICON;
@@ -124,6 +141,15 @@
         this.closeDropdown('viewOptionsMenu');
     };
 
+    app.setNotesSortMode = function (mode) {
+        if (!SORT_OPTIONS.some((option) => option.value === mode)) return;
+        this.ui.notesSortMode = mode;
+        localStorage.setItem(SORT_STORAGE_KEY, mode);
+        this.renderNotesList(false);
+        updateTriggerIcons();
+        this.closeDropdown('viewOptionsMenu');
+    };
+
     /* ---------------------------------------------------
        The "more-view" popup. List/Grid apply globally;
        "Select Notes" only appears when opened from Notes,
@@ -142,6 +168,7 @@
 
         menu.dataset.context = context;
         const current = this.ui.viewMode;
+        const currentSort = this.ui.notesSortMode || DEFAULT_SORT_MODE;
 
         let html = `
             <button class="btn ${current === 'list' ? 'active' : ''}" onclick="app.setViewMode('list')">
@@ -153,6 +180,16 @@
         `;
 
         if (context === 'notes') {
+            html += `
+                <div class="dropdown-sep"></div>
+                <div class="dropdown-section-label">Sort by</div>
+                ${SORT_OPTIONS.map((option) => `
+                    <button class="btn ${currentSort === option.value ? 'active' : ''}" role="menuitemradio" aria-checked="${currentSort === option.value}" onclick="app.setNotesSortMode('${option.value}')">
+                        <span class="view-opt-label"><span>${option.label}</span></span>${currentSort === option.value ? CHECK_ICON : ''}
+                    </button>
+                `).join('')}
+            `;
+
             const selecting = !!this.ui.multiSelect;
             html += `
                 <div class="dropdown-sep"></div>
@@ -229,10 +266,10 @@
         if (this.ui.isMobile && this.ui.mobileView === 'notes') {
             const editBtn = document.getElementById('editNotesBtn');
             if (editBtn) {
-                editBtn.title = 'View options';
-                editBtn.setAttribute('aria-label', 'View options');
+                editBtn.title = 'Sort, view, and selection options';
+                editBtn.setAttribute('aria-label', 'Sort, view, and selection options');
                 editBtn.onclick = (ev) => app.openViewOptionsMenu(ev, 'notes');
-                if (!this.ui.multiSelect) editBtn.innerHTML = TRIGGER_ICON;
+                updateTriggerIcons();
             }
         }
     };

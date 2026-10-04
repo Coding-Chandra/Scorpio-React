@@ -936,6 +936,7 @@ const app = {
         theme: 'light',
         multiSelect: false,
         selectedNoteIds: new Set(),
+        notesSortMode: 'updated-desc',
         undoRedoManager: null,
         lastSavedState: null,
         debounceTimer: null,
@@ -1240,7 +1241,7 @@ const app = {
     },
 
     getNotesToDisplay() {
-        let notes = this.notes;
+        let notes = [...this.notes];
 
         if (this.activeFolderId !== 'all') {
             notes = notes.filter(n => n.folder_id === this.activeFolderId);
@@ -1254,10 +1255,25 @@ const app = {
             );
         }
 
+        const sortMode = this.ui.notesSortMode || 'updated-desc';
+        const updatedAt = (note) => {
+            const timestamp = new Date(note.updated_at || 0).getTime();
+            return Number.isNaN(timestamp) ? 0 : timestamp;
+        };
+
         return notes.sort((a, b) => {
             if (a.pinned && !b.pinned) return -1;
             if (!a.pinned && b.pinned) return 1;
-            return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
+
+            const byUpdated = updatedAt(b) - updatedAt(a);
+            if (sortMode === 'updated-asc') return -byUpdated;
+            if (sortMode === 'title-asc' || sortMode === 'title-desc') {
+                const titleA = String(a.title || '');
+                const titleB = String(b.title || '');
+                const byTitle = titleA.localeCompare(titleB, undefined, { numeric: true, sensitivity: 'base' });
+                return (sortMode === 'title-desc' ? -byTitle : byTitle) || byUpdated;
+            }
+            return byUpdated;
         });
     },
 
@@ -3054,14 +3070,13 @@ app.toggleMultiSelect = function () {
     this.ui.selectedNoteIds = new Set();
     document.getElementById('editNotesBtn').innerHTML = this.ui.multiSelect ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="6" x2="19" y2="6"/><circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="12" x2="19" y2="12"/><circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="18" x2="19" y2="18"/></svg>`;
     this.updateMultiSelectUI();
-    this.renderNotesList();
+    this.renderNotesList(false);
 
-    if (window.AppAnimations) {
-        if (this.ui.multiSelect) {
-            AppAnimations.animateMultiSelectEnter();
-        } else {
-            AppAnimations.animateMultiSelectExit();
-        }
+    if (this.ui.multiSelect && !AnimationUtils.prefersReducedMotion()) {
+        document.querySelectorAll('#notesListContainer .note-select-indicator').forEach((indicator, index) => {
+            indicator.style.animationDelay = `${Math.min(index * 18, 120)}ms`;
+            indicator.classList.add('multi-select-indicator-enter');
+        });
     }
 };
 
@@ -3072,18 +3087,36 @@ app.toggleNoteSelection = function (noteId) {
         this.ui.selectedNoteIds.add(noteId);
     }
     this.updateMultiSelectUI();
-    this.renderNotesList();
+    this.renderNotesList(false);
+
+    if (!AnimationUtils.prefersReducedMotion()) {
+        const selectedItem = Array.from(document.querySelectorAll('#notesListContainer .note-item'))
+            .find(item => item.dataset.noteId === String(noteId));
+        selectedItem?.querySelector('.note-select-indicator')?.classList.add('multi-select-indicator-change');
+    }
 };
 
 app.updateMultiSelectUI = function () {
     const bar = document.getElementById('multiSelectBar');
     const label = document.getElementById('selectedCountLabel');
     if (!this.ui.multiSelect) {
-        bar.classList.remove('show');
+        if (bar.classList.contains('show') && !AnimationUtils.prefersReducedMotion()) {
+            bar.classList.remove('show');
+            bar.classList.add('is-exiting');
+            const finishExit = (event) => {
+                if (event.target !== bar) return;
+                bar.classList.remove('is-exiting');
+                bar.removeEventListener('animationend', finishExit);
+            };
+            bar.addEventListener('animationend', finishExit);
+        } else {
+            bar.classList.remove('show', 'is-exiting');
+        }
         label.innerText = '0 Selected';
         return;
     }
     const count = this.ui.selectedNoteIds.size;
+    bar.classList.remove('is-exiting');
     bar.classList.add('show');
     label.innerText = `${count} Selected`;
 };
@@ -3106,14 +3139,13 @@ app.updateNotesCount = function () {
 
 app.handleSearch = function (val) {
     this.searchQuery = val;
-    this.renderNotesList();
+    this.renderNotesList(false);
 
     const results = document.querySelectorAll('.note-item');
-    if (results.length > 0) {
+    if (!AnimationUtils.prefersReducedMotion()) {
         results.forEach((el, index) => {
-            el.style.animation = 'none';
-            void el.offsetWidth;
-            el.style.animation = `listItemSlideIn 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${index * 18}ms both`;
+            el.style.animationDelay = `${Math.min(index * 14, 112)}ms`;
+            el.classList.add('search-result-enter');
         });
     }
 };
