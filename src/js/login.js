@@ -10,6 +10,13 @@ if (typeof window.supabase === 'undefined') {
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let CURRENT_USER_ID = null; // needed by migrateUserCrypto()
 
+async function performFullSignOut() {
+    await clearSessionMasterKey();
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+}
+window.performFullSignOut = performFullSignOut;
+
 // --- DOM Elements ---
 const loginForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form');

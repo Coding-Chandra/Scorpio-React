@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-title" content="Notoz">
@@ -135,19 +135,11 @@
         function setViewportHeight() {
           cancelAnimationFrame(frame);
           frame = requestAnimationFrame(() => {
-            const layoutHeight = window.innerHeight;
-            const visibleHeight = viewport?.height || layoutHeight;
-            const viewportTop = viewport?.offsetTop || 0;
-            const height = visibleHeight;
+            const height = viewport?.height || window.innerHeight;
             if (height > largestHeight) largestHeight = height;
-            const keyboardVisible = largestHeight - height > 120;
 
-            root.style.setProperty("--vh", `${layoutHeight * 0.01}px`);
-            root.style.setProperty(
-              "--keyboard-inset",
-              `${keyboardVisible ? Math.max(0, layoutHeight - visibleHeight - viewportTop) : 0}px`,
-            );
-            root.classList.toggle("keyboard-visible", keyboardVisible);
+            root.style.setProperty('--vh', `${height * 0.01}px`);
+            root.classList.toggle('keyboard-visible', largestHeight - height > 120);
             root.classList.add("viewport-ready");
           });
         }

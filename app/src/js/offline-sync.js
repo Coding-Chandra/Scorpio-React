@@ -148,28 +148,29 @@ async function saveNoteOffline(noteData) {
 /**
  * Delete a note locally (offline-safe)
  */
-async function deleteNoteOffline(noteId) {
+async function deleteNoteOffline(noteId, queueForSync = true) {
   if (!db) await initializeDatabase();
-  const user = await getCurrentUser();
-  if (!user?.id) throw new Error('Cannot delete an offline note without an authenticated user.');
+  const user = queueForSync ? await getCurrentUser() : null;
+  if (queueForSync && !user?.id) throw new Error('Cannot delete an offline note without an authenticated user.');
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORES.notes, STORES.syncQueue], 'readwrite');
+    const storeNames = queueForSync ? [STORES.notes, STORES.syncQueue] : [STORES.notes];
+    const transaction = db.transaction(storeNames, 'readwrite');
     const notesStore = transaction.objectStore(STORES.notes);
-    const queueStore = transaction.objectStore(STORES.syncQueue);
+    const queueStore = queueForSync ? transaction.objectStore(STORES.syncQueue) : null;
 
     notesStore.delete(noteId);
 
-    const queueItem = {
-      action: 'delete',
-      user_id: user.id,
-      noteId: noteId,
-      timestamp: new Date().toISOString(),
-      retries: 0,
-      maxRetries: 3
-    };
-
-    queueStore.add(queueItem);
+    if (queueStore) {
+      queueStore.add({
+        action: 'delete',
+        user_id: user.id,
+        noteId: noteId,
+        timestamp: new Date().toISOString(),
+        retries: 0,
+        maxRetries: 3
+      });
+    }
 
     transaction.onerror = () => reject(transaction.error);
     transaction.oncomplete = () => {

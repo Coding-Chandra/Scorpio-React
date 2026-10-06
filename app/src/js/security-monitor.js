@@ -121,10 +121,59 @@
         const detected = widthGap > consoleThreshold || heightGap > consoleThreshold;
         if (detected && !consoleDetected) {
             consoleDetected = true;
-            showStopMessage();
-            notify('Developer console detected', 'If you opened this yourself, ignore this. If someone asked you to open this and paste code in, stop and log out.', 'warning');
+            reportDeveloperToolsActivity('The browser viewport indicates that developer tools may be open.');
         }
         if (!detected) consoleDetected = false;
+    }
+
+    function reportDeveloperToolsActivity(detail) {
+        showStopMessage();
+        notify(
+            'Developer tools activity detected',
+            `${detail} If someone asked you to open developer tools or paste code, stop and log out.`,
+            'warning'
+        );
+    }
+
+    function checkDeveloperToolsShortcut(event) {
+        if (!enabled || event.defaultPrevented || event.repeat) return;
+
+        const modifier = event.ctrlKey || event.metaKey;
+        const shortcut = event.key === 'F12' ||
+            (modifier && event.shiftKey && ['i', 'j', 'c'].includes(event.key.toLowerCase())) ||
+            (modifier && event.key.toLowerCase() === 'u');
+
+        if (shortcut) {
+            reportDeveloperToolsActivity('A browser developer-tools or page-source shortcut was pressed.');
+        }
+    }
+
+    function monitorExposedGetCommands() {
+        for (const name of Object.getOwnPropertyNames(window)) {
+            if (!/^get[A-Z]/.test(name)) continue;
+
+            const descriptor = Object.getOwnPropertyDescriptor(window, name);
+            if (!descriptor?.configurable || typeof descriptor.value !== 'function') continue;
+
+            const original = descriptor.value;
+            if (/\[native code\]/.test(Function.prototype.toString.call(original))) continue;
+
+            const monitored = function (...args) {
+                const stack = new Error().stack || '';
+                const hasEvalFrame = /(?:<anonymous>|VM\d+|eval at|debugger eval code)/i.test(stack);
+                const hasAppFrame = /(?:app|settings|login)\.(?:js|html)/i.test(stack);
+
+                if (enabled && hasEvalFrame && !hasAppFrame) {
+                    reportDeveloperToolsActivity(
+                        `The exposed "${name}" command was called from an eval or anonymous-script context.`
+                    );
+                }
+
+                return Reflect.apply(original, this, args);
+            };
+
+            Object.defineProperty(window, name, { ...descriptor, value: monitored });
+        }
     }
 
     function notify(title, detail, severity) {
@@ -193,7 +242,9 @@
         } catch (error) {
             console.warn('[SecurityMonitor] Logout cleanup failed:', error);
         } finally {
-            window.location.href = '../index.html';
+            window.location.href = window.location.pathname.includes('/app/')
+                ? '../index.html'
+                : './index.html';
         }
     }
 
@@ -232,6 +283,8 @@
         return response;
     };
 
+    monitorExposedGetCommands();
+
     function refreshSettingsStatus() {
         const status = document.getElementById('securityMonitorStatus');
         const response = document.getElementById('securityMonitorResponse');
@@ -253,6 +306,7 @@
         if (orientationChanged) scheduleOrientationCheck();
         else scheduleKeyboardCheck();
     });
+    document.addEventListener('keydown', checkDeveloperToolsShortcut, true);
     window.addEventListener('orientationchange', scheduleOrientationCheck);
     screen.orientation?.addEventListener('change', scheduleOrientationCheck);
     if (window.visualViewport) window.visualViewport.addEventListener('resize', scheduleKeyboardCheck);

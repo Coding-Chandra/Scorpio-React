@@ -251,11 +251,6 @@ html[data-theme="dark"] .note-item:active::before {
    11. TOOLBAR ENHANCEMENTS
    ===================================================== */
 
-.toolbar {
-  border-bottom: 1px solid var(--sep);
-  animation: pageSlideIn 0.3s ease-out forwards;
-}
-
 .toolbar button:hover {
   border-color: var(--accent);
 }

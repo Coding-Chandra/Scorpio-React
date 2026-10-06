@@ -1471,7 +1471,7 @@ const app = {
 
         if (previewEl) {
             const preview = note._decrypted
-                ? Utils.stripHtml(note.content).substring(0, 50) || 'No text'
+                ? Utils.stripHtml(String(note.content || '')).substring(0, 50) || 'No text'
                 : '...';
             previewEl.textContent = preview;
         }
@@ -1605,15 +1605,6 @@ const app = {
             confirmLabel: 'Delete',
             destructive: true,
             onConfirm: async () => {
-                ids.forEach((noteId, index) => {
-                    const noteElement = document.querySelector(`[data-note-id="${noteId}"]`);
-                    if (noteElement && window.AppAnimations) {
-                        setTimeout(() => {
-                            AppAnimations.animateNotesDelete(noteElement);
-                        }, index * 50);
-                    }
-                });
-
                 if (!isOnline()) {
                     // Offline: queue each deletion
                     for (const noteId of ids) {
@@ -1621,6 +1612,8 @@ const app = {
                             await deleteNoteOffline(noteId);
                         } catch (e) {
                             console.error('[Offline] Failed to queue deletion for:', noteId, e);
+                            alert('Failed to delete all selected notes offline. See console.');
+                            return;
                         }
                     }
                 } else {
@@ -1634,6 +1627,13 @@ const app = {
                         console.error('Error deleting notes:', error);
                         alert('Failed to delete notes. See console.');
                         return;
+                    }
+
+                    try {
+                        await Promise.all(ids.map(noteId => deleteNoteOffline(noteId, false)));
+                    } catch (e) {
+                        console.error('[Offline] Failed to remove deleted notes from IndexedDB:', e);
+                        alert('Notes were deleted online, but local cache cleanup failed. See console.');
                     }
                 }
 
@@ -1843,7 +1843,7 @@ app.renderNotesList = function (animate = true) {
         el.setAttribute('data-note-id', note.id);
 
         const preview = note._decrypted
-            ? (Utils.stripHtml(note.content).substring(0, 50) || 'No text')
+            ? (Utils.stripHtml(String(note.content || '')).substring(0, 50) || 'No text')
             : '...';
         const hasImage = /<img/i.test(note.content || '');
 
@@ -2215,10 +2215,12 @@ async function cyclePaperStyle() {
     const currentIndex = styles.indexOf(currentStyle);
     const nextIndex = (currentIndex + 1) % styles.length;
     const newStyle = styles[nextIndex];
+    const updatedAt = new Date().toISOString();
 
     note.paper_style = newStyle;
 
     if (!isOnline()) {
+        note.updated_at = updatedAt;
         try {
             await saveNoteOffline({ ...note, user_id: CURRENT_USER_ID });
         } catch (e) {
@@ -2230,7 +2232,7 @@ async function cyclePaperStyle() {
 
     const { error } = await supabaseClient
         .from(NOTES_TABLE)
-        .update({ paper_style: newStyle, updated_at: new Date().toISOString() })
+        .update({ paper_style: newStyle, updated_at: updatedAt })
         .eq('id', note.id)
         .eq('user_id', CURRENT_USER_ID);
 
@@ -2239,6 +2241,13 @@ async function cyclePaperStyle() {
         return;
     }
 
+    note.updated_at = updatedAt;
+    try {
+        await app.saveSingleNoteToIndexedDB({ ...note, user_id: CURRENT_USER_ID });
+    } catch (e) {
+        console.error('[Offline] Failed to cache paper style:', e);
+    }
+    app.updateNoteItemInList(note.id);
     app.renderEditor();
 }
 app.cyclePaperStyle = cyclePaperStyle;
@@ -4033,11 +4042,14 @@ for (const serverNote of serverNotes) {
 
     if (serverTime > localTime) {
         _decryptCache.delete(serverNote.id);        // bust stale session cache
-        Object.assign(localNote, serverNote);
+        const serverFields = Object.fromEntries(
+            Object.entries(serverNote).filter(([, value]) => value !== undefined)
+        );
+        Object.assign(localNote, serverFields);
         localNote._decrypted = false;                // ciphertext just landed, flag it
         localNote._previewDecrypted = false;
         
-        await this.saveSingleNoteToIndexedDB(serverNote);
+        await this.saveSingleNoteToIndexedDB(localNote);
         this.updateNoteItemInList(serverNote.id);      // shows '...' placeholder correctly now
 
         if (this.activeNoteId === serverNote.id) {

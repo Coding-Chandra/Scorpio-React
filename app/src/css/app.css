@@ -1162,10 +1162,8 @@
             background: transparent;
             left: 2vh;
             right: 2vh;
-            bottom: calc(1vh + var(--keyboard-inset, 0px));
+            bottom: 1vh;
             border-radius: 24px;
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
         }
 
         .editor-toolbar-glass-layer {
@@ -1173,7 +1171,7 @@
             top: auto;
             left: 2vh;
             right: 2vh;
-            bottom: calc(1vh + var(--keyboard-inset, 0px));
+            bottom: 1vh;
             height: 58px;
             border: 1px solid rgba(255,255,255,0.22);
             border-radius: 24px;
@@ -1190,7 +1188,7 @@
 
         [data-theme="dark"] .editor-toolbar-glass-layer {
             border-color: rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.10);
+            background: rgba(0, 0, 0, 0);
             box-shadow:
                 inset 1px 1px 0 -1px rgba(255,255,255,0.12),
                 inset 0 0 4px 1px rgba(255,255,255,0.06),
@@ -1765,8 +1763,8 @@
             position: fixed;
             display: none;
             background: rgba(248, 248, 250, 01);
-            backdrop-filter: blur(4px) saturate(1.2) url(#lg-filter);
-            -webkit-backdrop-filter: blur(4px) saturate(1.2);
+            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+            -webkit-backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
             border-radius: 12px;
             padding: 4px 6px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.18);
@@ -1897,6 +1895,13 @@
             .note-more-btn{
                 margin-right: 3px;
             }
+            .editor-toolbar-glass-layer{
+                background: rgba(255,255,255,0.1);
+            }
+
+            [data-theme="dark"] .editor-toolbar-glass-layer{
+                background: rgba(0,0,0,0);
+            }
 
             .toolbar {
                 height: 52px;
@@ -1907,8 +1912,8 @@
                 z-index: 180;
                 overflow: hidden;
                 isolation: isolate;
-                backdrop-filter: none;
-                -webkit-backdrop-filter: none;
+                backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+                -webkit-backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
                 box-shadow:
                     inset 1px 1px 0 -1px rgba(255,255,255,0.6),
                     inset 0 0 4px 1px rgba(255,255,255,0.35),
@@ -2916,16 +2921,10 @@ html[data-ui="nothing"] .notif{
         padding: 0 18px;
         border-radius: 18px 18px 0 0;
         border-bottom: 1px solid rgba(0,0,0,0.06);
-        background: color-mix(in srgb, var(--editor-bg-glass) 72%, transparent);
-        backdrop-filter: none;
-        -webkit-backdrop-filter: none;
+        background: rgba(255,255,255,0.01);
         z-index: 3;
     }
 
-    #editorContainer > .toolbar {
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
 
     .editor-toolbar-glass-layer {
         top: 0;
@@ -2951,7 +2950,8 @@ html[data-ui="nothing"] .notif{
         box-shadow:
             inset 0 1px 0 rgba(255,255,255,0.15),
             0 5px 16px rgba(0,0,0,0.12);
-        backdrop-filter: blur(4px) saturate(1.35);
+        backdrop-filter: blur(4px) saturate(1.5);
+        -webkit-backdrop-filter: blur(4px) saturate(1.5);
     }
 
     #editorUndoBtn,
@@ -2965,7 +2965,7 @@ html[data-ui="nothing"] .notif{
 
     [data-theme="dark"] .toolbar-group {
         border-color: rgba(255,255,255,0.12);
-        background: rgba(255,255,255,0);
+        background: rgba(0, 0, 0, 0);
         box-shadow:
             inset 0 1px 0 rgba(255,255,255,0.08),
             0 6px 18px rgba(0,0,0,0.24);
@@ -3267,7 +3267,7 @@ html[data-ui="nothing"] .notif{
         position: absolute;
         left: 14px;
         right: 14px;
-        bottom: calc(14px + var(--keyboard-inset, 0px));
+        bottom: 14px;
         height: 42px;
         padding: 0;
         gap: 8px;
@@ -3415,5 +3415,89 @@ html[data-ui="nothing"] .notif{
         box-shadow:
             inset 0 1px 0 rgba(255,255,255,0.16),
             0 6px 18px rgba(0,0,0,0.36);
+    }
+}
+
+/* Desktop workspace: iOS-style toolbar with frosted glass effect. */
+@media (min-width: 1025px) {
+    /* the toolbar itself is now just a transparent holder for the pills.
+       It must NOT have its own backdrop-filter or animation, or it blocks the blur layers inside it */
+    html[data-ui="ios"] .toolbar {
+        z-index: 5;
+        animation: none;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    /* tall fade strip: sits under the toolbar and extends below it */
+    html[data-ui="ios"] .editor-toolbar-glass-layer {
+        display: block;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: auto;
+        height: 112px;
+        z-index: 4;
+        border: 0;
+        border-radius: 18px 18px 0 0;
+        box-shadow: none;
+        pointer-events: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        /* tint fades from solid to nothing, so the fade works even if blur doesn't */
+        background: linear-gradient(to bottom,
+            rgba(246,246,250,0.82) 0%,
+            rgba(246,246,250,0.55) 45%,
+            rgba(246,246,250,0) 100%);
+    }
+
+    html[data-ui="ios"][data-theme="dark"] .editor-toolbar-glass-layer {
+        background: linear-gradient(to bottom,
+            rgba(18,18,20,0.82) 0%,
+            rgba(18,18,20,0.55) 45%,
+            rgba(18,18,20,0) 100%);
+    }
+
+    html[data-ui="ios"] .editor-toolbar-glass-layer::before,
+    html[data-ui="ios"] .editor-toolbar-glass-layer::after,
+    html[data-ui="ios"] .toolbar::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+        border-radius: inherit;
+    }
+
+    /* light blur, fades out over the full height */
+    html[data-ui="ios"] .editor-toolbar-glass-layer::before {
+        height: 100%;
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+        -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+        mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+    }
+
+    /* medium blur, fades out by about 75% */
+    html[data-ui="ios"] .editor-toolbar-glass-layer::after {
+        height: 100%;
+        -webkit-backdrop-filter: blur(7px);
+        backdrop-filter: blur(7px);
+        -webkit-mask-image: linear-gradient(to bottom, #000 20%, transparent 75%);
+        mask-image: linear-gradient(to bottom, #000 20%, transparent 75%);
+    }
+
+    /* strong blur, only around the toolbar, sits behind the pills */
+    html[data-ui="ios"] .toolbar::before {
+        z-index: -1;
+        height: 72px;
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        backdrop-filter: blur(18px) saturate(1.4);
+        -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+        mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
     }
 }
