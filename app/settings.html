@@ -8,6 +8,13 @@
         <script>
             (function () {
                 const root = document.documentElement;
+                const legacyLGFilterKey = "notozApp_lg_filter_all_themes";
+                const lgFilterKey = "notozApp_lg_filter_enabled";
+                if (localStorage.getItem(lgFilterKey) === null) {
+                    const legacyValue = localStorage.getItem(legacyLGFilterKey);
+                    localStorage.setItem(lgFilterKey, legacyValue ?? "true");
+                }
+                localStorage.removeItem(legacyLGFilterKey);
                 const ui = localStorage.getItem("ui-theme") || "ios";
                 const savedMode = localStorage.getItem("notozApp_theme") || "dark";
                 const mode =
@@ -29,6 +36,24 @@
                 root.setAttribute("data-ui", ui);
                 root.setAttribute("data-theme", mode);
                 root.style.setProperty("--md-seed", channels.join(","));
+                window.updateLGFilterReference = function () {
+                    const filterEnabled =
+                        root.getAttribute("data-ui") === "ios" &&
+                        localStorage.getItem(lgFilterKey) === "true";
+                    if (!filterEnabled) {
+                        root.removeAttribute("data-lg-filter");
+                        root.style.setProperty("--lg-filter-url", "");
+                        return;
+                    }
+                    root.setAttribute("data-lg-filter", "ios");
+                    const filter = root.getAttribute("data-theme") === "light"
+                        ? "lg-filter-l"
+                        : "lg-filter-d";
+                    const filterUrl = new URL(window.location.href);
+                    filterUrl.hash = filter;
+                    root.style.setProperty("--lg-filter-url", `url("${filterUrl.href}")`);
+                };
+                window.updateLGFilterReference();
 
                 // Match MD3E CSS:
                 // --base = 5% seed mixed into the mode base
@@ -83,25 +108,52 @@
 
     <body>
         <svg width="0" height="0" style="position: absolute" aria-hidden="true">
-            <filter id="lg-filter" x="0%" y="0%" width="100%" height="100%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise"/>
-                <feGaussianBlur in="noise" stdDeviation="0.02" result="blur"/>
-                <feDisplacementMap in="SourceGraphic" in2="blur" scale="77" xChannelSelector="R" yChannelSelector="G"/>
+            <filter id="lg-filter-d" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="1" seed="92" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+                <feColorMatrix in="disp" type="matrix" result="r" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+                <feColorMatrix in="disp" type="matrix" result="g" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+                <feColorMatrix in="disp" type="matrix" result="b" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+                <feOffset in="r" dx="-2" dy="0" result="rShift"/>
+                <feOffset in="b" dx="2" dy="0" result="bShift"/>
+                <feComposite in="rShift" in2="r" operator="over" result="r2"/>
+                <feComposite in="bShift" in2="b" operator="over" result="b2"/>
+                <feComposite in="r2" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg"/>
+                <feComposite in="rg" in2="b2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="aberr"/>
+                <feComposite in="aberr" in2="disp" operator="arithmetic" k1="0" k2="0.7" k3="0.3" k4="0"/>
             </filter>
-            <filter id="btn-glass" x="0%" y="0%" width="100%" height="100%">
+            <filter id="lg-filter-l" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="1" seed="92" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="60" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+                <feColorMatrix in="disp" type="matrix" result="r" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+                <feColorMatrix in="disp" type="matrix" result="g" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+                <feColorMatrix in="disp" type="matrix" result="b" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+                <feOffset in="r" dx="-1" dy="0" result="rShift"/>
+                <feOffset in="b" dx="1" dy="0" result="bShift"/>
+                <feComposite in="rShift" in2="r" operator="over" result="r2"/>
+                <feComposite in="bShift" in2="b" operator="over" result="b2"/>
+                <feComposite in="r2" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg"/>
+                <feComposite in="rg" in2="b2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="aberr"/>
+                <feComposite in="aberr" in2="disp" operator="arithmetic" k1="0" k2="0.4" k3="0.6" k4="0"/>
+            </filter>
+            <filter id="btn-glass" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
                 <feTurbulence type="fractalNoise" baseFrequency="0.012 0.01" numOctaves="1" seed="92" result="buttonNoise"/>
                 <feGaussianBlur in="buttonNoise" stdDeviation="1.2" result="smoothButtonMap"/>
                 <feDisplacementMap in="SourceGraphic" in2="smoothButtonMap" scale="14" xChannelSelector="R" yChannelSelector="G"/>
             </filter>
         </svg>
         <div class="container animate-fade-in">
+            <div id="mobile-settings-list">
             <div class="header-main animate-slide-in">
                 <h1>Settings</h1><br>
                 <button onclick="window.location.href='./index.html'" class="back-btn"><svg viewBox="0 0 24 24"><path d="M13.83 19a 1 1 0 0 1-.78-.37l-4.83-6a 1 1 0 0 1 0-1.27l5-6a 1 1 0 0 1 1.54 1.28L10.29 12l4.32 5.36a 1 1 0 0 1-.78 1.64"/></svg>Back</button>
             </div>
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.1s">
                 <div class="row clickable" onclick="openPortal('./src/pages/profile.html')">
-                    <span class="label">Profile</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25"/><path d="M5.5 19c.7-3.05 3.1-4.75 6.5-4.75s5.8 1.7 6.5 4.75"/></svg>
+                        Profile
+                    </span>
                     <div style="display:flex; align-items:center;">
                         <span id="accountDisplayName" class="value">Loading...</span>
                         <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
@@ -111,24 +163,33 @@
 
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.2s">
                 <div class="row clickable" onclick="openPortal('./src/pages/theme.html')">
-                    <span class="label">Theme</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 0 0 17h1.1a2.1 2.1 0 0 0 1.4-3.7 1.8 1.8 0 0 1 1.2-3.1h1.1A3.7 3.7 0 0 0 20.5 10c-.9-3.7-4.3-6.5-8.5-6.5Z"/><circle cx="7.8" cy="10" r=".8"/><circle cx="11" cy="7" r=".8"/><circle cx="15" cy="8" r=".8"/></svg>
+                        Theme
+                    </span>
                     <div style="display:flex; align-items:center;">
                         <span id="currentThemeDisplay" class="value">Dark</span>
                         <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                     </div>
                 </div>
                 <div class="row clickable" onclick="openPortal('./src/pages/wallpaper.html')">
-                    <span class="label">Wallpaper & Colors</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="9" r="1.5"/><path d="m5.5 17 4.3-4.2 3.1 3 2.2-2.1 3.4 3.3"/></svg>
+                        Wallpaper &amp; Colors
+                    </span>
                     <div style="display:flex; align-items:center; gap: 8px;">
                         <span id="currentWallpaperDisplay" class="value" style="font-size: 14px;">Default</span>
                         <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                     </div>
                 </div>
                 <div class="row" onclick="toggleAppNotifications()" style="justify-content:space-between; gap: 8px;">
-                    <span class="label">Notifications</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 10.5a5.5 5.5 0 0 1 11 0v2.3l1.8 3.2H4.7l1.8-3.2z"/><path d="M9.5 19h5"/></svg>
+                        Notifications
+                    </span>
                     <div style="display:flex; align-items: center;gap: 10px; flex-direction: column-reverse; cursor: pointer;">
                         <span id="notificationRowStatus" class="value" style="font-size: 14px;" hidden>Loading...</span>
-                        <span id="notificationRowToggle" class="notifToggle">
+                        <span id="notificationRowToggle" class="notifToggle" aria-hidden="true">
                             <span id="notificationRowThumb" class="notifThumb"></span>
                         </span>
                     </div>
@@ -137,62 +198,54 @@
             </div>
     
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
-                <div class="row clickable" onclick="toggleSecurityMonitor()">
-                    <span class="label">Security Monitor</span>
-                    <span id="securityMonitorStatus" class="value" style="font-size: 14px;">Loading...</span>
+                <div class="row clickable mobile-settings-entry" role="button" tabindex="0" aria-controls="mobile-security-page" aria-expanded="false" onclick="openMobileSettingsPage('security')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMobileSettingsPage('security');}">
+                    <span class="label settings-feature-label">
+                        <svg class="settings-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3.75 19 6.5v5.25c0 4.25-2.7 7.2-7 8.5-4.3-1.3-7-4.25-7-8.5V6.5z"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                        Security
+                    </span>
+                    <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
-                <div class="row clickable" onclick="openSecurityResponsePicker()">
-                    <span class="label">Security Response</span>
-                    <span id="securityMonitorResponse" class="value" style="font-size: 14px;">Notify only</span>
-                </div>
-                <div class="row clickable" onclick="copySecurityMonitorReport()">
-                    <span class="label">Copy Security Report</span>
-                    <span class="value" style="font-size: 14px;">Copy</span>
-                </div>
-                <div class="row clickable" onclick="clearSecurityMonitorHistory()">
-                    <span class="label">Clear Security History</span>
-                    <span id="securityMonitorEventCount" class="value" style="font-size: 14px;">0 events</span>
-                </div>
-            </div>
-
-            <div class="animate-list-item-in" style="animation-delay: 0.35s">
-                <div class="settings-group">
-                    <div class="row clickable" onclick="lfToggle()">
-                        <span class="label">Locked Folder</span>
-                        <span class="value" data-lf="status" style="font-size:14px;">Off</span>
-                    </div>
-                    <div class="row clickable" data-lf-when="on" style="display:none" onclick="lfChangePin()">
-                        <span class="label">Change PIN</span>
-                    </div>
-                    <div class="row clickable" data-lf-when="on" data-lf-bio style="display:none" onclick="lfToggleBio()">
-                        <span class="label">Fingerprint / Face ID</span>
-                        <span class="value" data-lf="bio" style="font-size:14px;">Off</span>
-                    </div>
-                    <div class="row" data-lf-when="on" style="display:none">
-                        <span class="label">Locked Folder notifications</span>
-                        <button type="button" class="notifToggle" data-locked-folder-notifications role="switch" aria-label="Locked Folder notifications" aria-checked="true" data-checked="true" onclick="toggleLockedFolderNotifications()">
-                            <span class="notifThumb"></span>
-                        </button>
-                    </div>
+                <div class="row clickable mobile-settings-entry" role="button" tabindex="0" aria-controls="mobile-locked-folder-page" aria-expanded="false" onclick="openMobileSettingsPage('locked-folder')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMobileSettingsPage('locked-folder');}">
+                    <span class="label settings-feature-label">
+                        <svg class="settings-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="5" y="10" width="14" height="11" rx="2"/>
+                            <path d="M8 10V7a4 4 0 1 1 8 0v3"/>
+                            <path d="M12 14v3"/>
+                        </svg>
+                        Locked Folder
+                    </span>
+                    <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
             </div>
 
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.4s">
                 <div class="row clickable" id="updateCacheBtn" onclick="showUpdateCacheModal()">
-                    <span class="label" style="color: var(--accent);">Updates</span>
+                    <span class="label settings-feature-label" style="color: var(--accent);">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0 1 4"/><path d="M20 5v6h-6"/></svg>
+                        Updates
+                    </span>
                     <div id="updateCacheStatus" style="display:flex; align-items:center; gap: 8px;">
                         <span id="updateCacheText" class="value" style="font-size: 14px;">Check for Updates</span>
                         <svg id="updateCacheIcon" class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                     </div>
                 </div>
                 <div class="row" style="cursor: default;">
-                    <span id="buildNumberDisplay" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">Build: vX.XX.XXX</span>
+                    <span id="buildNumberDisplay" class="settings-feature-label" style="color: var(--text-dim); font-size: 12px; opacity: 0.7;">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 8h3v3H8zm5 5h3v3h-3zM4 9H2m20 0h-2M4 15H2m20 0h-2M9 4V2m6 2V2m-6 20v-2m6 2v-2"/></svg>
+                        Build: vX.XX.XXX
+                    </span>
                 </div>
             </div>
 
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.2s">
                 <div class="row clickable" onclick="openPortal('./src/pages/donate.html')">
-                    <span class="label">Sponsor Me</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 8.8c0 4.3-8.8 10.2-8.8 10.2S3.2 13.1 3.2 8.8A4.3 4.3 0 0 1 12 6.7a4.3 4.3 0 0 1 8.8 2.1Z"/></svg>
+                        Sponsor Me
+                    </span>
                     <div style="display:flex; align-items:center;">
                         <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                     </div>
@@ -201,25 +254,40 @@
 
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.3s">
                 <div class="row clickable" onclick="openPortal('./src/pages/about.html')">
-                    <span class="label">About</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 10v6m0-8v.1"/></svg>
+                        About
+                    </span>
                     <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
                 <div class="row clickable" onclick="openPortal('./src/pages/privacy.html')">
-                    <span class="label">Privacy Policy</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5.4c0 4.2-2.7 7.1-7 9.1-4.3-2-7-4.9-7-9.1V6z"/><path d="M9 12.2 11 14l4-4"/></svg>
+                        Privacy Policy
+                    </span>
                     <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
                 <div class="row clickable" onclick="openPortal('./src/pages/tos.html')">
-                    <span class="label">Terms of Service</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h11v15h-11z"/><path d="M9 8h6m-6 3.5h6M9 15h4"/></svg>
+                        Terms of Service
+                    </span>
                     <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
             </div>
 
             <div class="settings-group animate-list-item-in" style="animation-delay: 0.5s">
                 <div class="row clickable" onclick="showSignOutModal()">
-                    <span class="label">Log Out</span>
+                    <span class="label settings-feature-label">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5m4-3 4-4-4-4m4 4H9"/></svg>
+                        Log Out
+                    </span>
                 </div>
                 <div class="row clickable" onclick="showDeleteModal()">
-                    <span class="label" style="color: var(--accent1);">Delete Account</span>
+                    <span class="label settings-feature-label" style="color: var(--accent1);">
+                        <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4.5h6V7m2 0-.8 12.5H7.8L7 7m3 3v6m4-6v6"/></svg>
+                        Delete Account
+                    </span>
                     <svg class="chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
                 </div>
             </div>
@@ -228,10 +296,170 @@
             <div class="settings-group">
             </div>
     
+            </div>
+            <section id="mobile-security-page" aria-labelledby="mobile-security-title" hidden>
+                <div class="header-main animate-slide-in">
+                    <h1 id="mobile-security-title">Security</h1><br>
+                    <button class="back-btn" type="button" onclick="closeMobileSettingsPage()">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.83 19a 1 1 0 0 1-.78-.37l-4.83-6a 1 1 0 0 1 0-1.27l5-6a 1 1 0 0 1 1.54 1.28L10.29 12l4.32 5.36a 1 1 0 0 1-.78 1.64"/></svg>
+                        Settings
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <div class="row clickable" onclick="toggleSecurityMonitor()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 3.75 19 6.5v5.25c0 4.25-2.7 7.2-7 8.5-4.3-1.3-7-4.25-7-8.5V6.5z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                            Security Monitor
+                        </span>
+                        <span id="securityMonitorStatus" class="value" style="font-size:14px;">Loading...</span>
+                    </div>
+                    <div class="row clickable" onclick="openSecurityResponsePicker()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v2M12 18.5v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M3.5 12h2m13 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/><circle cx="12" cy="12" r="5"/></svg>
+                            Security Response
+                        </span>
+                        <span id="securityMonitorResponse" class="value" style="font-size:14px;">Notify only</span>
+                    </div>
+                    <div class="row clickable" onclick="copySecurityMonitorReport()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8V4.5h11.5V16H16"/><rect x="4.5" y="8" width="11.5" height="11.5" rx="1.5"/><path d="M7.5 12h5.5m-5.5 3h5.5"/></svg>
+                            Copy Security Report
+                        </span>
+                        <span class="value" style="font-size:14px;">Copy</span>
+                    </div>
+                    <div class="row clickable" onclick="clearSecurityMonitorHistory()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4.5h6V7m2 0-.8 12.5H7.8L7 7m3 3v6m4-6v6"/></svg>
+                            Clear Security History
+                        </span>
+                        <span id="securityMonitorEventCount" class="value" style="font-size:14px;">0 events</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="mobile-locked-folder-page" aria-labelledby="mobile-locked-folder-title" hidden>
+                <div class="header-main animate-slide-in">
+                    <h1 id="mobile-locked-folder-title">Locked Folder</h1><br>
+                    <button class="back-btn" type="button" onclick="closeMobileSettingsPage()">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.83 19a 1 1 0 0 1-.78-.37l-4.83-6a 1 1 0 0 1 0-1.27l5-6a 1 1 0 0 1 1.54 1.28L10.29 12l4.32 5.36a 1 1 0 0 1-.78 1.64"/></svg>
+                        Settings
+                    </button>
+                </div>
+                <div class="settings-group">
+                    <div class="row clickable" onclick="lfToggle()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="5" y="10" width="14" height="11" rx="2"/>
+                                <path d="M8 10V7a4 4 0 1 1 8 0v3"/>
+                                <path d="M12 14v3"/>
+                            </svg>
+                            Locked Folder
+                        </span>
+                        <span class="value" data-lf="status" style="font-size:14px;">Off</span>
+                    </div>
+                    <div class="row clickable" data-lf-when="on" style="display:none" onclick="lfChangePin()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10" width="15" height="10" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/><circle cx="9" cy="15" r=".7"/><circle cx="12" cy="15" r=".7"/><circle cx="15" cy="15" r=".7"/></svg>
+                            Change PIN
+                        </span>
+                    </div>
+                    <div class="row clickable" data-lf-when="on" data-lf-bio style="display:none" onclick="lfToggleBio()">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4.5a6.5 6.5 0 0 0-6.5 6.5m13 0a6.5 6.5 0 0 0-13 0m3.2 1.2c0 3.4-.5 5.3-1.5 7m4.8-8.2c0 3.1-.2 5.8-1 8m4.2-6.8c0 2.8.3 4.6 1.1 6.2M12 8a3 3 0 0 0-3 3v1.5"/></svg>
+                            Fingerprint / Face ID
+                        </span>
+                        <span class="value" data-lf="bio" style="font-size:14px;">Off</span>
+                    </div>
+                    <div class="row" data-lf-when="on" style="display:none">
+                        <span class="label settings-feature-label">
+                            <svg class="settings-row-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 10.5a5.5 5.5 0 0 1 11 0v2.3l1.8 3.2H4.7l1.8-3.2z"/><path d="M9.5 19h5"/></svg>
+                            Locked Folder notifications
+                        </span>
+                        <button type="button" class="notifToggle locked-folder-notif-toggle" data-locked-folder-notifications role="switch" aria-label="Locked Folder notifications" aria-checked="true" data-checked="true" onclick="toggleLockedFolderNotifications(event)">
+                            <span class="notifThumb"></span>
+                        </button>
+                    </div>
+                </div>
+            </section>
         </div>
 
+        <script>
+            function openMobileSettingsPage(pageName) {
+                const list = document.getElementById("mobile-settings-list");
+                const pageId =
+                    pageName === "locked-folder"
+                        ? "mobile-locked-folder-page"
+                        : "mobile-security-page";
+                const page = document.getElementById(pageId);
+                if (!list || !page) return;
 
-        <!-- Desktop Settings shell. Hidden on mobile; original mobile Settings remains unchanged. -->
+                list.hidden = true;
+                page.hidden = false;
+                const entry = list.querySelector(
+                    pageName === "locked-folder"
+                        ? '[aria-controls="mobile-locked-folder-page"]'
+                        : '[aria-controls="mobile-security-page"]',
+                );
+                entry?.setAttribute("aria-expanded", "true");
+
+                if (
+                    pageName === "security" &&
+                    typeof getSecurityMonitorStatus === "function"
+                ) {
+                    const status = getSecurityMonitorStatus();
+                    document.getElementById("securityMonitorStatus").textContent =
+                        status.enabled ? "Active" : "Off";
+                    document.getElementById("securityMonitorResponse").textContent =
+                        status.response === "logout" ? "Auto logout" : "Notify only";
+                    document.getElementById("securityMonitorEventCount").textContent =
+                        `${status.events.length} event${status.events.length === 1 ? "" : "s"}`;
+                }
+                if (typeof refreshLF === "function") {
+                    refreshLF().catch((error) =>
+                        console.error("[Settings] Could not refresh Locked Folder:", error),
+                    );
+                }
+
+                page.querySelector(".back-btn")?.focus();
+            }
+
+            function closeMobileSettingsPage() {
+                const list = document.getElementById("mobile-settings-list");
+                const pages = [
+                    document.getElementById("mobile-security-page"),
+                    document.getElementById("mobile-locked-folder-page"),
+                ];
+                const activePage = pages.find((page) => page && !page.hidden);
+                if (!list || !activePage) return;
+
+                activePage.hidden = true;
+                list.hidden = false;
+                const entry = list.querySelector(
+                    `[aria-controls="${activePage.id}"]`,
+                );
+                entry?.focus();
+                entry?.setAttribute("aria-expanded", "false");
+            }
+
+            document.addEventListener("keydown", (event) => {
+                if (
+                    event.key === "Escape" &&
+                    [
+                        document.getElementById("mobile-security-page"),
+                        document.getElementById("mobile-locked-folder-page"),
+                    ].some((page) => page && !page.hidden) &&
+                    !window.matchMedia("(min-width: 900px)").matches
+                ) {
+                    closeMobileSettingsPage();
+                }
+            });
+        </script>
+
+        <!-- Desktop keeps its separate Security and Locked Folder sections. -->
         <div id="desktop-settings-shell" aria-label="Desktop Settings">
             <aside class="desktop-settings-sidebar">
                 <div class="desktop-settings-brand">
@@ -404,7 +632,7 @@
                                 </div>
                                 <div class="row" data-lf-when="on" style="display:none">
                                     <span class="label">Locked Folder notifications</span>
-                                    <button type="button" class="notifToggle" data-locked-folder-notifications role="switch" aria-label="Locked Folder notifications" aria-checked="true" data-checked="true" onclick="toggleLockedFolderNotifications()">
+                                    <button type="button" class="notifToggle locked-folder-notif-toggle" data-locked-folder-notifications role="switch" aria-label="Locked Folder notifications" aria-checked="true" data-checked="true" onclick="toggleLockedFolderNotifications(event)">
                                         <span class="notifThumb"></span>
                                     </button>
                                 </div>
@@ -610,6 +838,7 @@
                     );
                     root.setAttribute("data-theme", mode || resolveMode());
                     applySeed(seed || localStorage.getItem(SEED_KEY) || "#6750A4");
+                    window.updateLGFilterReference?.();
                     void root.offsetWidth;
                     if (window.updateSettingsThemeUI) window.updateSettingsThemeUI();
                 }

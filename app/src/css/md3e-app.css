@@ -254,8 +254,8 @@
   background-color:
     color-mix(
       in srgb,
-      var(--editor-bg-glass) 70%,
-      rgba(var(--md-seed), 1.48)
+      var(--editor-bg-glass) 92%,
+      rgb(var(--md-seed)) 8%
     );
     backdrop-filter: blur(3px) saturate(2);
     padding: 6px 10px;

@@ -509,11 +509,11 @@
 /* =========================================================
    iOS LIQUID / GLASS FILTER
    ---------------------------------------------------------
-   Uses existing Notoz #lg-filter if present.
+   Uses the theme-selected filter URL from the document root.
    ========================================================= */
 
 .lf-ui-overlay[data-ui="ios"] .lf-ui-submit {
-  filter: url(#lg-filter);
+  filter: var(--lg-filter-url);
 
   background: rgba(255, 255, 255, 0.14);
 }
@@ -688,9 +688,9 @@
 
   color: #ffffff;
 
-  backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+  backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
 
-  -webkit-backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+  -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
 
   transition:
     transform 0.12s ease,

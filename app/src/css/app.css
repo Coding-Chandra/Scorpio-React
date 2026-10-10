@@ -78,6 +78,10 @@
             --text-dim: #cbcbce;
         }
 
+        :root {
+            --lg-filter-url: ;
+        }
+
         * { box-sizing: border-box; outline: none; }
 
         /* Keep browser tap and focus treatments from overriding app feedback. */
@@ -251,7 +255,8 @@
             overflow: hidden;
             background: rgba(0, 0, 0, 0.16);
             isolation: isolate;
-            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+            backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+            -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
             box-shadow:
                 inset 1px 1px 0 -1px rgba(255,255,255,0.75),
                 inset 0 0 4px 1px rgba(255,255,255,0.5),
@@ -675,7 +680,8 @@
             bottom: 1vh;
             display: flex;
             gap: 5px;
-            backdrop-filter: url(#lg-filter) blur(4px) saturate(1.5);
+            backdrop-filter: var(--lg-filter-url) blur(4px) saturate(1.5);
+            -webkit-backdrop-filter: var(--lg-filter-url) blur(4px) saturate(1.5);
             align-items: center;
             overflow: hidden;
             isolation: isolate;
@@ -1074,7 +1080,8 @@
         .multi-select-bar.show {
             display: flex;
             align-items: center;
-            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+            backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+            -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
             flex-direction: row-reverse;
             transform-origin: bottom center;
             animation: multiSelectBarEnter 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
@@ -1332,8 +1339,8 @@
             background: rgba(255,255,255,.10);
             border: 1px solid rgba(0, 0, 0, 0.14);
             border-radius: 14px;
-            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
-            -webkit-backdrop-filter: blur(4px) saturate(1.5);
+            backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+            -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
 
             box-shadow:
                 0 4px 10px rgba(0, 0, 0, .06),
@@ -1763,8 +1770,8 @@
             position: fixed;
             display: none;
             background: rgba(248, 248, 250, 01);
-            backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
-            -webkit-backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+            backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+            -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
             border-radius: 12px;
             padding: 4px 6px;
             box-shadow: 0 6px 18px rgba(0,0,0,0.18);
@@ -1912,8 +1919,8 @@
                 z-index: 180;
                 overflow: hidden;
                 isolation: isolate;
-                backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
-                -webkit-backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+                backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+                -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
                 box-shadow:
                     inset 1px 1px 0 -1px rgba(255,255,255,0.6),
                     inset 0 0 4px 1px rgba(255,255,255,0.35),
@@ -2657,7 +2664,8 @@ html[data-ui="nothing"][data-theme="dark"] .skeleton-note-item {
   font-size: 14px;
   z-index: 10000;
   box-shadow: 0 4px 10px rgba(0, 0, 0, .06), 0 20px 50px rgba(0, 0, 0, .18);
-  backdrop-filter: blur(4px) saturate(1.5) url(#lg-filter);
+  backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+  -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
   pointer-events: auto;
   cursor: pointer;
   animation: toastSlideInTop 0.3s;
@@ -2714,9 +2722,9 @@ html[data-ui="nothing"][data-theme="dark"] .skeleton-note-item {
 }
 
 html[data-ui="md3e"] .notif{
-  padding: 16px 20px;
-  border-radius: 16px;
-  backdrop-filter: blur(4px) saturate(1.5);
+ padding: 16px 20px;
+ border-radius: 16px;
+ backdrop-filter: blur(4px) saturate(1.5);
 }
 
 html[data-ui="nothing"] .notif{
@@ -3111,8 +3119,8 @@ html[data-ui="nothing"] .notif{
             inset 0 1px 0 rgba(255,255,255,0.62),
             inset 0 -1px 0 rgba(0,0,0,0.08),
             0 6px 16px rgba(0,0,0,0.16);
-        backdrop-filter: blur(3px) saturate(1.55) url(#lg-filter);
-        -webkit-backdrop-filter: blur(3px) saturate(1.55) url(#lg-filter);
+        backdrop-filter: blur(3px) saturate(1.55) var(--lg-filter-url);
+        -webkit-backdrop-filter: blur(3px) saturate(1.55) var(--lg-filter-url);
         position: relative;
         z-index: 1;
     }
@@ -3142,8 +3150,8 @@ html[data-ui="nothing"] .notif{
         box-shadow:
             inset 0 1px 0 rgba(255,255,255,0.52),
             0 5px 14px rgba(0,0,0,0.12);
-        backdrop-filter: blur(4px) saturate(1.45) url(#lg-filter);
-        -webkit-backdrop-filter: blur(4px) saturate(1.45) url(#lg-filter);
+        backdrop-filter: blur(4px) saturate(1.45) var(--lg-filter-url);
+        -webkit-backdrop-filter: blur(4px) saturate(1.45) var(--lg-filter-url);
         position: relative;
         z-index: 1;
     }
@@ -3302,8 +3310,8 @@ html[data-ui="nothing"] .notif{
             inset 0 -1px 0 rgba(0,0,0,0.16),
             0 6px 16px rgba(0,0,0,0.20);
         isolation: isolate;
-        backdrop-filter: blur(4px) saturate(1.45) url(#lg-filter) !important;
-        -webkit-backdrop-filter: blur(4px) saturate(1.45) url(#lg-filter) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
     #notes-list-pane .mobile-search-shell::before {
@@ -3312,9 +3320,10 @@ html[data-ui="nothing"] .notif{
         inset: 0;
         z-index: 0;
         border-radius: inherit;
-        background: rgba(24,24,28,0.76);
+        background: rgba(24,24,28,0.72);
         pointer-events: none;
-        backdrop-filter: blur(4px) saturate(1.45) url(#lg-filter);
+        backdrop-filter: blur(14px) saturate(1.08);
+        -webkit-backdrop-filter: blur(14px) saturate(1.08);
     }
 
     #notes-list-pane .mobile-search-shell .search-bar {
@@ -3390,7 +3399,7 @@ html[data-ui="nothing"] .notif{
     }
 
     [data-theme="light"] #notes-list-pane .mobile-search-shell::before {
-        background: rgba(245,245,250,0.54);
+        background: rgba(248,248,250,0.72);
     }
 
     [data-theme="dark"] #notes-list-pane .mobile-search-shell {
@@ -3402,7 +3411,7 @@ html[data-ui="nothing"] .notif{
     }
 
     [data-theme="dark"] #notes-list-pane .mobile-search-shell::before {
-        background: rgba(24,24,28,0.56);
+        background: rgba(30,30,32,0.72);
     }
 
     [data-theme="dark"] #notes-list-pane .mobile-nav-new-note {
@@ -3476,8 +3485,8 @@ html[data-ui="nothing"] .notif{
     /* light blur, fades out over the full height */
     html[data-ui="ios"] .editor-toolbar-glass-layer::before {
         height: 100%;
-        -webkit-backdrop-filter: blur(2px);
-        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px) var(--lg-filter-url);
+        backdrop-filter: blur(2px) var(--lg-filter-url);
         -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
         mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
     }
@@ -3485,8 +3494,8 @@ html[data-ui="nothing"] .notif{
     /* medium blur, fades out by about 75% */
     html[data-ui="ios"] .editor-toolbar-glass-layer::after {
         height: 100%;
-        -webkit-backdrop-filter: blur(7px);
-        backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px) var(--lg-filter-url);
+        backdrop-filter: blur(7px) var(--lg-filter-url);
         -webkit-mask-image: linear-gradient(to bottom, #000 20%, transparent 75%);
         mask-image: linear-gradient(to bottom, #000 20%, transparent 75%);
     }
@@ -3495,9 +3504,31 @@ html[data-ui="nothing"] .notif{
     html[data-ui="ios"] .toolbar::before {
         z-index: -1;
         height: 72px;
-        -webkit-backdrop-filter: blur(18px) saturate(1.4);
-        backdrop-filter: blur(18px) saturate(1.4);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4) var(--lg-filter-url);
+        backdrop-filter: blur(18px) saturate(1.4) var(--lg-filter-url);
         -webkit-mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
         mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
     }
+}
+
+/* Follow the real viewport instead of --vh */
+html, body { height: 100%; }
+
+body {
+  position: fixed;
+  inset: 0;
+  height: auto;
+}
+
+#app { height: 100%; }
+
+html.viewport-ready #app,
+html.viewport-ready .pane { transition: none; }
+
+@media (max-width: 1024px) {
+  #app { height: 100%; }
+  .pane,
+  #sidebar,
+  #notes-list-pane,
+  #editor-pane { height: 100%; }
 }

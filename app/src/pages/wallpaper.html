@@ -10,6 +10,13 @@
 <script>
 (function () {
   const root = document.documentElement;
+  const legacyLGFilterKey = "notozApp_lg_filter_all_themes";
+  const lgFilterKey = "notozApp_lg_filter_enabled";
+  if (localStorage.getItem(lgFilterKey) === null) {
+    const legacyValue = localStorage.getItem(legacyLGFilterKey);
+    localStorage.setItem(lgFilterKey, legacyValue ?? "true");
+  }
+  localStorage.removeItem(legacyLGFilterKey);
   const ui = localStorage.getItem("ui-theme") || "ios";
   const savedMode = localStorage.getItem("notozApp_theme") || "dark";
   const mode = savedMode === "system"
@@ -17,6 +24,24 @@
     : savedMode;
   root.setAttribute("data-ui", ui);
   root.setAttribute("data-theme", mode);
+  window.updateLGFilterReference = function () {
+    const filterEnabled =
+      root.getAttribute("data-ui") === "ios" &&
+      localStorage.getItem(lgFilterKey) === "true";
+    if (!filterEnabled) {
+      root.removeAttribute("data-lg-filter");
+      root.style.setProperty("--lg-filter-url", "");
+      return;
+    }
+    root.setAttribute("data-lg-filter", "ios");
+    const filter = root.getAttribute("data-theme") === "light"
+      ? "lg-filter-l"
+      : "lg-filter-d";
+    const filterUrl = new URL(window.location.href);
+    filterUrl.hash = filter;
+    root.style.setProperty("--lg-filter-url", `url("${filterUrl.href}")`);
+  };
+  window.updateLGFilterReference();
   if (ui === "md3e") {
     const v = (localStorage.getItem("md3e-seed") || "#6750A4").replace("#", "");
     if (/^[0-9a-f]{6}$/i.test(v)) {
@@ -34,10 +59,33 @@
 <link rel="stylesheet" href="../css/settings.css">
 
 <svg width="0" height="0" style="position: absolute" aria-hidden="true">
-  <filter id="lg-filter" x="0%" y="0%" width="100%" height="100%">
-   <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="2" seed="92" result="noise" />
-   <feGaussianBlur in="noise" stdDeviation="0.02" result="blur" />
-   <feDisplacementMap in="SourceGraphic" in2="blur" scale="77" xChannelSelector="R" yChannelSelector="G" />
+  <filter id="lg-filter-d" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="1" seed="92" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+    <feColorMatrix in="disp" type="matrix" result="r" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="g" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="b" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+    <feOffset in="r" dx="-2" dy="0" result="rShift"/>
+    <feOffset in="b" dx="2" dy="0" result="bShift"/>
+    <feComposite in="rShift" in2="r" operator="over" result="r2"/>
+    <feComposite in="bShift" in2="b" operator="over" result="b2"/>
+    <feComposite in="r2" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg"/>
+    <feComposite in="rg" in2="b2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="aberr"/>
+    <feComposite in="aberr" in2="disp" operator="arithmetic" k1="0" k2="0.7" k3="0.3" k4="0"/>
+  </filter>
+  <filter id="lg-filter-l" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="1" seed="92" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="60" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+    <feColorMatrix in="disp" type="matrix" result="r" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="g" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="b" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+    <feOffset in="r" dx="-1" dy="0" result="rShift"/>
+    <feOffset in="b" dx="1" dy="0" result="bShift"/>
+    <feComposite in="rShift" in2="r" operator="over" result="r2"/>
+    <feComposite in="bShift" in2="b" operator="over" result="b2"/>
+    <feComposite in="r2" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg"/>
+    <feComposite in="rg" in2="b2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="aberr"/>
+    <feComposite in="aberr" in2="disp" operator="arithmetic" k1="0" k2="0.4" k3="0.6" k4="0"/>
   </filter>
   <filter id="btn-glass" x="0%" y="0%" width="100%" height="100%">
     <feTurbulence type="fractalNoise" baseFrequency="0.012 0.01" numOctaves="1" seed="92" result="buttonNoise" />
@@ -209,8 +257,8 @@ html[data-ui="md3e"] .subtitle {
   border-radius: 14px;
   background: rgba(255, 255, 255, .86);
   box-shadow: 0 6px 14px rgba(0, 0, 0, .08), 0 28px 60px rgba(0, 0, 0, .22);
-  backdrop-filter: blur(2px) saturate(1.5) url(#lg-filter);
-  -webkit-backdrop-filter: blur(12px) saturate(1.5);
+  backdrop-filter: blur(2px) saturate(1.5) var(--lg-filter-url);
+  -webkit-backdrop-filter: blur(2px) saturate(1.5) var(--lg-filter-url);
   opacity: 0;
   pointer-events: none;
   transform: translateY(-6px) scale(.96);
@@ -1036,6 +1084,7 @@ function resolveThemeMode() {
 
 function applyResolvedTheme() {
   document.documentElement.setAttribute('data-theme', resolveThemeMode());
+  window.updateLGFilterReference?.();
 }
 
 function refreshWallpaperAppearance() {
@@ -1044,6 +1093,7 @@ function refreshWallpaperAppearance() {
 
   root.setAttribute('data-ui', ui);
   applyResolvedTheme();
+  window.updateLGFilterReference?.();
 
   if (ui === 'md3e') {
     applySeedVar(localStorage.getItem(MD3E_SEED_KEY) || '#6750A4');
@@ -1439,6 +1489,10 @@ refreshWallpaperAppearance();
   }
 
   window.addEventListener('storage', event => {
+    if (event.key === 'notozApp_lg_filter_enabled') {
+      window.updateLGFilterReference();
+      return;
+    }
     if (event.key === 'ui-theme' || event.key === 'notozApp_theme' || event.key === MD3E_SEED_KEY) {
       applyIfChanged();
     }

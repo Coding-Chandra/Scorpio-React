@@ -95,6 +95,10 @@
   }
 }
 
+* {
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
 /* =====================================================
    BASE (iOS-like default)
    ===================================================== */
@@ -356,6 +360,155 @@ h2:nth-of-type(2) { animation-delay: 0.15s; }
   transition: color 0.2s ease-out;
 }
 
+.filter-option {
+  gap: 16px;
+  cursor: default;
+}
+
+.filter-option-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-option-description,
+.filter-option-status {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.filter-option-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 60px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #e4e4e5;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s ease;
+}
+
+.filter-option-switch:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.filter-option-switch::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 21px;
+  border: 1px solid #ffffff46;
+  border-radius: 38px;
+  background: #fff;
+  box-shadow: -1.5px 1.5px 10px 0px #2c2c2e5a;
+  transform: translate(-50%, -50%) translateX(-11px);
+  transition: transform 0.2s ease;
+}
+
+.filter-option-switch[aria-checked="true"] {
+  background: #65c466;
+}
+
+.filter-option-switch[aria-checked="true"]::before {
+  transform: translate(-50%, -50%) translateX(11px);
+}
+
+/* Match the switch geometry and colors used by each appearance. */
+:root[data-ui="md3e"] .filter-option-switch {
+  width: 55px;
+  height: 30px;
+  border: 2px solid var(--text-dim);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text-main) 8%, var(--bg-card));
+}
+
+:root[data-ui="md3e"] .filter-option-switch::before {
+  top: 5px;
+  left: 5px;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  box-shadow: none;
+}
+
+:root[data-ui="md3e"] .filter-option-switch[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+:root[data-ui="md3e"] .filter-option-switch[aria-checked="true"]::before {
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: var(--bg-card);
+  transform: translateX(23px);
+}
+
+:root[data-ui="nothing"] .filter-option-switch {
+  width: 34px;
+  height: 24px;
+  padding: 0;
+  border-radius: 99px;
+  background: #1b1b1b;
+}
+
+:root[data-ui="nothing"] .filter-option-switch::before {
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #f3f3f3;
+  box-shadow: none;
+}
+
+:root[data-ui="nothing"] .filter-option-switch[aria-checked="true"] {
+  background: #f3f3f3;
+}
+
+:root[data-ui="nothing"] .filter-option-switch[aria-checked="true"]::before {
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #1b1b1b;
+  transform: translateX(10px);
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch {
+  background: #f3f3f3;
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch::before {
+  background: #1b1b1b;
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch[aria-checked="true"] {
+  background: #000;
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch[aria-checked="true"]::before {
+  background: #fff;
+}
+
+.filter-option-switch[aria-checked="true"]::before {
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 21px;
+  transform: translate(-50%, -50%) translateX(11px);
+}
+
 .row:active .label {
   color: var(--accent);
 }
@@ -536,6 +689,27 @@ h2:nth-of-type(2) { animation-delay: 0.15s; }
   </div>
 </div>
 
+<div id="lgFilterSection">
+<h2>Liquid Glass</h2>
+<div class="card">
+  <div class="row filter-option">
+    <div class="filter-option-copy">
+      <span class="label">Liquid Glass</span>
+      <span class="filter-option-description">iOS appearance only.</span>
+      <span class="filter-option-status" id="lgFilterStatus">Off</span>
+    </div>
+    <button
+      id="lgFilterToggle"
+      class="filter-option-switch"
+      type="button"
+      role="switch"
+      aria-checked="false"
+      aria-label="Liquid Glass"
+      aria-describedby="lgFilterStatus"
+      onclick="toggleLGFilter()"></button>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -546,6 +720,13 @@ h2:nth-of-type(2) { animation-delay: 0.15s; }
 const UI_KEY = "ui-theme";
 const MODE_KEY = "notozApp_theme";
 const SEED_KEY = "md3e-seed";
+const LG_FILTER_KEY = "notozApp_lg_filter_enabled";
+const LEGACY_LG_FILTER_KEY = "notozApp_lg_filter_all_themes";
+if (localStorage.getItem(LG_FILTER_KEY) === null) {
+  const legacyValue = localStorage.getItem(LEGACY_LG_FILTER_KEY);
+  localStorage.setItem(LG_FILTER_KEY, legacyValue ?? "true");
+}
+localStorage.removeItem(LEGACY_LG_FILTER_KEY);
 
 const ui = localStorage.getItem(UI_KEY) || "ios";
 const mode = localStorage.getItem(MODE_KEY) || "system";
@@ -554,6 +735,7 @@ const seed = localStorage.getItem(SEED_KEY) || "#6750A4";
 applyUI(ui);
 applyMode(mode);
 applySeed(seed);
+applyLGFilter(localStorage.getItem(LG_FILTER_KEY) === "true");
 
 /* =====================================================
    FUNCTIONS
@@ -577,10 +759,46 @@ function setPreset(hex) {
   window.parent.postMessage({ type: "SET_MD3E_COLOR", color: hex }, window.location.origin);
 }
 
+function toggleLGFilter() {
+  const enabled = document.getElementById("lgFilterToggle").getAttribute("aria-checked") !== "true";
+  localStorage.setItem(LG_FILTER_KEY, String(enabled));
+  applyLGFilter(enabled);
+  window.parent.postMessage(
+    { type: "SET_LG_FILTER", enabled },
+    window.location.origin
+  );
+}
+
+function applyLGFilter(enabled) {
+  const active = enabled && localStorage.getItem(UI_KEY) === "ios";
+  if (active) {
+    document.documentElement.setAttribute("data-lg-filter", "ios");
+  } else {
+    document.documentElement.removeAttribute("data-lg-filter");
+  }
+  document.getElementById("lgFilterToggle")?.setAttribute("aria-checked", String(active));
+  const status = document.getElementById("lgFilterStatus");
+  if (status) status.textContent = active ? "On" : "Off";
+  const filter = active
+    ? (document.documentElement.getAttribute("data-theme") === "light"
+      ? "lg-filter-l"
+      : "lg-filter-d")
+    : "";
+  if (filter) {
+    const filterUrl = new URL(window.location.href);
+    filterUrl.hash = filter;
+    document.documentElement.style.setProperty("--lg-filter-url", `url("${filterUrl.href}")`);
+  } else {
+    document.documentElement.style.setProperty("--lg-filter-url", "");
+  }
+}
+
 function applyUI(v) {
   document.documentElement.setAttribute("data-ui", v);
   document.querySelectorAll('[id^="ui-"]').forEach(r => r.classList.remove("selected"));
   document.getElementById("ui-" + v)?.classList.add("selected");
+  document.getElementById("lgFilterSection").hidden = v !== "ios";
+  applyLGFilter(localStorage.getItem(LG_FILTER_KEY) === "true");
   
   // Show/hide presets with animation
   const presetsRow = document.getElementById("md3ePresets");
@@ -594,6 +812,7 @@ function applyUI(v) {
 function applyMode(v) {
   const actualTheme = v === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : v;
   document.documentElement.setAttribute("data-theme", actualTheme);
+  applyLGFilter(localStorage.getItem(LG_FILTER_KEY) === "true");
   document.querySelectorAll('[id^="mode-"]').forEach(r => r.classList.remove("selected"));
   document.getElementById("mode-" + v)?.classList.add("selected");
 }

@@ -946,7 +946,7 @@ function exportNotesAsJson(decryptedNotes, recoveryInfo) {
 }
 
 async function exportNotesAsZip(decryptedNotes, onProgress, recoveryInfo) {
-    if (!window.JSZip) throw new Error('ZIP library failed to load.');
+    await loadImportLibrary('jszip');
 
     const zip = new window.JSZip();
     const notesFolder = zip.folder('notes');

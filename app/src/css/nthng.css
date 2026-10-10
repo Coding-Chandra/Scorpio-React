@@ -135,20 +135,18 @@
   backdrop-filter: none !important;
 }
 
-
-
 :root[data-ui="nothing"] #mobileNavBar,
 :root[data-ui="nothing"] .toolbar,
 :root[data-ui="nothing"] .dropdown-menu,
 :root[data-ui="nothing"] .selection-toolbar{
-  backdrop-filter: blur(4px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.08);
   background: var(--bg-card-t);
 }
 
 :root[data-ui="nothing"] .mobile-nav-left,
 :root[data-ui="nothing"] .mobile-nav-right,
 :root[data-ui="nothing"] .mobile-nav-title {
-  backdrop-filter: blur(4px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.08);
   background: var(--bg-card-t);
 }
 
@@ -407,7 +405,7 @@ border-top: none;
 /* Focus — animated dot underline */
 :root[data-ui="nothing"] .toolbar{
   background: var(--bg-card-t);
-  backdrop-filter: blur(4px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.08);
   border: 0.5px solid var(--border-color);
 }
 

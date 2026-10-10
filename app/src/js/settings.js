@@ -888,6 +888,7 @@ function applyUI(ui) {
     body.classList.remove("ui-ios", "ui-md3e", "ui-nothing");
     body.classList.add(`ui-${ui}`);
     document.documentElement.setAttribute("data-ui", ui);
+    window.updateLGFilterReference?.();
     localStorage.setItem("ui-theme", ui);
 }
 
@@ -918,6 +919,7 @@ function applyTheme(mode) {
         : mode;
 
     document.documentElement.setAttribute("data-theme", actualTheme);
+    window.updateLGFilterReference?.();
     localStorage.setItem("notozApp_theme", mode);
     window.updateThemeColor?.(document.documentElement.getAttribute('data-ui'), actualTheme);
     updateSettingsThemeColor(document.documentElement.getAttribute('data-ui'), actualTheme);
@@ -1051,6 +1053,18 @@ window.addEventListener("message", (event) => {
             break;
         }
 
+        case "SET_LG_FILTER": {
+            if (typeof event.data.enabled !== "boolean") break;
+            const enabled = event.data.enabled;
+            localStorage.setItem("notozApp_lg_filter_enabled", String(enabled));
+            window.updateLGFilterReference?.();
+            window.parent.postMessage(
+                { type: "SET_LG_FILTER", enabled },
+                window.location.origin
+            );
+            break;
+        }
+
         case "SET_MD3E_COLOR": {
             // The inline handler in settings.html reads `seed || color`; accept both here too.
             let color = String(event.data.color || event.data.seed || '');
@@ -1152,7 +1166,8 @@ function syncLockedFolderNotificationToggles() {
     });
 }
 
-function toggleLockedFolderNotifications() {
+function toggleLockedFolderNotifications(event) {
+    event?.stopPropagation();
     localStorage.setItem(
         'locked_folder_notifications_disabled',
         String(lockedFolderNotificationsEnabled())
