@@ -1390,6 +1390,8 @@ const app = {
         note.content = contentInput?.innerHTML || '';
         note.updated_at = now;
         note._decrypted = true;
+        const editorDateDisplay = document.getElementById('mobileEditorDateDisplay');
+        if (editorDateDisplay) editorDateDisplay.textContent = Utils.formatDateTime(now);
 
         // Record history (debounced)
         this.debounceRecordHistory();
@@ -2024,6 +2026,8 @@ app.renderEditor = function () {
     container.classList.add('visible');
 
     if (document.activeElement !== titleInput) titleInput.value = note.title;
+    const editorDateDisplay = document.getElementById('mobileEditorDateDisplay');
+    if (editorDateDisplay) editorDateDisplay.textContent = Utils.formatDateTime(note.updated_at);
 
     // Handle encrypted content that hasn't been decrypted yet
     if (document.activeElement !== contentInput && !document.getElementById('imgUpload').value) {
@@ -2101,15 +2105,12 @@ app.renderMobileNav = function () {
             </div>
         `;
     } else if (this.ui.mobileView === 'editor') {
-        const note = this.getActiveNote();
-        const title = note?.title || 'New Note';
         bar.innerHTML = `
             <div class="mobile-nav-left">
                 <button class="mobile-nav-back edit-notes-btn" onclick="app.goToMobileView('notes')">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M14 16l-4-4 4-4"/></svg>
                 </button>
             </div>
-            <div class="mobile-nav-title"><span class="mobile-nav-title-text">${Utils.escapeHtml(title)}</span><div class="editor-meta-info" id="mobileEditorDateDisplay">${note ? Utils.formatDateTime(note.updated_at) : ''}</div></div>
             <div class="mobile-nav-right">
                 <button id="mobileShareBtn" class="mobile-nav-share" onclick="app.toggleShareDropdownFromMobile(event)" title="Share note" aria-label="Share note" aria-haspopup="dialog" aria-expanded="false">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3m0 0 4 4m-4-4L8 7"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>

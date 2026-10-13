@@ -29,6 +29,13 @@ FONTS & IMPORTS
 /* --- Default Dark Theme --- */
 :root {
     --lg-filter-url: ;
+    --blur-xs: 2px;
+    --blur-s: 3px;
+    --blur-m: 4px;
+    --blur-l: 6px;
+    --blur-xl: 8px;
+    --blur-xxl: 12px;
+    --blur-xxxl: 18px;
     --bg-main: #000000;
     --bg-secondary: #1c1c1e;
     --bg-active: #2c2c2e;
@@ -447,7 +454,7 @@ button.locked-folder-notif-toggle {
     width: 32px;
     height: 21px;
     background: var(--toggle-thumb);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(var(--blur-m));
     border: 1px solid #ffffff46;
     box-shadow: -1.5px 1.5px 10px 0px #2c2c2e5a;
     border-radius: 38px;
@@ -472,8 +479,8 @@ button.locked-folder-notif-toggle {
     box-shadow:
         0 4px 10px rgba(0, 0, 0, 0.06),
         0 20px 50px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
-    -webkit-backdrop-filter: blur(4px) saturate(1.5) var(--lg-filter-url);
+    backdrop-filter: blur(var(--blur-m)) saturate(1.5) var(--lg-filter-url);
+    -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.5) var(--lg-filter-url);
     pointer-events: auto;
     cursor: pointer;
     transition:
@@ -530,8 +537,8 @@ button.locked-folder-notif-toggle {
     position: fixed;
     inset: 0;
     background: var(--overlay-bg);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(var(--blur-m));
+    -webkit-backdrop-filter: blur(var(--blur-m));
     z-index: 9999;
     display: none;
     align-items: center;
@@ -976,7 +983,7 @@ html[data-ui="nothing"] body {
 
 html[data-ui="nothing"] #custom-modal-overlay {
     background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(var(--blur-s));
 }
 
 html[data-ui="nothing"] .modal-box {
@@ -1100,7 +1107,7 @@ html[data-ui="nothing"] .notifToggle[data-checked="true"] .notifThumb {
 html[data-ui="nothing"] .notif {
     padding: 16px 20px;
     border-radius: 16px;
-    backdrop-filter: blur(4px) saturate(1.5);
+    backdrop-filter: blur(var(--blur-m)) saturate(1.5);
 }
 
 /* --- Material You (MD3E) Variants --- */
@@ -1112,7 +1119,7 @@ html[data-ui="md3e"] body {
 
 html[data-ui="md3e"] #custom-modal-overlay {
     background: rgba(0, 0, 0, 0.32);
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(var(--blur-s));
 }
 
 html[data-ui="md3e"] .modal-box {
@@ -1174,7 +1181,7 @@ html[data-ui="md3e"][data-theme="dark"] .btn-secondary:active {
 html[data-ui="md3e"] .notif {
     padding: 16px 20px;
     border-radius: 16px;
-    backdrop-filter: blur(4px) saturate(1.5);
+    backdrop-filter: blur(var(--blur-m)) saturate(1.5);
 }
 
 html[data-ui="md3e"] .settings-group {
@@ -1239,7 +1246,7 @@ html[data-ui="md3e"] .notifToggle[data-checked="true"] .notifThumb {
 /* --- iOS Variants --- */
 html[data-ui="ios"] #custom-modal-overlay {
     background: var(--overlay-bg);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(var(--blur-m));
 }
 
 html[data-ui="ios"] .modal-box {
@@ -1781,8 +1788,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
         align-items: center;
         padding: 14px 32px;
         background: var(--bg-main);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(var(--blur-m));
+        -webkit-backdrop-filter: blur(var(--blur-m));
         border-bottom: 1px solid var(--sep);
     }
 
@@ -2334,8 +2341,8 @@ html[data-ui="ios"][data-theme="light"] .btn-secondary:active {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(4px) saturate(1.2);
-    -webkit-backdrop-filter: blur(4px) saturate(1.2);
+    backdrop-filter: blur(var(--blur-m)) saturate(1.2);
+    -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.2);
 }
 
 .desktop-response-dialog {
@@ -2554,8 +2561,8 @@ body.desktop-response-open {
 html[data-ui="ios"] .desktop-response-dialog {
     border-radius: 24px;
     background: var(--glass-bg);
-    backdrop-filter: blur(4px) saturate(1.25);
-    -webkit-backdrop-filter: blur(4px) saturate(1.25);
+    backdrop-filter: blur(var(--blur-m)) saturate(1.25);
+    -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.25);
 }
 
 html[data-ui="ios"] .desktop-response-option {
