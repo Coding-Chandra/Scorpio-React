@@ -360,35 +360,67 @@ html[data-ui="nothing"] .grid-mode .folder-item .folder-more-btn {
 }
 
 /* =====================================================
-   5. LIST <-> GRID SWITCH ANIMATION
-   Used by animateContainerSwitch() in grid-view.js: every
-   note/folder item fades+shrinks out (gridViewLeave), the
-   layout swaps while invisible, then the new layout's items
-   fade+grow back in with a stagger (gridViewEnter). Kept
-   theme-neutral like the rest of this file — same feel in
-   iOS, MD3E, and Nothing OS.
+   5. LIST <-> GRID CHOREOGRAPHY
+   Each mode has a distinct transition, then the selected
+   OS supplies its own motion character.
    ===================================================== */
 
-@keyframes gridViewLeave {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: scale(0.92);
-    }
+@keyframes iosListExit {
+    to { opacity: 0; filter: blur(3px); transform: translateX(-14px) scaleY(0.94); }
 }
 
-@keyframes gridViewEnter {
-    from {
-        opacity: 0;
-        transform: scale(0.92) translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+@keyframes iosGridExit {
+    to { opacity: 0; filter: blur(4px); transform: translateY(9px) scale(0.91); }
+}
+
+@keyframes iosListEnter {
+    from { opacity: 0; filter: blur(4px); transform: translateX(-13px) scaleY(0.96); }
+    72% { opacity: 1; filter: blur(0); transform: translateX(2px) scaleY(1.01); }
+    to { opacity: 1; filter: blur(0); transform: translateX(0) scaleY(1); }
+}
+
+@keyframes iosGridEnter {
+    from { opacity: 0; filter: blur(7px); transform: translateY(18px) scale(0.84); }
+    72% { opacity: 1; filter: blur(0); transform: translateY(-2px) scale(1.025); }
+    to { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+}
+
+@keyframes md3ListExit {
+    to { opacity: 0; clip-path: inset(0 0 100% 0 round 12px); transform: translateY(-7px) scaleY(0.96); }
+}
+
+@keyframes md3GridExit {
+    to { opacity: 0; clip-path: inset(0 0 100% 0 round 18px); transform: perspective(500px) rotateX(-9deg) translateY(8px); }
+}
+
+@keyframes md3ListEnter {
+    from { opacity: 0; clip-path: inset(0 0 100% 0 round 12px); transform: translateY(12px) scaleY(0.96); }
+    70% { opacity: 1; clip-path: inset(0 0 0 0 round 12px); transform: translateY(-2px) scaleY(1.01); }
+    to { opacity: 1; clip-path: inset(0 0 0 0 round 12px); transform: translateY(0) scaleY(1); }
+}
+
+@keyframes md3GridEnter {
+    from { opacity: 0; clip-path: inset(0 0 100% 0 round 18px); transform: perspective(500px) rotateX(-10deg) translateY(14px) scale(0.9); }
+    72% { opacity: 1; clip-path: inset(0 0 0 0 round 18px); transform: perspective(500px) rotateX(2deg) translateY(-2px) scale(1.02); }
+    to { opacity: 1; clip-path: inset(0 0 0 0 round 18px); transform: perspective(500px) rotateX(0) translateY(0) scale(1); }
+}
+
+@keyframes nothingListExit {
+    to { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(12px); }
+}
+
+@keyframes nothingGridExit {
+    to { opacity: 0; clip-path: inset(100% 0 0 0); transform: translateY(-8px) scale(0.96); }
+}
+
+@keyframes nothingListEnter {
+    from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-12px); }
+    to { opacity: 1; clip-path: inset(0); transform: translateX(0); }
+}
+
+@keyframes nothingGridEnter {
+    from { opacity: 0; clip-path: inset(100% 0 0 0); transform: translateY(10px) scale(0.96); }
+    to { opacity: 1; clip-path: inset(0); transform: translateY(0) scale(1); }
 }
 
 /* =====================================================

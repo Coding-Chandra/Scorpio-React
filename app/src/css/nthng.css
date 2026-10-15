@@ -2,7 +2,7 @@
    NOTHING OS THEME
    Accent: Nothing Red (#D71921)
    ===================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&display=swap');
 
 @font-face {
   font-family: 'Ndot 57 Aligned';
@@ -133,6 +133,7 @@
   padding: var(--space-2);
   box-shadow: none !important;
   backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 :root[data-ui="nothing"] #mobileNavBar,
@@ -140,6 +141,7 @@
 :root[data-ui="nothing"] .dropdown-menu,
 :root[data-ui="nothing"] .selection-toolbar{
   backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
   background: var(--bg-card-t);
 }
 
@@ -147,6 +149,7 @@
 :root[data-ui="nothing"] .mobile-nav-right,
 :root[data-ui="nothing"] .mobile-nav-title {
   backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
   background: var(--bg-card-t);
 }
 
@@ -282,15 +285,12 @@
   border-color: var(--accent-color);
 }
 
-:root[data-ui="nothing"] .list-header{
-  border-top: none;
-}
 :root[data-ui="nothing"] .sidebar-actions{
 border-radius: 50px;
 border-top: none;
 }
 
-:root[data-ui="nothning"] .multi-select-bar{
+:root[data-ui="nothing"] .multi-select-bar{
   border: 0.5px solid rgba(0, 0, 0, 0.12);
   bottom: 1vh;
   align-items: center;
@@ -300,7 +300,7 @@ border-top: none;
   justify-content: space-evenly;
 }
 
-:root[data-ui="nothning"][data-theme="dark"] 
+:root[data-ui="nothing"][data-theme="dark"] 
 .multi-select-bar{
   border-color: rgba(255, 255, 255, 0.12);
 }
@@ -317,16 +317,18 @@ border-top: none;
     border: 0.5px solid rgba(255, 255, 255, 0.12);
     border-radius: 50px;
     backdrop-filter: blur(var(--blur-m)) saturate(1.5);
+    -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.5);
     align-items: center;
 }
 
-:root[data-ui="nothning"][data-theme="light"] 
-.list-header{
-  background: rgba(255, 255, 255, 0.4);
-  border-color: rgba(0, 0, 0, 0.12);
+@media (max-width: 1024px) {
+  :root[data-ui="nothing"][data-theme="light"] .list-header {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 0, 0, 0.12);
+  }
 }
 
-@media (min-width: 1000px){
+@media (min-width: 1025px) {
   :root[data-ui="nothing"] .list-header{
   position: relative;
   display: flex;
@@ -338,7 +340,7 @@ border-top: none;
   padding: 4px;
   border-radius: var(--radius-md);
   box-shadow: none;
-  };
+  }
 }
 
 /* -----------------------------------------------------
@@ -404,8 +406,6 @@ border-top: none;
 
 /* Focus — animated dot underline */
 :root[data-ui="nothing"] .toolbar{
-  background: var(--bg-card-t);
-  backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
   border: 0.5px solid var(--border-color);
 }
 

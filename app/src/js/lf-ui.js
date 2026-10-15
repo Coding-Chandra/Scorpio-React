@@ -233,16 +233,22 @@
                         aria-hidden="true"
                     ></div>
 
-                    <input
-                        class="lf-ui-input lf-ui-pin"
-                        type="password"
-                        inputmode="numeric"
-                        autocomplete="off"
-                        placeholder="Enter PIN"
-                        maxlength="${Number(length) || 4}"
-                        aria-label="PIN"
-                        tabindex="-1"
-                    >
+                    <div class="lf-ui-pin-wrap">
+                        <input
+                            class="lf-ui-input lf-ui-pin"
+                            type="text"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            name="locked-folder-pin"
+                            placeholder="Enter PIN"
+                            maxlength="${Number(length) || 4}"
+                            aria-label="PIN"
+                            tabindex="-1"
+                        >
+                        <span class="lf-ui-pin-mask" aria-hidden="true"></span>
+                    </div>
 
                     <div
                         class="lf-ui-error"
@@ -298,6 +304,7 @@
             const subtitle = overlay.querySelector('.lf-ui-subtitle');
             const dots = overlay.querySelector('.lf-ui-dots');
             const input = overlay.querySelector('.lf-ui-input');
+            const inputMask = overlay.querySelector('.lf-ui-pin-mask');
             const error = overlay.querySelector('.lf-ui-error');
             const pad = overlay.querySelector('.lf-ui-pad');
             const cancel = overlay.querySelector('.lf-ui-cancel');
@@ -340,7 +347,7 @@
             }
 
             function showDots() {
-                return isMobile() && currentUi() === 'ios';
+                return isMobile();
             }
 
             function animateKeypad(show) {
@@ -373,15 +380,18 @@
                 const visualInput = showVisualInput();
                 const visualDots = showDots();
 
+                card.classList.toggle(
+                    'has-desktop-keypad',
+                    !mobile && desktopKeypadVisible
+                );
+
                 input.hidden = !visualInput;
                 input.tabIndex = visualInput ? 0 : -1;
 
                 dots.hidden = !visualDots;
 
                 /*
-                 * Mobile:
-                 * MD3E / Nothing = keypad-only.
-                 * iOS = passcode dots + keypad.
+                 * Mobile uses passcode dots with the keypad in every theme.
                  */
                 const shouldShowPad = mobile || desktopKeypadVisible;
 
@@ -434,6 +444,7 @@
 
             function syncInput() {
                 input.value = value;
+                inputMask.textContent = '\u2022'.repeat(value.length);
             }
 
             function focusInput() {

@@ -234,9 +234,9 @@
    ========================================================= */
 
 .lf-ui-avatar {
-  width: 88px;
+  width: 112px;
 
-  height: 88px;
+  height: 112px;
 
   margin-bottom: 15px;
 
@@ -248,21 +248,36 @@
 
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.92);
+  background: transparent;
 
   color: #171717;
 
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 0;
 
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
+  box-shadow: none;
 
-  backdrop-filter: blur(var(--blur-m)) saturate(1.25);
+  backdrop-filter: none;
 
-  -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.25);
+  -webkit-backdrop-filter: none;
 
   font-size: 28px;
 
   font-weight: 600;
+}
+
+.lf-ui-avatar .lf-ui-avatar-source {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-size: xx-large;
+}
+
+.lf-ui-avatar .lf-ui-avatar-source img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .lf-ui-avatar-inner {
@@ -336,10 +351,29 @@
   margin-top: 13px;
 }
 
+.lf-ui-pin-mask {
+  position: absolute;
+  inset: 0 14px;
+
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+  pointer-events: none;
+
+  color: var(--lf-text);
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.lf-ui-pin-mask:empty {
+  display: none;
+}
+
 .lf-ui-pin {
   width: min(252px, 100%);
 
-  margin-top: 13px;
+  margin-top: 0;
 
   height: 38px;
 
@@ -353,7 +387,9 @@
 
   background: rgba(255, 255, 255, 0.76);
 
-  color: #111111;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: var(--lf-text);
 
   font-family: inherit;
 
@@ -372,6 +408,7 @@
 
 .lf-ui-pin::placeholder {
   color: rgba(0, 0, 0, 0.54);
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.54);
 }
 
 .lf-ui-pin:focus {
@@ -418,12 +455,12 @@
 
 .lf-ui-overlay[data-ui="nothing"][data-theme="light"] .lf-ui-pin {
   border-color: rgba(0, 0, 0, 0.18);
-
   background: rgba(0, 0, 0, 0.06);
 }
 
 .lf-ui-overlay[data-theme="dark"] .lf-ui-pin::placeholder {
   color: rgba(255, 255, 255, 0.62);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.62);
 }
 
 .lf-ui-keypad-toggle {
@@ -1078,6 +1115,76 @@
   }
 }
 
+@media (min-width: 700px) {
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-card .lf-ui-pin-wrap,
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-card .lf-ui-pin-wrap {
+    position: relative;
+    width: 252px;
+    height: auto;
+    overflow: visible;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .lf-ui-card.has-desktop-keypad {
+    width: min(820px, calc(100vw - 48px));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(250px, 310px);
+    grid-template-areas:
+      "avatar pad"
+      "title pad"
+      "subtitle pad"
+      "input pad"
+      "error pad"
+      "actions pad";
+    align-content: center;
+    justify-items: center;
+    row-gap: 7px;
+    column-gap: clamp(32px, 8vw, 80px);
+  }
+
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-card,
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-card {
+    width: min(400px, 90vw);
+  }
+
+  .lf-ui-overlay[data-ui="md3e"] .lf-ui-card.has-desktop-keypad,
+  .lf-ui-overlay[data-ui="nothing"] .lf-ui-card.has-desktop-keypad {
+    width: min(820px, calc(100vw - 48px));
+  }
+
+  .lf-ui-overlay .lf-ui-card.has-desktop-keypad .lf-ui-pin {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .lf-ui-card.has-desktop-keypad .lf-ui-avatar-wrap { grid-area: avatar; }
+  .lf-ui-card.has-desktop-keypad .lf-ui-title { grid-area: title; }
+  .lf-ui-card.has-desktop-keypad .lf-ui-subtitle { grid-area: subtitle; }
+  .lf-ui-card.has-desktop-keypad .lf-ui-pin-wrap { grid-area: input; }
+  .lf-ui-card.has-desktop-keypad .lf-ui-error { grid-area: error; }
+  .lf-ui-card.has-desktop-keypad .lf-ui-actions { grid-area: actions; }
+
+  .lf-ui-card.has-desktop-keypad .lf-ui-pad {
+    grid-area: pad;
+    width: 100%;
+    margin: 0;
+    align-self: center;
+  }
+
+  .lf-ui-card.has-desktop-keypad .lf-ui-pin {
+    margin-top: 0;
+  }
+
+  .lf-ui-card.has-desktop-keypad .lf-ui-pin-wrap {
+    margin-top: 5px;
+  }
+
+  .lf-ui-card.has-desktop-keypad .lf-ui-actions {
+    margin-top: 5px;
+  }
+}
+
 /* =========================================================
    MOBILE
    ========================================================= */
@@ -1121,9 +1228,9 @@
   }
 
   .lf-ui-avatar {
-    width: 70px;
+    width: 88px;
 
-    height: 70px;
+    height: 88px;
 
     margin-bottom: 11px;
 
@@ -1145,7 +1252,7 @@
 
     width: min(308px, 100%);
 
-    margin-top: 18px;
+    margin-top: 1px;
 
     grid-template-columns: repeat(3, 1fr);
 

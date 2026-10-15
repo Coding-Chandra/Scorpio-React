@@ -126,6 +126,7 @@
 :root[data-ui="md3e"] .glass-panel,
 :root[data-ui="md3e"] .glass-panel-strong {
   backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   box-shadow:
     0 1px 2px rgba(0,0,0,0.18),
     0 2px 6px rgba(0,0,0,0.12);
@@ -246,7 +247,7 @@
    10. Popups & toolbars (FIXED) V2
 ----------------------------------------------------- */
 :root[data-ui="md3e"] .search-bar{
-  background-color: transparent
+  background-color: transparent;
 }
 
 
@@ -258,6 +259,7 @@
       rgb(var(--md-seed)) 8%
     );
     backdrop-filter: blur(var(--blur-s)) saturate(2);
+    -webkit-backdrop-filter: blur(var(--blur-s)) saturate(2);
     padding: 6px 10px;
 }
 
@@ -266,7 +268,7 @@
     color-mix(
       in srgb,
       var(--editor-bg-glass) 70%,
-      rgba(var(--md-seed), 1.48)
+      rgb(var(--md-seed))
     );
 }
 
@@ -276,19 +278,21 @@
   left: 2vh;
   right: 2vh;
   border-radius: 22px;
-  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgba(var(--md-seed), 1.48));
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgb(var(--md-seed)));
   backdrop-filter: blur(var(--blur-s)) saturate(2);
+  -webkit-backdrop-filter: blur(var(--blur-s)) saturate(2);
 }
 :root[data-ui="md3e"] .mobile-nav-left,
 :root[data-ui="md3e"] .mobile-nav-right,
 :root[data-ui="md3e"] .mobile-nav-title {
-  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgba(var(--md-seed), 1.48));
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgb(var(--md-seed)));
   backdrop-filter: blur(var(--blur-xl)) saturate(2);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(2);
 }
 
-:root[data-ui="md3e"] [data-theme="dark"] .mobile-nav-left,
-:root[data-ui="md3e"] [data-theme="dark"] .mobile-nav-right,
-:root[data-ui="md3e"] [data-theme="dark"] .mobile-nav-title{
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-left,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-right,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-title{
   background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgba(var(--md-seed), 0.14));
 }
 
@@ -308,12 +312,12 @@
     color-mix(
       in srgb,
       var(--editor-bg-glass) 88%,
-      rgba(var(--md-seed), 1.12)
+      rgb(var(--md-seed))
     );
   backdrop-filter: blur(var(--blur-s)) saturate(2);
+  -webkit-backdrop-filter: blur(var(--blur-s)) saturate(2);
 }
 
-:root[data-ui="md3e"] .multi-select-bar
 
 :root[data-ui="md3e"][data-theme="dark"]
 .selection-toolbar,
@@ -419,8 +423,7 @@ html[data-ui="md3e"] ::-webkit-scrollbar-thumb {
 
 html[data-ui="md3e"] ::-webkit-scrollbar-thumb:hover {
   background: var(--blue);
-  opacity: 0.9;
-  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(var(--md-seed), 0.2);
 }
 
 html[data-ui="md3e"] {
@@ -430,21 +433,9 @@ html[data-ui="md3e"] {
 
 /* MD3E Dark Mode */
 html[data-ui="md3e"][data-theme="dark"] ::-webkit-scrollbar-track {
-  background: var();
+  background: rgba(255, 255, 255, 0.05);
 }
 
 html[data-ui="md3e"][data-theme="dark"] {
   scrollbar-color: var(--blue) rgba(255, 255, 255, 0.05);
-}
-
-/* =====================================================
- 2. YELLOW BORDER FIX - Theme Aware (A Smaller Fix)
-    (In some cases, iOS 17's backdrop-filter implementation causes a persistent yellow border around elements that use glass. 
-    This CSS rule targets those elements and applies a transparent border to neutralize the yellow border without affecting the design.)
- ===================================================== */
-
-html[data-ui="md3e"] input.note-title-input:focus,
-html[data-ui="md3e"] .note-content-editable:focus {
-  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.15) !important;
-  outline: none !important;
 }

@@ -1090,7 +1090,67 @@ const app = {
             }
         });
 
+        this._setupMobileSearchCollapse();
         window.addEventListener('resize', () => this.handleResize());
+    },
+
+    _setupMobileSearchCollapse() {
+        const notesContainer = document.getElementById('notesListContainer');
+        const notesPane = document.getElementById('notes-list-pane');
+        const searchShell = notesPane?.querySelector('.mobile-search-shell');
+        const searchInput = document.getElementById('searchInput');
+        if (!notesContainer || !notesPane || !searchShell || !searchInput) return;
+
+        let lastScrollTop = notesContainer.scrollTop;
+        let scrollIntent = 0;
+        const isMobile = () => window.matchMedia('(max-width: 1024px)').matches;
+        const setCollapsed = (collapsed) => {
+            notesPane.classList.toggle('search-collapsed', collapsed && isMobile());
+        };
+
+        notesContainer.addEventListener('scroll', () => {
+            const scrollTop = notesContainer.scrollTop;
+            const delta = scrollTop - lastScrollTop;
+            lastScrollTop = scrollTop;
+
+            if (!isMobile()) {
+                scrollIntent = 0;
+                setCollapsed(false);
+                return;
+            }
+
+            if (scrollTop <= 4) {
+                scrollIntent = 0;
+                setCollapsed(false);
+                return;
+            }
+
+            if (document.activeElement === searchInput) {
+                scrollIntent = 0;
+                return;
+            }
+
+            scrollIntent += delta;
+            if (scrollIntent >= 14) {
+                setCollapsed(true);
+                scrollIntent = 0;
+            } else if (scrollIntent <= -14) {
+                setCollapsed(false);
+                scrollIntent = 0;
+            }
+        }, { passive: true });
+
+        searchShell.addEventListener('click', () => {
+            if (!notesPane.classList.contains('search-collapsed')) return;
+            setCollapsed(false);
+            searchInput.focus({ preventScroll: true });
+        });
+        searchInput.addEventListener('focus', () => setCollapsed(false));
+        window.addEventListener('resize', () => {
+            lastScrollTop = notesContainer.scrollTop;
+            scrollIntent = 0;
+            setCollapsed(false);
+        });
     },
 
     // ========================================================================
@@ -2607,37 +2667,16 @@ app.toggleDropdown = function (e, dropdownId, triggerId) {
     }
 
     const rect = trigger.getBoundingClientRect();
-    const gap = 8;
-    const menuWidth = dropdown.offsetWidth || 190;
-    const menuHeight = dropdown.offsetHeight || 180;
-
-    const left = Math.min(
-        Math.max(rect.left - 40, 8),
-        window.innerWidth - menuWidth - 8
+    this.positionMenuByDirection(
+        dropdown,
+        rect.left + rect.width / 2,
+        rect.bottom,
+        rect.top,
     );
-
-    const fitsBelow = rect.bottom + menuHeight + gap <= window.innerHeight;
-    const fitsAbove = rect.top - menuHeight - gap >= 0;
-    const openAbove = !fitsBelow && fitsAbove;
-
-    dropdown.style.left = left + 'px';
-    dropdown.style.top = 'auto';
-    dropdown.style.bottom = 'auto';
-    dropdown.classList.remove('direction-up', 'direction-down');
-    dropdown.classList.add(openAbove ? 'direction-up' : 'direction-down');
-
-    if (openAbove) {
-        dropdown.style.bottom = (window.innerHeight - rect.top + gap) + 'px';
-        dropdown.style.setProperty('--origin-x', '50%');
-        dropdown.style.setProperty('--origin-y', '100%');
-    } else {
-        dropdown.style.top = (rect.bottom + gap) + 'px';
-        dropdown.style.setProperty('--origin-x', '50%');
-        dropdown.style.setProperty('--origin-y', '0%');
-    }
 
     dropdown.classList.add('open', 'is-open');
     dropdown.setAttribute('aria-expanded', 'true');
+    dropdown.setAttribute('aria-hidden', 'false');
     trigger.setAttribute('aria-expanded', 'true');
 };
 
@@ -2645,8 +2684,8 @@ app.closeDropdown = function (dropdownId) {
     const dropdown = document.getElementById(dropdownId);
     if (dropdown) {
         dropdown.classList.remove('open', 'is-open');
-        dropdown.classList.remove('direction-up', 'direction-down');
         dropdown.setAttribute('aria-expanded', 'false');
+        dropdown.setAttribute('aria-hidden', 'true');
     }
     if (dropdownId === 'noteActionsMenu') {
         this.closeDropdown('noteMoveMenu');
@@ -2659,8 +2698,8 @@ app.handleDropdownClose = function (dropdownId, triggerId, e) {
     if (!dropdown || !trigger) return;
     if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
         dropdown.classList.remove('open', 'is-open');
-        dropdown.classList.remove('direction-up', 'direction-down');
         dropdown.setAttribute('aria-expanded', 'false');
+        dropdown.setAttribute('aria-hidden', 'true');
         trigger.setAttribute('aria-expanded', 'false');
     }
 };
@@ -2670,8 +2709,8 @@ app.handleMenuCloseOnly = function (menuId, e) {
     if (!menu) return;
     if (!menu.contains(e.target)) {
         menu.classList.remove('open', 'is-open');
-        menu.classList.remove('direction-up', 'direction-down');
         menu.setAttribute('aria-expanded', 'false');
+        menu.setAttribute('aria-hidden', 'true');
     }
 };
 
@@ -2691,35 +2730,44 @@ app.toggleShareDropdownFromMobile = function (e) {
 // 8.1 NOTE ACTIONS MENU (With Dynamic Pin/Unpin Text and Icon, and Context Menu Support)
 // ========================================================================
 
-app.positionMenuByDirection = function (menu, x, y) {
+app.positionMenuByDirection = function (menu, x, y, anchorTop = y) {
     if (!menu) return;
 
     const margin = 8;
-    const gap = 10;
+    const gap = 8;
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportRight = viewportLeft + (viewport?.width || window.innerWidth);
+    const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+    menu.style.maxWidth = `${Math.max(150, viewportRight - viewportLeft - margin * 2)}px`;
+    menu.style.maxHeight = '';
+    menu.style.overflowY = '';
     const menuWidth = menu.offsetWidth || 180;
     const menuHeight = menu.offsetHeight || 160;
-    const canOpenBelow = y + menuHeight + gap <= window.innerHeight - margin;
-    const canOpenAbove = y - menuHeight - gap >= margin;
-    const openAbove = !canOpenBelow && canOpenAbove;
+    const spaceBelow = viewportBottom - y - gap - margin;
+    const spaceAbove = anchorTop - viewportTop - gap - margin;
+    const fitsBelow = menuHeight <= spaceBelow;
+    const fitsAbove = menuHeight <= spaceAbove;
+    const openAbove = !fitsBelow && (fitsAbove || spaceAbove > spaceBelow);
+    const availableHeight = Math.max(80, openAbove ? spaceAbove : spaceBelow);
 
     menu.classList.remove('direction-up', 'direction-down');
     menu.classList.add(openAbove ? 'direction-up' : 'direction-down');
 
     let left = x - menuWidth / 2;
-    if (left < margin) left = margin;
-    if (left + menuWidth > window.innerWidth - margin) left = window.innerWidth - menuWidth - margin;
+    left = Math.max(viewportLeft + margin, Math.min(left, viewportRight - menuWidth - margin));
 
     if (openAbove) {
-        menu.style.top = 'auto';
-        menu.style.bottom = (window.innerHeight - y + gap) + 'px';
+        menu.style.top = `${Math.max(viewportTop + margin, anchorTop - Math.min(menuHeight, availableHeight) - gap)}px`;
     } else {
-        menu.style.bottom = 'auto';
-        menu.style.top = (y + gap) + 'px';
+        menu.style.top = `${y + gap}px`;
     }
 
-    menu.style.left = left + 'px';
-    menu.style.setProperty('--origin-x', '50%');
-    menu.style.setProperty('--origin-y', openAbove ? '100%' : '0%');
+    menu.style.left = `${left}px`;
+    menu.style.maxHeight = `${availableHeight}px`;
+    menu.style.overflowY = menuHeight > availableHeight ? 'auto' : '';
+    menu.style.setProperty('--origin-x', `${Math.max(0, Math.min(100, ((x - left) / menuWidth) * 100))}%`);
 };
 
 app.openNoteActionsMenu = function (ev, noteId) {
@@ -2750,6 +2798,7 @@ app.openNoteActionsMenu = function (ev, noteId) {
     this.positionMenuByDirection(menu, x, y);
     menu.classList.add('open', 'is-open');
     menu.setAttribute('aria-expanded', 'true');
+    menu.setAttribute('aria-hidden', 'false');
 };
 
 app.openMoveNoteMenu = function (ev) {
@@ -2785,6 +2834,7 @@ app.openMoveNoteMenu = function (ev) {
     this.positionMenuByDirection(menu, x, y);
     menu.classList.add('open', 'is-open');
     menu.setAttribute('aria-expanded', 'true');
+    menu.setAttribute('aria-hidden', 'false');
 };
 
 app.moveNote = async function (noteId, folderId) {
@@ -2864,6 +2914,7 @@ app.openFolderActionsMenu = function (ev, folderId) {
     this.positionMenuByDirection(menu, x, y);
     menu.classList.add('open', 'is-open');
     menu.setAttribute('aria-expanded', 'true');
+    menu.setAttribute('aria-hidden', 'false');
 };
 
 app.createNewFolderAndCloseMenu = function () {

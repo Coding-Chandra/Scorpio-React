@@ -20,6 +20,10 @@
         localStorage.removeItem(legacyLGFilterKey);
         const ui = localStorage.getItem("ui-theme") || "ios";
         root.setAttribute("data-ui", ui);
+        root.setAttribute(
+          "data-view-mode",
+          localStorage.getItem("notozApp_viewMode") === "grid" ? "grid" : "list",
+        );
         const savedMode = localStorage.getItem("notozApp_theme");
         const mode =
           savedMode === "system"
@@ -210,51 +214,94 @@
       <div class="loading-progress" id="loadingProgress"></div>
 
       <!-- Skeleton Folders -->
-      <div class="skeleton-folders">
-        <div class="skeleton-folder-item">
-          <div class="skeleton-folder-icon"></div>
-          <div class="skeleton-folder-text"></div>
-          <div class="skeleton-shimmer"></div>
+      <div class="skeleton-folders" aria-hidden="true">
+        <div class="skeleton-folders-list">
+          <div class="skeleton-folder-item">
+            <div class="skeleton-folder-icon"></div>
+            <div class="skeleton-folder-text"></div>
+          </div>
         </div>
-        <div class="skeleton-folder-item">
-          <div class="skeleton-folder-icon"></div>
-          <div class="skeleton-folder-text"></div>
-          <div class="skeleton-shimmer"></div>
-        </div>
-        <div class="skeleton-folder-item">
-          <div class="skeleton-folder-icon"></div>
-          <div class="skeleton-folder-text"></div>
-          <div class="skeleton-shimmer"></div>
+        <div class="skeleton-folders-grid">
+          <div class="skeleton-folder-item">
+            <div class="skeleton-folder-icon"></div>
+            <div class="skeleton-folder-text"></div>
+          </div>
+          <div class="skeleton-folder-item">
+            <div class="skeleton-folder-icon"></div>
+            <div class="skeleton-folder-text"></div>
+          </div>
+          <div class="skeleton-folder-item">
+            <div class="skeleton-folder-icon"></div>
+            <div class="skeleton-folder-text"></div>
+          </div>
+          <div class="skeleton-folder-item">
+            <div class="skeleton-folder-icon"></div>
+            <div class="skeleton-folder-text"></div>
+          </div>
         </div>
       </div>
 
       <!-- Skeleton Notes -->
-      <div class="skeleton-notes">
-        <div class="skeleton-note-item">
-          <div class="skeleton-note-title"></div>
-          <div class="skeleton-note-preview"></div>
-          <div class="skeleton-note-preview"></div>
-          <div class="skeleton-shimmer"></div>
+      <div class="skeleton-notes" aria-hidden="true">
+        <div class="skeleton-notes-list">
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-preview"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-preview"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-preview"></div>
+          </div>
         </div>
-        <div class="skeleton-note-item">
-          <div class="skeleton-note-title"></div>
-          <div class="skeleton-shimmer"></div>
-        </div>
-        <div class="skeleton-note-item">
-          <div class="skeleton-note-title"></div>
-          <div class="skeleton-note-preview"></div>
-          <div class="skeleton-note-preview"></div>
-          <div class="skeleton-shimmer"></div>
-        </div>
-        <div class="skeleton-note-item">
-          <div class="skeleton-note-title"></div>
-          <div class="skeleton-shimmer"></div>
-        </div>
-        <div class="skeleton-note-item">
-          <div class="skeleton-note-title"></div>
-          <div class="skeleton-note-preview"></div>
-          <div class="skeleton-note-preview"></div>
-          <div class="skeleton-shimmer"></div>
+        <div class="skeleton-notes-grid">
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-meta"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-meta"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-meta"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-meta"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-meta"></div>
+          </div>
+          <div class="skeleton-note-item">
+            <div class="skeleton-note-title"></div>
+            <div class="skeleton-note-preview"></div>
+            <div class="skeleton-note-meta"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -332,7 +379,7 @@
         </div>
         <div class="list-header">
           <div class="mobile-search-shell">
-            <input type="search" id="searchInput" class="search-bar" name="notes-filter" placeholder=" Search" oninput="app.handleSearch(this.value)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search" aria-autocomplete="none" data-lpignore="true" data-form-type="other" id="searchInput" class="search-bar" placeholder=" Search" oninput="app.handleSearch(this.value)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <input type="search" id="searchInput" class="search-bar" name="notes-filter" placeholder=" Search" aria-label="Search notes" oninput="app.handleSearch(this.value)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="search" enterkeyhint="search" aria-autocomplete="none" data-lpignore="true" data-form-type="other">
           </div>
           <div style="display: flex; align-items: flex-end; gap: 2px;">
             <button id="notesViewBtn" class="view-toggle-btn" title="View options" aria-label="View options"></button>

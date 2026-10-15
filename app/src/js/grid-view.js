@@ -96,32 +96,71 @@
 
     }
 
+    const viewTransitionTimers = new Map();
+
     /* ---------------------------------------------------
-       Cross-fade + scale transition when the layout changes,
-       applied to whichever list(s) currently have items on
-       screen. Items fade/shrink out, the layout swaps while
-       invisible, then the new layout fades/grows in staggered.
+       Exit and entrance choreography changes with the target
+       layout and selected OS theme. The layout only swaps
+       after the outgoing items have cleared the stage.
     --------------------------------------------------- */
-    function animateContainerSwitch(context, onSwapLayout) {
+    function animateContainerSwitch(context, mode, onSwapLayout) {
         const container = document.getElementById(containerIdFor(context));
-        const items = container ? container.querySelectorAll(itemSelectorFor(context)) : [];
+        const itemSelector = itemSelectorFor(context);
+        const items = container ? container.querySelectorAll(itemSelector) : [];
         const reduced = window.AnimationUtils && AnimationUtils.prefersReducedMotion();
+        const previousTimers = viewTransitionTimers.get(context) || [];
+        previousTimers.forEach(clearTimeout);
+        viewTransitionTimers.delete(context);
 
         if (!container || !items.length || reduced) {
+            if (container) {
+                container.querySelectorAll(itemSelector).forEach((el) => {
+                    el.style.animation = '';
+                    el.style.animationDelay = '';
+                });
+            }
             onSwapLayout();
             return;
         }
 
-        items.forEach((el) => {
-            el.style.animation = 'gridViewLeave 150ms cubic-bezier(0.4,0,1,1) forwards';
+        const ui = document.documentElement.getAttribute('data-ui') || 'ios';
+        const animations = {
+            ios: { listOut: 'iosListExit', gridOut: 'iosGridExit', listIn: 'iosListEnter', gridIn: 'iosGridEnter', out: 230, into: 460 },
+            md3e: { listOut: 'md3ListExit', gridOut: 'md3GridExit', listIn: 'md3ListEnter', gridIn: 'md3GridEnter', out: 220, into: 420 },
+            nothing: { listOut: 'nothingListExit', gridOut: 'nothingGridExit', listIn: 'nothingListEnter', gridIn: 'nothingGridEnter', out: 190, into: 360 }
+        };
+        const motion = animations[ui] || animations.ios;
+        const leavingAnimation = mode === 'grid' ? motion.listOut : motion.gridOut;
+        const enteringAnimation = mode === 'grid' ? motion.gridIn : motion.listIn;
+
+        items.forEach((el, index) => {
+            el.style.animation = `${leavingAnimation} ${motion.out}ms ${ui === 'nothing' ? 'steps(8, end)' : 'cubic-bezier(.2,.8,.2,1)'} both`;
+            el.style.animationDelay = `${Math.min(index * 12, 84)}ms`;
         });
 
-        setTimeout(() => {
+        const swapTimer = setTimeout(() => {
             onSwapLayout();
             const freshItems = container.querySelectorAll(itemSelectorFor(context));
-            freshItems.forEach((el) => { el.style.animation = 'none'; void el.offsetWidth; });
-            AnimationUtils.staggerAnimate(freshItems, 'gridViewEnter', 0, 28);
-        }, 150);
+            freshItems.forEach((el) => {
+                el.style.animation = 'none';
+                el.style.animationDelay = '';
+            });
+            void container.offsetWidth;
+            freshItems.forEach((el, index) => {
+                el.style.animation = `${enteringAnimation} ${motion.into}ms ${ui === 'nothing' ? 'steps(9, end)' : 'cubic-bezier(.2,.8,.2,1)'} both`;
+                el.style.animationDelay = `${Math.min(index * 34, 238)}ms`;
+            });
+
+            const cleanupTimer = setTimeout(() => {
+                freshItems.forEach((el) => {
+                    el.style.animation = '';
+                    el.style.animationDelay = '';
+                });
+                viewTransitionTimers.delete(context);
+            }, motion.into + Math.min(freshItems.length * 34, 238) + 40);
+            viewTransitionTimers.set(context, [cleanupTimer]);
+        }, motion.out + 100);
+        viewTransitionTimers.set(context, [swapTimer]);
     }
 
     app.setViewMode = function (mode) {
@@ -134,9 +173,10 @@
 
         this.ui.viewMode = mode;
         localStorage.setItem(STORAGE_KEY, mode);
+        document.documentElement.setAttribute('data-view-mode', mode);
 
-        animateContainerSwitch('notes', () => applyContainerClass('notes'));
-        animateContainerSwitch('folders', () => applyContainerClass('folders'));
+        animateContainerSwitch('notes', mode, () => applyContainerClass('notes'));
+        animateContainerSwitch('folders', mode, () => applyContainerClass('folders'));
 
         this.closeDropdown('viewOptionsMenu');
     };
@@ -211,6 +251,7 @@
         this.positionMenuByDirection(menu, x, y);
         menu.classList.add('open', 'is-open');
         menu.setAttribute('aria-expanded', 'true');
+        menu.setAttribute('aria-hidden', 'false');
     };
 
     // Same outside-click / Escape conventions the rest of the app's popups use.
