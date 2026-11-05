@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Notoz Notes</title>
+    <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="../assets/icons/logo.png">
+    <script>
+    (function () {
+      const root = document.documentElement;
+      const ui = localStorage.getItem("ui-theme") || "ios";
+      root.setAttribute("data-ui", ui);
+      const mode = localStorage.getItem("notozApp_theme");
+      if (mode) root.setAttribute("data-theme", mode);
+      if (ui === "md3e") {
+        const hex = localStorage.getItem("md3e-seed");
+        if (hex) {
+          const v = hex.replace("#", "");
+          root.style.setProperty(
+            "--md-seed",
+            `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`
+          );
+        }
+      }
+    })();
+  </script>
+    <style>
+        @import url(./src/assets/fonts/SFR.ttf);
+
+        :root {
+            /* Apple Dark Mode Palette */
+            --bg-color: #000000;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --link-color: #2997ff;
+            --section-border: #38383a;
+            --callout-bg: #1c1c1e;
+            --warning-bg: rgba(255, 69, 58, 0.15); /* Low opacity red */
+            --warning-border: rgba(255, 69, 58, 0.3);
+            --warning-text: #ff453a;
+        }
+
+        /* --- Theme Data --- */
+        :root[data-theme="light"] {
+            --bg-color: #F2F2F7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --link-color: #007aff;
+            --section-border: #d2d2d7;
+            --callout-bg: #ffffff;
+            --warning-bg: rgba(255, 59, 48, 0.1);
+            --warning-border: rgba(255, 59, 48, 0.2);
+            --warning-text: #ff3b30;
+        }
+
+        body {
+            font-family: SF Pro Rounded, -apple-system, BlinkMacSystemFont, "SF Pro Text";
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px 100px 24px;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--section-border);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        p {
+            font-size: 17px;
+            margin-bottom: 1.2em;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        li {
+            font-size: 17px;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Dark Mode Callout Box */
+        .callout {
+            background-color: var(--callout-bg);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid var(--section-border);
+            transition: background-color 0.3s ease;
+        }
+
+        .callout h3 {
+            margin-top: 0;
+        }
+
+        /* Warning Callout (Red Tint) */
+        .callout-warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            transition: background-color 0.3s ease;
+        }
+        
+        .callout-warning h3 {
+            color: var(--warning-text);
+        }
+
+        /* Footer & Metadata */
+        .last-updated {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .intro-text {
+            font-size: 19px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--section-border);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="last-updated">Last Updated: Friday 4, September 2026</span>
+
+        <h1>Privacy Policy</h1>
+        <p class="intro-text">This policy explains how webg, an independent solo developer, handles information for Notoz. It is a draft starting point and should be reviewed by a lawyer before publication, because legal requirements vary by jurisdiction.</p>
+
+        <h2>1. Information Stored</h2>
+        <p>Notoz stores the information needed to provide the app:</p>
+        <ul>
+            <li>Your account email address.</li>
+            <li>Your encrypted note content.</li>
+            <li>Your encrypted personal master key and the related password-derived key data, including its per-user random salt.</li>
+            <li>Metadata associated with notes, such as timestamps.</li>
+        </ul>
+        <p>Notoz does not store readable note content or your password. The app also sanitizes content pasted or synced into the editor before rendering it.</p>
+
+        <h2>2. Encryption</h2>
+        <p>Notes are encrypted in your browser with AES-256-GCM before they are sent to the server. Your master key is encrypted with a key derived from your password using PBKDF2-SHA256 with 600,000 iterations and a per-user random salt.</p>
+        <p>After login, the master key is decrypted client-side and held as a non-extractable browser CryptoKey through the Web Crypto API for the session. The server and database operator cannot decrypt your notes. Losing your password means losing access to your encrypted notes because there is no server-side password reset that can recover them.</p>
+
+        <h2>3. How Information Is Used</h2>
+        <p>Stored information is used to authenticate your account, sync encrypted notes, maintain note metadata, and provide Notoz’s app functions. I do not sell user data and Notoz does not use advertising.</p>
+
+        <h2>4. Service Providers</h2>
+        <ul>
+            <li><strong>Supabase:</strong> provides PostgreSQL database and authentication services.</li>
+            <li><strong>Netlify:</strong> hosts the frontend.</li>
+        </ul>
+        <p>Supabase stores the encrypted note data and account information described above. Netlify hosts the app frontend. The supplied app facts do not specify additional providers or the providers’ retention and regional-processing details.</p>
+
+        <h2>5. Retention and Deletion</h2>
+        <p>The app supports user-initiated account deletion. Deletion requires password re-confirmation and submits a request that removes the account and its encrypted notes.</p>
+        <p><strong>Retention period:</strong>Currently the only way to backup your data is via exporting it in profile section.</p>
+
+        <h2>6. Security Monitor and Logout</h2>
+        <p>Notoz includes a client-side security monitor on the sign-in, home, and settings pages. It may warn about developer-tools shortcuts, a viewport that suggests developer tools are open, and calls to exposed app getter commands from eval-like script contexts. It may also offer a one-tap logout. These browser-side checks are heuristic and can be bypassed; they are a convenience and awareness feature, not a guarantee against account compromise. Logging out clears the locally held session key from your device.</p>
+
+        <h2>7. Regional Privacy Laws</h2>
+        <p>Users may be located anywhere, including the European Union, the United Kingdom, and California. GDPR, UK GDPR, CCPA, or similar obligations may apply depending on the circumstances. This draft does not make a compliance determination and needs review by a lawyer familiar with the developer’s jurisdiction and the users’ locations.</p>
+        <p><strong>Developer jurisdiction:</strong> [INDIA].</p>
+
+        <h2>8. Changes</h2>
+        <p>I may update this policy. The effective date above should be updated when changes are published.</p>
+
+        <h2>9. Contact</h2>
+        <p>For privacy questions or a deletion request, contact:</p>
+        <p><a href="mailto:">No Mail as of now</a></p>
+
+        <div class="footer">
+            Published by webg.
+        </div>
+    </div>
+
+<script>
+    const updateTheme = (t) => {
+        if (t) document.documentElement.setAttribute('data-theme', t);
+    };
+
+    // 1. Check local storage (for solo view)
+    updateTheme(localStorage.getItem('notozApp_theme') || 'light');
+
+    // 2. Catch the message from account.html (for iframe view)
+    window.addEventListener('message', (e) => {
+        if (e.origin === window.location.origin && e.data?.type === 'INIT_THEME') {
+            updateTheme(e.data.theme);
+        }
+    });
+
+    // 3. Sync if user changes theme in another tab
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'notozApp_theme') updateTheme(e.newValue);
+    });
+</script>
+</body>
+</html>

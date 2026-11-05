@@ -1,0 +1,441 @@
+/* =====================================================
+   MD3E – Pixel-accurate (CSS-only) Material You theme
+   File: md3e-app.css
+   ===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
+/* -----------------------------------------------------
+   1. Core Material You seed + motion tokens
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] {
+  /* Motion */
+  --md-fast: 90ms;
+  --md-medium: 180ms;
+  --md-slow: 280ms;
+  --md-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* SEED-DERIVED COLORS (NO HARDCODED VALUES) */
+  --accent-color: rgb(var(--md-seed));
+  --accent: rgb(var(--md-seed));
+  --blue: rgb(var(--md-seed));
+
+  /* Text (light) */
+  --text-primary: #1c1b1f;
+  --text-secondary: #5f6368;
+  --text-tertiary: #ffffff;
+
+  /* Tonal surfaces */
+  --md-neutral-base: color-mix(
+    in srgb,
+    #ffffff, 
+    rgb(var(--md-seed)) 5%
+  );
+
+  --md-surface-0:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 94%,
+      rgb(var(--md-seed)) 6%
+    );
+
+  --md-surface-1:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 97%,
+      rgb(var(--md-seed)) 3%
+    );
+
+  --md-surface-2:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 99%,
+      rgb(var(--md-seed)) 1%
+    );
+
+  --editor-bg-glass: rgba(255, 255, 255, 0.6);
+  --list-bg-glass: rgba(255, 255, 255, 0.76);
+  --sidebar-bg-glass: rgba(255, 255, 255, 0.72);
+
+  --md-surface-glass: rgba(255, 255, 255, 0.72);
+
+  /* State layers */
+  --active-item-bg: rgba(var(--md-seed), 0.16);
+  --active-item-bg-sidebar: rgba(var(--md-seed), 0.12);
+
+  --border-color: rgba(0,0,0,0.12);
+
+  /* Typography */
+  --font-family: "Google Sans", sans-serif;
+  --icon-stroke: 1.6px;
+}
+
+/* -----------------------------------------------------
+   2. Dark mode – seed driven (uses same seed, just darker surfaces)
+----------------------------------------------------- */
+
+:root[data-ui="md3e"][data-theme="dark"] {
+  /* NO ACCENT OVERRIDES HERE */
+
+  --text-primary: #e6e1e5;
+  --text-secondary: #cac4d0;
+
+  --md-neutral-base: color-mix(
+    in srgb,
+    #1c1b1f, 
+    rgb(var(--md-seed)) 5%
+  );
+
+  --md-surface-0:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 88%,
+      rgb(var(--md-seed)) 12%
+    );
+
+  --md-surface-1:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 92%,
+      rgb(var(--md-seed)) 8%
+    );
+
+  --md-surface-2:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 96%,
+      rgb(var(--md-seed)) 4%
+    );
+
+  --editor-bg-glass: rgba(22, 22, 24, 0.6);
+  --list-bg-glass: rgba(20, 20, 22, 0.78);
+  --sidebar-bg-glass: rgba(18, 18, 20, 0.72);
+  --md-surface-glass: rgba(18, 18, 20, 0.72);
+
+  --active-item-bg: rgba(var(--md-seed),0.22);
+  --active-item-bg-sidebar: rgba(var(--md-seed),0.16);
+
+  --border-color: rgba(255,255,255,0.12);
+}
+
+/* -----------------------------------------------------
+   3. Elevation
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] .glass-panel,
+:root[data-ui="md3e"] .glass-panel-strong {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.18),
+    0 2px 6px rgba(0,0,0,0.12);
+  transition: box-shadow var(--md-medium) var(--md-ease);
+}
+
+:root[data-ui="md3e"][data-theme="dark"] .glass-panel,
+:root[data-ui="md3e"][data-theme="dark"] .glass-panel-strong {
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.6),
+    0 4px 12px rgba(0,0,0,0.45);
+}
+
+/* -----------------------------------------------------
+   4. Shape
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] .pane {
+  border-radius: 16px;
+}
+
+:root[data-ui="md3e"] .folder-item,
+:root[data-ui="md3e"] .note-item {
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* -----------------------------------------------------
+   5. State layers
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] .folder-item::before,
+:root[data-ui="md3e"] .note-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(var(--md-seed), 0);
+  pointer-events: none;
+  transition: background-color var(--md-fast) linear;
+}
+
+:root[data-ui="md3e"] .folder-item:hover::before,
+:root[data-ui="md3e"] .note-item:hover::before {
+  background-color: rgba(var(--md-seed), 0.08);
+}
+
+:root[data-ui="md3e"] .folder-item:active::before,
+:root[data-ui="md3e"] .note-item:active::before {
+  background-color: rgba(var(--md-seed), 0.16);
+}
+
+/* -----------------------------------------------------
+   6. Press motion
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] .folder-item,
+:root[data-ui="md3e"] .note-item {
+  transition: transform var(--md-fast) var(--md-ease);
+}
+
+:root[data-ui="md3e"] .folder-item:active,
+:root[data-ui="md3e"] .note-item:active {
+  transform: scale(0.985);
+}
+
+/* -----------------------------------------------------
+   7. Editor isolation
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] input,
+:root[data-ui="md3e"] textarea,
+:root[data-ui="md3e"] .note-content-editable {
+  transition: none !important;
+}
+
+:root[data-ui="md3e"] .note-content-editable,
+:root[data-ui="md3e"] #noteTitleInput {
+  caret-color: var(--accent-color);
+}
+
+/* Removed focus glow for editor */
+:root[data-ui="md3e"] .note-content-editable:focus,
+:root[data-ui="md3e"] #noteContentInput:focus,
+:root[data-ui="md3e"] #noteTitleInput:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* -----------------------------------------------------
+   8. Typography
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] .note-title {
+  font-weight: 600;
+  letter-spacing: 0.1px;
+}
+
+:root[data-ui="md3e"] .note-preview {
+  opacity: 0.92;
+}
+
+:root[data-ui="md3e"] .sidebar-header h2 {
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+/* -----------------------------------------------------
+   9. Selection
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] ::selection {
+  background-color: rgba(var(--md-seed), 0.32);
+  color: #000;
+}
+
+/* -----------------------------------------------------
+   10. Popups & toolbars (FIXED) V2
+----------------------------------------------------- */
+:root[data-ui="md3e"] .search-bar{
+  background-color: transparent;
+}
+
+
+:root[data-ui="md3e"] .list-header{
+  background-color:
+    color-mix(
+      in srgb,
+      var(--editor-bg-glass) 92%,
+      rgb(var(--md-seed)) 8%
+    );
+    backdrop-filter: blur(var(--blur-s)) saturate(2);
+    -webkit-backdrop-filter: blur(var(--blur-s)) saturate(2);
+    padding: 6px 10px;
+}
+
+:root[data-ui="md3e"] .sidebar-actions{
+  background-color:
+    color-mix(
+      in srgb,
+      var(--editor-bg-glass) 70%,
+      rgb(var(--md-seed))
+    );
+}
+
+:root[data-ui="md3e"] .toolbar,
+:root[data-ui="md3e"] #mobileNavBar{
+  position: absolute;
+  left: 2vh;
+  right: 2vh;
+  border-radius: 22px;
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgb(var(--md-seed)));
+  backdrop-filter: blur(var(--blur-s)) saturate(2);
+  -webkit-backdrop-filter: blur(var(--blur-s)) saturate(2);
+}
+:root[data-ui="md3e"] .mobile-nav-left,
+:root[data-ui="md3e"] .mobile-nav-right,
+:root[data-ui="md3e"] .mobile-nav-title {
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgb(var(--md-seed)));
+  backdrop-filter: blur(var(--blur-xl)) saturate(2);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(2);
+}
+
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-left,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-right,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-title{
+  background-color: color-mix(in srgb, var(--editor-bg-glass) 90%, rgba(var(--md-seed), 0.14));
+}
+
+:root[data-ui="md3e"] .selection-toolbar,
+:root[data-ui="md3e"] #appDialogOverlay .dialog,
+:root[data-ui="md3e"] .dialog-panel,
+:root[data-ui="md3e"] .dropdown,
+:root[data-ui="md3e"] .menu,
+:root[data-ui="md3e"] .multi-select-bar,
+:root[data-ui="md3e"] .dropdown-menu,
+:root[data-ui="md3e"] .popover {
+  border-radius: 16px;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.18),
+    0 6px 18px rgba(0,0,0,0.14);
+  background-color:
+    color-mix(
+      in srgb,
+      var(--editor-bg-glass) 88%,
+      rgb(var(--md-seed))
+    );
+  backdrop-filter: blur(var(--blur-s)) saturate(2);
+  -webkit-backdrop-filter: blur(var(--blur-s)) saturate(2);
+}
+
+
+:root[data-ui="md3e"][data-theme="dark"]
+.selection-toolbar,
+:root[data-ui="md3e"][data-theme="dark"]
+#appDialogOverlay .dialog,
+:root[data-ui="md3e"][data-theme="dark"]
+.dropdown,
+:root[data-ui="md3e"][data-theme="dark"]
+.menu,
+:root[data-ui="md3e"][data-theme="dark"]
+.popover,
+:root[data-ui="md3e"][data-theme="dark"]
+.multi-select-bar {
+  background-color:
+    color-mix(
+      in srgb,
+      var(--editor-bg-glass) 90%,
+      rgba(var(--md-seed), 0.14)
+    );
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.55),
+    0 10px 24px rgba(0,0,0,0.45);
+}
+
+/* Toolbar buttons */
+
+:root[data-ui="md3e"] .selection-toolbar button {
+  border-radius: 12px;
+  font-weight: 500;
+  transition:
+    background-color var(--md-fast) linear,
+    transform var(--md-fast) var(--md-ease);
+}
+
+:root[data-ui="md3e"] .selection-toolbar button:hover {
+  background-color: rgba(var(--md-seed), 0.10);
+}
+
+:root[data-ui="md3e"] .selection-toolbar button:active {
+  background-color: rgba(var(--md-seed), 0.18);
+  transform: scale(0.96);
+}
+
+/* Dialog emphasis */
+
+:root[data-ui="md3e"] .dialog button.confirm {
+  color: var(--accent-color);
+  font-weight: 600;
+}
+/* =====================================================
+   MD3E HARD RESET: Kill iOS glass at app root
+   (This stops purple bleed permanently)
+   (At the time of development, iOS 17's backdrop-filter implementation 
+   causes severe purple bleed/glow across the entire app, 
+   even on elements that don't use glass. This is a hard reset to stop that bleed at the root level, 
+   without affecting any of our custom MD3E glass surfaces 
+   which are defined further down and use more specific selectors)
+   ===================================================== */
+
+/* App root / global containers */
+:root[data-ui="md3e"] body,
+:root[data-ui="md3e"] #app,
+:root[data-ui="md3e"] .app-root,
+:root[data-ui="md3e"] .main,
+:root[data-ui="md3e"] .main-container {
+  background-color: var(--md-surface-1) !important;
+  background-image: none !important;
+}
+
+/* Kill any global glass overlays */
+:root[data-ui="md3e"] body::before,
+:root[data-ui="md3e"] body::after,
+:root[data-ui="md3e"] #app::before,
+:root[data-ui="md3e"] #app::after,
+:root[data-ui="md3e"] .app-root::before,
+:root[data-ui="md3e"] .app-root::after,
+:root[data-ui="md3e"] .main::before,
+:root[data-ui="md3e"] .main::after {
+  content: none !important;
+  background: none !important;
+  backdrop-filter: none !important;
+}
+
+
+/* =====================================================
+  MD3E/Material You Scrollbar (Bold, colorful, dynamic) (Added Later)
+ ===================================================== */
+
+html[data-ui="md3e"] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html[data-ui="md3e"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+}
+
+html[data-ui="md3e"] ::-webkit-scrollbar-thumb {
+  background: var(--blue);
+  border-radius: 5px;
+}
+
+html[data-ui="md3e"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--blue);
+  box-shadow: 0 0 0 2px rgba(var(--md-seed), 0.2);
+}
+
+html[data-ui="md3e"] {
+  scrollbar-width: auto;
+  scrollbar-color: var(--blue) rgba(0, 0, 0, 0.05);
+}
+
+/* MD3E Dark Mode */
+html[data-ui="md3e"][data-theme="dark"] ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-ui="md3e"][data-theme="dark"] {
+  scrollbar-color: var(--blue) rgba(255, 255, 255, 0.05);
+}

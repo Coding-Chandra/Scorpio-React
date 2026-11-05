@@ -1,0 +1,448 @@
+/* =====================================================
+   NOTHING OS THEME
+   Accent: Nothing Red (#D71921)
+   ===================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&display=swap');
+
+@font-face {
+  font-family: 'Ndot 57 Aligned';
+  src: url('../assets/fonts/Ndot-57-Aligned.otf') format('opentype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
+
+
+/* -----------------------------------------------------
+   1. ROOT TOKENS (Nothing scale system)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] {
+  /* Accent */
+  --accent-color: #D71921;
+  --accent: #D71921;
+  --blue: #67965e;
+
+  /* Spacing — Nothing launcher scale (8px base) */
+  --space-0: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+
+  /* Radius (sharp, mechanical) */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Motion */
+  --motion-fast: 80ms;
+  --motion-medium: 160ms;
+  --motion-slow: 260ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Typography */
+  --font-family: 'NType 82 Regular';
+  --font-family2: 'Ndot 57 Aligned';
+  --font-family-ui: 'Geist', sans-serif;
+  --letter-tight: 0.02em;
+  --letter-wide: 0.06em;
+
+  /* Dot matrix */
+  --dot-size: 1.6px;
+  --dot-gap: 6px;
+  --dot-color: rgba(215,25,33,0.35);
+}
+
+/* -----------------------------------------------------
+   2. DARK MODE (Nothing Dark)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"][data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-main: #000000;
+  --bg-card: #00000070;
+  --bg-elevated: #141414;
+
+  --bg-card-t: rgba(0, 0, 0, 0.4);
+
+  --text-main: #FFFFFF;
+  --text-dim: rgba(255,255,255,0.60);
+  --text-secondary: rgba(255,255,255,0.85);
+
+  --border-color: rgba(255,255,255,0.18);
+}
+
+/* -----------------------------------------------------
+   3. LIGHT MODE (Nothing Light)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"][data-theme="light"] {
+  color-scheme: light;
+
+  --bg-main: #FFFFFF;
+  --bg-card: #FFFFFFCC;
+  --bg-elevated: #F2F2F2;
+
+  --bg-card-t: rgba(255, 255, 255, 0.6);
+
+  --text-main: #000000;
+  --text-dim: rgba(0,0,0,0.55);
+  --text-secondary: rgba(0,0,0,0.70);
+
+  --border-color: rgba(0,0,0,0.16);
+}
+
+/* -----------------------------------------------------
+   4. APP BASE
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-family-ui);
+  letter-spacing: var(--letter-tight);
+}
+
+:root[data-ui="nothing"] h2 {
+  font-family: var(--font-family);
+}
+
+:root[data-ui="nothing"] .mobile-nav-title{
+  font-family: var(--font-family);
+}
+
+/* -----------------------------------------------------
+   5. PANELS, CARDS & MENUS
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .pane,
+:root[data-ui="nothing"] .glass-panel,
+:root[data-ui="nothing"] .glass-panel-strong {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:root[data-ui="nothing"] #mobileNavBar,
+:root[data-ui="nothing"] .toolbar,
+:root[data-ui="nothing"] .dropdown-menu,
+:root[data-ui="nothing"] .selection-toolbar{
+  backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  background: var(--bg-card-t);
+}
+
+:root[data-ui="nothing"] .mobile-nav-left,
+:root[data-ui="nothing"] .mobile-nav-right,
+:root[data-ui="nothing"] .mobile-nav-title {
+  backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  background: var(--bg-card-t);
+}
+
+:root[data-ui="nothing"] .btn {
+  font-family: var(--font-family-ui);
+  border-bottom: #55555570 1px solid;
+  border-radius: 0px;
+  padding: 10px;
+}
+:root[data-ui="nothing"] .btn:first-child{
+  border-radius: 16px 16px 0px 0px;
+}
+:root[data-ui="nothing"] .btn:last-child{
+  border-bottom: none;
+  border-radius: 0px 0px 16px 16px;
+}
+/* -----------------------------------------------------
+   6. DOT-MATRIX SYNC / LOADING
+----------------------------------------------------- */
+
+@keyframes nothing-sync {
+  0%   { opacity: 0.25; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.25; }
+}
+
+:root[data-ui="nothing"] .sync-indicator {
+  width: 32px;
+  height: 12px;
+
+  background-image:
+    radial-gradient(
+      var(--accent-color) var(--dot-size),
+      transparent var(--dot-size)
+    );
+  background-size: var(--dot-gap) var(--dot-gap);
+
+  animation: nothing-sync 1.2s linear infinite;
+}
+
+/* -----------------------------------------------------
+   7. RED GLYPH INDICATORS
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .glyph {
+  color: var(--text-dim);
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+:root[data-ui="nothing"] .glyph.active,
+:root[data-ui="nothing"] .glyph.alert {
+  color: var(--accent-color);
+}
+
+/* Small red dot glyph */
+
+:root[data-ui="nothing"] .glyph-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  display: inline-block;
+}
+
+/* -----------------------------------------------------
+   8. SIDEBAR / LIST ITEMS
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .folder-item,
+:root[data-ui="nothing"] .note-item {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+:root[data-ui="nothing"] .folder-item:hover,
+:root[data-ui="nothing"] .note-item:hover {
+  background: var(--bg-elevated);
+}
+
+/* Active — dot matrix strip */
+
+:root[data-ui="nothing"] .folder-item.active::before,
+:root[data-ui="nothing"] .note-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: var(--space-2);
+  bottom: var(--space-2);
+  width: 4px;
+
+  background-image:
+    radial-gradient(
+      var(--accent-color) var(--dot-size),
+      transparent var(--dot-size)
+    );
+  background-size: 4px var(--dot-gap);
+
+  animation: nothing-sync 1.6s linear infinite;
+}
+
+/* -----------------------------------------------------
+   NOTHING — SEARCH BAR
+   Keep the base desktop/mobile layout from app.css.
+   Only apply Nothing's visual language.
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .search-bar {
+  background-color: rgba(255, 255, 255, 0.10);
+  border-color: var(--border-color);
+  color: var(--text-main);
+  box-shadow: none;
+}
+
+:root[data-ui="nothing"][data-theme="dark"] .search-bar {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: var(--text-main);
+}
+
+:root[data-ui="nothing"] .search-bar:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+:root[data-ui="nothing"][data-theme="dark"] .search-bar:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+:root[data-ui="nothing"] .search-bar:focus {
+  box-shadow: none;
+  border-color: var(--accent-color);
+}
+
+:root[data-ui="nothing"] .sidebar-actions{
+border-radius: 50px;
+border-top: none;
+}
+
+:root[data-ui="nothing"] .multi-select-bar{
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  bottom: 1vh;
+  align-items: center;
+  left: 2vh;
+  right: 2vh;
+  padding: 9px 14px;
+  justify-content: space-evenly;
+}
+
+:root[data-ui="nothing"][data-theme="dark"] 
+.multi-select-bar{
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+:root[data-ui="nothing"] .list-header {
+    border-top: none;
+    display: flex;
+    position: absolute;
+    padding: 6px;
+    bottom: 1vh;
+    background: rgba(20, 20, 22, 0.4);
+    left: 2vh;
+    right: 2vh;
+    border: 0.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 50px;
+    backdrop-filter: blur(var(--blur-m)) saturate(1.5);
+    -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.5);
+    align-items: center;
+}
+
+@media (max-width: 1024px) {
+  :root[data-ui="nothing"][data-theme="light"] .list-header {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(0, 0, 0, 0.12);
+  }
+}
+
+@media (min-width: 1025px) {
+  :root[data-ui="nothing"] .list-header{
+  position: relative;
+  display: flex;
+  background: transparent;
+  border: none;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  }
+}
+
+/* -----------------------------------------------------
+   9. NOTHING-STYLE TOGGLE SWITCH
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .toggle {
+  width: 36px;
+  height: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  position: relative;
+  cursor: pointer;
+}
+
+:root[data-ui="nothing"] .toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-dim);
+  border-radius: var(--radius-xs);
+  transition:
+    transform var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease);
+}
+
+:root[data-ui="nothing"] .toggle.active {
+  border-color: var(--accent-color);
+}
+
+:root[data-ui="nothing"] .toggle.active::after {
+  transform: translateX(16px);
+  background: var(--accent-color);
+}
+
+/* -----------------------------------------------------
+   10. EDITOR
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] #noteTitleInput{
+  background: transparent;
+  color: var(--text-main);
+  font-family: var(--font-family);
+  caret-color: var(--accent-color);
+}
+:root[data-ui="nothing"] .note-content-editable {
+  color: var(--text-main);
+  font-weight: 400;
+  font-family: var(--font-family-ui);
+  caret-color: var(--accent-color);
+}
+:root[data-ui="nothing"] .note-preview{
+  font-family: var(--font-family-ui);
+  font-weight: 400;
+}
+:root[data-ui="nothing"] .editor-glass-layer{
+  border-radius: 1px;
+  background: transparent;
+}
+
+/* Focus — animated dot underline */
+:root[data-ui="nothing"] .toolbar{
+  border: 0.5px solid var(--border-color);
+}
+
+:root[data-ui="nothing"] .note-item.active,
+:root[data-ui="nothing"] .folder-item.active{
+  background-color: #D7192130;
+}
+/* -----------------------------------------------------
+   11. POP-UPS / DIALOGS (Nothing language)
+----------------------------------------------------- */
+
+:root[data-ui="nothing"] .dialog,
+:root[data-ui="nothing"] .menu,
+:root[data-ui="nothing"] .dropdown,
+:root[data-ui="nothing"] .dropdown-menu,
+:root[data-ui="nothing"] .popover {
+  background: var(--bg-card-t);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 0px;
+  box-shadow: none;
+  letter-spacing: var(--letter-tight);
+}
+
+:root[data-ui="nothing"] .account-dropdown{
+  padding: var(--space-2);
+  border-radius: var(--radius-xl);
+}
+
+/* Dialog red signal bar */
+
+:root[data-ui="nothing"] .dialog::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-color);
+}

@@ -1924,7 +1924,8 @@
 
             #sidebar{
                 height: calc(var(--vh) * 100 + 1vh);
-                padding-top: calc(var(--vh) * 2);
+                padding-top: calc(var(--vh) * 4);
+                padding-bottom: calc(var(--vh) * 3);
             }
 
             #notes-list-pane,
@@ -3818,4 +3819,163 @@ html.viewport-ready .pane { transition: none; }
   #sidebar,
   #notes-list-pane,
   #editor-pane { height: 100%; }
+}
+
+/* ============================================================================
+   IMAGE SOURCE PICKER ACTION SHEET
+   ============================================================================ */
+#imageSourceActionSheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 100000;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 14px calc(14px + env(safe-area-inset-bottom, 0px)) 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease-out;
+}
+
+#imageSourceActionSheet.show {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.image-action-sheet {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform: translateY(24px);
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#imageSourceActionSheet.show .image-action-sheet {
+  transform: translateY(0);
+}
+
+.image-action-sheet-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="dark"] .image-action-sheet-card,
+body.dark .image-action-sheet-card,
+.dark-theme .image-action-sheet-card {
+  background: rgba(28, 28, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.image-action-sheet-header {
+  padding: 16px 16px 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(120, 120, 128, 0.15);
+}
+
+.image-action-sheet-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--text-primary, #000);
+}
+
+[data-theme="dark"] .image-action-sheet-title,
+body.dark .image-action-sheet-title {
+  color: #fff;
+}
+
+.image-action-sheet-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary, #8e8e93);
+  margin-top: 3px;
+}
+
+.image-action-sheet-btn {
+  width: 100%;
+  padding: 15px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(120, 120, 128, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.image-action-sheet-btn:last-child {
+  border-bottom: none;
+}
+
+.image-action-sheet-btn:active {
+  background: rgba(120, 120, 128, 0.16);
+}
+
+.image-action-sheet-icon {
+  width: 24px;
+  height: 24px;
+  stroke: var(--accent, #0071e3);
+  stroke-width: 1.8;
+  fill: none;
+  flex-shrink: 0;
+}
+
+.image-action-sheet-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.image-action-sheet-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary, #1c1c1e);
+}
+
+[data-theme="dark"] .image-action-sheet-label,
+body.dark .image-action-sheet-label {
+  color: #f2f2f7;
+}
+
+.image-action-sheet-hint {
+  font-size: 12px;
+  color: var(--text-secondary, #8e8e93);
+  margin-top: 2px;
+}
+
+.image-action-sheet-cancel {
+  width: 100%;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent, #0071e3);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transition: background 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-theme="dark"] .image-action-sheet-cancel,
+body.dark .image-action-sheet-cancel {
+  background: rgba(28, 28, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--accent, #0a84ff);
+}
+
+.image-action-sheet-cancel:active {
+  background: rgba(120, 120, 128, 0.2);
+  transform: scale(0.98);
 }

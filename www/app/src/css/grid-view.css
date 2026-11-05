@@ -1,0 +1,450 @@
+/* =====================================================
+   GRID VIEW STYLES
+   File: grid-view.css
+   For: Notoz — adds a Grid layout alongside the existing
+   List layout for the Notes list and the Folders list.
+
+   Structure of this file:
+     1. more-view popup (theme-neutral — inherits each
+        theme's existing .dropdown-menu look automatically)
+     2. Base / iOS grid layout (the default look)
+     3. MD3E (Material You) grid layout
+     4. Nothing OS grid layout
+     5. List <-> Grid switch animation
+     6. Small screens / reduced motion
+   ===================================================== */
+
+/* =====================================================
+   1. MORE-VIEW POPUP
+   ===================================================== */
+
+#viewOptionsMenu.dropdown-menu .row {
+    min-width: 168px;
+}
+
+#viewOptionsMenu.dropdown-menu {
+    position: fixed;
+    z-index: 320;
+}
+
+#viewOptionsMenu .btn {
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+#viewOptionsMenu .btn.active {
+    color: var(--accent-color, var(--accent));
+    font-weight: 700;
+}
+
+#viewOptionsMenu .btn svg {
+    flex-shrink: 0;
+}
+
+#viewOptionsMenu .dropdown-sep {
+    height: 1px;
+    margin: 6px 4px;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+#viewOptionsMenu .dropdown-section-label {
+    padding: 6px 9px 2px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+[data-theme="dark"] #viewOptionsMenu .dropdown-sep {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* =====================================================
+    1b. NOTES-VIEW BUTTON
+   ===================================================== */
+
+.view-toggle-btn {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#notesViewBtn {
+    display: none;
+}
+
+@media (min-width: 1025px) {
+    #notesViewBtn {
+        display: flex;
+    }
+}
+
+.view-toggle-btn:hover {
+    background: var(--active-item-bg-sidebar);
+    color: var(--text-primary);
+}
+
+.view-toggle-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.view-opt-label{
+    display: flex;
+    gap: 5px;
+    align-items: flex-end;
+}
+
+#editNotesBtn {
+    position: relative;
+}
+
+#editNotesBtn.sort-active::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 7px;
+    height: 7px;
+    border: 2px solid var(--editor-bg-glass, #fff);
+    border-radius: 50%;
+    background: var(--accent-color, var(--accent));
+    pointer-events: none;
+}
+
+/* =====================================================
+   2. BASE / iOS GRID LAYOUT (default)
+   ===================================================== */
+
+.notes-scroll-area.grid-mode {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 8px;
+    align-content: start;
+}
+
+.folder-list.grid-mode {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 4px 10px 8px;
+    align-content: start;
+}
+
+/* --- Note cards --- */
+
+.grid-mode .note-item {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    height: 148px;
+    padding: 12px;
+    margin: 0;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .grid-mode .note-item {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.grid-mode .note-item .note-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.grid-mode .note-item .note-title {
+    padding-right: 30px;
+    white-space: normal;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grid-mode .note-item .note-preview {
+    flex: 1;
+    white-space: normal;
+    display: -webkit-box;
+    line-clamp: 4;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grid-mode .note-item .note-meta {
+    margin-top: 6px;
+    font-size: 11px;
+}
+
+.grid-mode .note-item .note-more-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 0;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(var(--blur-m));
+}
+
+.grid-mode .note-item .note-more-btn svg {
+    display: block;
+    width: 17px;
+    height: 17px;
+}
+
+[data-theme="dark"] .grid-mode .note-item .note-more-btn {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.grid-mode .note-item .note-select-indicator {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    margin: 0;
+    z-index: 1;
+}
+
+/* --- Folder tiles --- */
+
+.grid-mode .folder-item {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    height: 96px;
+    padding: 12px 6px;
+    margin: 0;
+    border-radius: 14px;
+    text-align: center;
+    position: relative;
+}
+
+.grid-mode .folder-item .folder-main {
+    flex-direction: column;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.grid-mode .folder-item .folder-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 0;
+}
+
+.grid-mode .folder-item .folder-main span {
+    font-size: 13px;
+    white-space: normal;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grid-mode .folder-item .folder-count {
+    margin-left: 0;
+    font-size: 11px;
+}
+
+.grid-mode .folder-item .chevron {
+    display: none;
+}
+
+.grid-mode .folder-item .folder-more-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+/* =====================================================
+   3. MD3E (MATERIAL YOU) GRID LAYOUT
+   ===================================================== */
+
+html[data-ui="md3e"] .grid-mode .note-item,
+html[data-ui="md3e"] .grid-mode .folder-item {
+    border: none;
+    border-radius: 16px;
+    background: var(--md-surface-2);
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.14),
+        0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+html[data-ui="md3e"][data-theme="dark"] .grid-mode .note-item,
+html[data-ui="md3e"][data-theme="dark"] .grid-mode .folder-item {
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.5),
+        0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+html[data-ui="md3e"] .grid-mode .note-item.active,
+html[data-ui="md3e"] .grid-mode .folder-item.active {
+    background: var(--active-item-bg);
+}
+
+html[data-ui="md3e"] .grid-mode .note-item .note-more-btn,
+html[data-ui="md3e"] .grid-mode .folder-item .folder-more-btn {
+    background: rgba(var(--md-seed), 0.14);
+    border-radius: 999px;
+}
+
+html[data-ui="md3e"] .grid-mode .folder-item .folder-icon {
+    stroke: var(--accent-color);
+}
+
+/* =====================================================
+   4. NOTHING OS GRID LAYOUT
+   ===================================================== */
+
+html[data-ui="nothing"] .grid-mode .note-item,
+html[data-ui="nothing"] .grid-mode .folder-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    backdrop-filter: saturate(1.2) blur(var(--blur-m));
+}
+
+html[data-ui="nothing"] .grid-mode .note-item .note-title,
+html[data-ui="nothing"] .grid-mode .folder-item .folder-main span {
+    font-family: var(--font-family-ui);
+    font-weight: 500;
+}
+
+html[data-ui="nothing"] .grid-mode .note-item.active,
+html[data-ui="nothing"] .grid-mode .folder-item.active {
+    background-color: #D7192130;
+}
+
+/* Dot-matrix active strip becomes a top edge instead of a left edge
+   when the item is a grid tile rather than a list row. */
+html[data-ui="nothing"] .grid-mode .folder-item.active::before,
+html[data-ui="nothing"] .grid-mode .note-item.active::before {
+    left: var(--space-2);
+    right: var(--space-2);
+    top: 0;
+    bottom: auto;
+    width: auto;
+    height: 4px;
+    background-size: var(--dot-gap) 4px;
+}
+
+html[data-ui="nothing"] .grid-mode .note-item .note-more-btn,
+html[data-ui="nothing"] .grid-mode .folder-item .folder-more-btn {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xs);
+}
+
+/* =====================================================
+   5. LIST <-> GRID CHOREOGRAPHY
+   Each mode has a distinct transition, then the selected
+   OS supplies its own motion character.
+   ===================================================== */
+
+@keyframes iosListExit {
+    to { opacity: 0; filter: blur(3px); transform: translateX(-14px) scaleY(0.94); }
+}
+
+@keyframes iosGridExit {
+    to { opacity: 0; filter: blur(4px); transform: translateY(9px) scale(0.91); }
+}
+
+@keyframes iosListEnter {
+    from { opacity: 0; filter: blur(4px); transform: translateX(-13px) scaleY(0.96); }
+    72% { opacity: 1; filter: blur(0); transform: translateX(2px) scaleY(1.01); }
+    to { opacity: 1; filter: blur(0); transform: translateX(0) scaleY(1); }
+}
+
+@keyframes iosGridEnter {
+    from { opacity: 0; filter: blur(7px); transform: translateY(18px) scale(0.84); }
+    72% { opacity: 1; filter: blur(0); transform: translateY(-2px) scale(1.025); }
+    to { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+}
+
+@keyframes md3ListExit {
+    to { opacity: 0; clip-path: inset(0 0 100% 0 round 12px); transform: translateY(-7px) scaleY(0.96); }
+}
+
+@keyframes md3GridExit {
+    to { opacity: 0; clip-path: inset(0 0 100% 0 round 18px); transform: perspective(500px) rotateX(-9deg) translateY(8px); }
+}
+
+@keyframes md3ListEnter {
+    from { opacity: 0; clip-path: inset(0 0 100% 0 round 12px); transform: translateY(12px) scaleY(0.96); }
+    70% { opacity: 1; clip-path: inset(0 0 0 0 round 12px); transform: translateY(-2px) scaleY(1.01); }
+    to { opacity: 1; clip-path: inset(0 0 0 0 round 12px); transform: translateY(0) scaleY(1); }
+}
+
+@keyframes md3GridEnter {
+    from { opacity: 0; clip-path: inset(0 0 100% 0 round 18px); transform: perspective(500px) rotateX(-10deg) translateY(14px) scale(0.9); }
+    72% { opacity: 1; clip-path: inset(0 0 0 0 round 18px); transform: perspective(500px) rotateX(2deg) translateY(-2px) scale(1.02); }
+    to { opacity: 1; clip-path: inset(0 0 0 0 round 18px); transform: perspective(500px) rotateX(0) translateY(0) scale(1); }
+}
+
+@keyframes nothingListExit {
+    to { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(12px); }
+}
+
+@keyframes nothingGridExit {
+    to { opacity: 0; clip-path: inset(100% 0 0 0); transform: translateY(-8px) scale(0.96); }
+}
+
+@keyframes nothingListEnter {
+    from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-12px); }
+    to { opacity: 1; clip-path: inset(0); transform: translateX(0); }
+}
+
+@keyframes nothingGridEnter {
+    from { opacity: 0; clip-path: inset(100% 0 0 0); transform: translateY(10px) scale(0.96); }
+    to { opacity: 1; clip-path: inset(0); transform: translateY(0) scale(1); }
+}
+
+/* =====================================================
+   6. SMALL SCREENS / REDUCED MOTION
+   ===================================================== */
+
+@media (max-width: 380px) {
+    .notes-scroll-area.grid-mode {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .folder-list.grid-mode {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-mode .note-item {
+        height: 132px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grid-mode .note-item,
+    .grid-mode .folder-item {
+        animation-duration: 0.01ms !important;
+    }
+}

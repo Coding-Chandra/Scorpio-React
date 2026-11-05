@@ -1,0 +1,123 @@
+/* ============================================================================
+ * NOTOZ – Capacitor Native CSS Overrides
+ * ============================================================================
+ * Adjustments for running inside the Capacitor Android shell:
+ *   - Safe area / status bar / navigation bar insets
+ *   - Keyboard-aware layout shifts
+ *   - Android-specific tap highlight, scrolling, selection fixes
+ *   - Prevent pull-to-refresh / overscroll in the WebView
+ * ============================================================================ */
+
+/* ── Only apply when running in Capacitor ─────────────────────────────────── */
+html.capacitor-native {
+  /* Prevent rubber-band / overscroll on Android WebView */
+  overscroll-behavior: none;
+
+  /* Safe area custom properties (set by capacitor-bridge.js) */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --keyboard-height: 0px;
+}
+
+html.capacitor-native body {
+  /* Apply top padding so content sits below the Android status bar */
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+  /* Prevent overscroll / pull-to-refresh */
+  overscroll-behavior-y: contain;
+  /* Fix 300ms tap delay on older Android WebViews */
+  touch-action: manipulation;
+}
+
+/* ── Status bar spacer for the top nav / header ───────────────────────────── */
+html.capacitor-native .top-nav,
+html.capacitor-native header,
+html.capacitor-native .app-header,
+html.capacitor-native .top-bar {
+  padding-top: calc(var(--safe-area-top) + 8px);
+}
+
+/* ── Bottom navigation safe area ──────────────────────────────────────────── */
+html.capacitor-native .bottom-nav,
+html.capacitor-native .bottom-bar,
+html.capacitor-native footer,
+html.capacitor-native .legal-footer {
+  padding-bottom: calc(var(--safe-area-bottom) + 8px);
+}
+
+/* ── Keyboard visible: shrink bottom elements ─────────────────────────────── */
+html.capacitor-native body.keyboard-visible .bottom-nav,
+html.capacitor-native body.keyboard-visible .bottom-bar,
+html.capacitor-native body.keyboard-visible .legal-footer {
+  display: none !important;
+}
+
+html.capacitor-native body.keyboard-visible .note-editor,
+html.capacitor-native body.keyboard-visible [contenteditable] {
+  padding-bottom: var(--keyboard-height);
+}
+
+/* ── Android tap feedback ─────────────────────────────────────────────────── */
+html.capacitor-native * {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.05);
+}
+
+html.capacitor-native button,
+html.capacitor-native a,
+html.capacitor-native [role="button"] {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Prevent accidental text selection on UI elements ─────────────────────── */
+html.capacitor-native button,
+html.capacitor-native nav,
+html.capacitor-native .top-nav,
+html.capacitor-native header,
+html.capacitor-native .bottom-nav,
+html.capacitor-native .sidebar {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Allow text selection in note content ─────────────────────────────────── */
+html.capacitor-native .note-content,
+html.capacitor-native [contenteditable],
+html.capacitor-native input,
+html.capacitor-native textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ── Smooth scrolling in all scrollable containers ────────────────────────── */
+html.capacitor-native .notes-list,
+html.capacitor-native .note-content,
+html.capacitor-native .settings-content,
+html.capacitor-native main {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ── Offline indicator ────────────────────────────────────────────────────── */
+html.capacitor-native body.offline::after {
+  content: '📡 Offline';
+  position: fixed;
+  top: var(--safe-area-top, 0px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 59, 48, 0.9);
+  color: #fff;
+  padding: 4px 16px;
+  border-radius: 0 0 8px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+/* ── Fix for Android WebView font rendering ───────────────────────────────── */
+html.capacitor-native {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}

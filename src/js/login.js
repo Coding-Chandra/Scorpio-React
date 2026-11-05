@@ -39,7 +39,7 @@ function displayMessage(text, isError = false) {
 }
 
 function handleAuthSuccess() {
-    window.location.href = "./app/";
+    window.location.href = "./app/index.html";
 }
 
 // ---------------------------------------------------------

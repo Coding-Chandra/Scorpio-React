@@ -2315,36 +2315,131 @@ app.cyclePaperStyle = cyclePaperStyle;
 
 // ========================================================================
 // 7.2 IMAGE UPLOAD — OPTIMIZED
-// Supabase Storage + EXIF strip + WebP conversion + dimension cap
-// (With Camera Permission Handling for Median.co Wrapper)
+// Choice modal (Take Photo vs Upload a Pic) + Camera Permission Flow +
+// Capacitor Camera Plugin Integration & Web Fallback + EXIF Strip + WebP
 // ========================================================================
 
-app.triggerImageUpload = async function () {
-    if (window.median?.permissions?.request) {
-        const granted = await requestCameraPermission();
-        if (!granted) {
-            alert('Camera permission was denied. Please enable it in your device settings to upload images.');
-            return;
-        }
+app.triggerImageUpload = function () {
+    const sheet = document.getElementById("imageSourceActionSheet");
+    if (sheet) {
+        sheet.classList.add("show");
+    } else {
+        const galleryInput = document.getElementById("galleryUploadInput") || document.getElementById("imgUpload");
+        if (galleryInput) galleryInput.click();
     }
-    document.getElementById('imgUpload').click();
 };
 
-// ── Permission (Median.co bridge) ────────────────────────────────────────
-function requestCameraPermission() {
-    return new Promise((resolve) => {
-        if (window.median?.permissions?.request) {
-            median.permissions.request({
-                permissions: ['camera'],
-                callback: (result) => {
-                    resolve(result?.camera === 'authorized' || result?.camera === 'granted');
+app.closeImageSourceSheet = function (e) {
+    if (e && e.target && e.target !== document.getElementById("imageSourceActionSheet") && !e.target.classList.contains("image-action-sheet-cancel")) {
+        return;
+    }
+    const sheet = document.getElementById("imageSourceActionSheet");
+    if (sheet) {
+        sheet.classList.remove("show");
+    }
+};
+
+app.chooseImageSource = async function (source) {
+    app.closeImageSourceSheet();
+
+    if (source === "camera") {
+        await app.capturePhotoFromCamera();
+    } else {
+        await app.pickPhotoFromGallery();
+    }
+};
+
+app.capturePhotoFromCamera = async function () {
+    const Camera = window.Capacitor?.Plugins?.Camera;
+
+    if (Camera) {
+        try {
+            // ── Request Camera permission explicitly on Android ──
+            const permStatus = await Camera.checkPermissions();
+            if (permStatus.camera !== "granted") {
+                const requested = await Camera.requestPermissions({ permissions: ["camera"] });
+                if (requested.camera !== "granted") {
+                    alert("Camera permission was denied. Please allow camera access in device Settings to take photos.");
+                    return;
                 }
+            }
+
+            const photo = await Camera.getPhoto({
+                quality: 85,
+                allowEditing: false,
+                resultType: "uri",
+                source: "CAMERA"
             });
-        } else {
-            resolve(true); // not in Median wrapper — allow
+
+            if (photo && photo.webPath) {
+                const res = await fetch(photo.webPath);
+                const blob = await res.blob();
+                const ext = photo.format || "jpg";
+                const mime = photo.format === "png" ? "image/png" : "image/jpeg";
+                const file = new File([blob], "camera_" + Date.now() + "." + ext, { type: mime });
+                await app.processAndInsertImage(file);
+            }
+        } catch (err) {
+            if (err && (err.message?.includes("cancelled") || err.message?.includes("User cancelled"))) {
+                return;
+            }
+            console.error("[Camera] Error taking photo:", err);
+            alert("Could not capture photo: " + (err.message || err));
         }
-    });
-}
+    } else {
+        // ── Web browser fallback ──
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop());
+            } catch (err) {
+                alert("Camera permission was denied. Please allow camera access in browser settings.");
+                return;
+            }
+        }
+        const cameraInput = document.getElementById("cameraUploadInput");
+        if (cameraInput) {
+            cameraInput.click();
+        } else {
+            const fallback = document.getElementById("imgUpload");
+            if (fallback) fallback.click();
+        }
+    }
+};
+
+app.pickPhotoFromGallery = async function () {
+    const Camera = window.Capacitor?.Plugins?.Camera;
+
+    if (Camera) {
+        try {
+            const photo = await Camera.getPhoto({
+                quality: 85,
+                allowEditing: false,
+                resultType: "uri",
+                source: "PHOTOS"
+            });
+
+            if (photo && photo.webPath) {
+                const res = await fetch(photo.webPath);
+                const blob = await res.blob();
+                const ext = photo.format || "jpg";
+                const mime = photo.format === "png" ? "image/png" : "image/jpeg";
+                const file = new File([blob], "gallery_" + Date.now() + "." + ext, { type: mime });
+                await app.processAndInsertImage(file);
+            }
+        } catch (err) {
+            if (err && (err.message?.includes("cancelled") || err.message?.includes("User cancelled"))) {
+                return;
+            }
+            console.error("[Gallery] Native picker error, using file input:", err);
+            const galleryInput = document.getElementById("galleryUploadInput") || document.getElementById("imgUpload");
+            if (galleryInput) galleryInput.click();
+        }
+    } else {
+        const galleryInput = document.getElementById("galleryUploadInput") || document.getElementById("imgUpload");
+        if (galleryInput) galleryInput.click();
+    }
+};
 
 // ── Step 1: Strip EXIF metadata from JPEG ───────────────────────────────
 // Works by finding and removing the APP1 EXIF marker from raw bytes.
@@ -2468,35 +2563,31 @@ async function uploadImageToSupabase(blob, mimeType) {
     return urlData.publicUrl;
 }
 
-// ── Main handler ─────────────────────────────────────────────────────────
-app.handleImageFile = async function (input) {
-    if (!input.files || !input.files[0]) return;
+// ── Process & insert image into current note ─────────────────────────────
+app.processAndInsertImage = async function (file) {
+    if (!file) return;
 
-    const file = input.files[0];
     const MAX_RAW_SIZE = 5 * 1024 * 1024; // 5MB raw cap before any processing
-
     if (file.size > MAX_RAW_SIZE) {
-        alert(`File is too large. Maximum allowed is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
-        input.value = '';
+        alert("File is too large. Maximum allowed is 5MB. Your file is " + (file.size / (1024 * 1024)).toFixed(2) + "MB.");
         return;
     }
 
-    const contentEl = document.getElementById('noteContentInput');
-
-    // Insert placeholder while processing
+    const contentEl = document.getElementById("noteContentInput");
     contentEl.focus();
-    const placeholderId = 'img-placeholder-' + Date.now();
-    document.execCommand('insertHTML', false,
-        `<span id="${placeholderId}" style="opacity:0.45;font-style:italic;font-size:13px;">⏳ Processing image…</span>`
+
+    const placeholderId = "img-placeholder-" + Date.now();
+    document.execCommand("insertHTML", false,
+        '<span id="' + placeholderId + '" style="opacity:0.45;font-style:italic;font-size:13px;">⏳ Processing image…</span>'
     );
 
     try {
         // ── 1. Strip EXIF (JPEG only) ──
         let processedBlob = file;
-        if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+        if (file.type === "image/jpeg" || file.type === "image/jpg") {
             const buffer = await file.arrayBuffer();
             const stripped = stripExif(buffer);
-            processedBlob = new Blob([stripped], { type: 'image/jpeg' });
+            processedBlob = new Blob([stripped], { type: "image/jpeg" });
         }
 
         // ── 2 & 3. Resize if huge + convert to WebP ──
@@ -2507,9 +2598,7 @@ app.handleImageFile = async function (input) {
         if (isOnline()) {
             imageUrl = await uploadImageToSupabase(finalBlob, mimeType);
         } else {
-            // Offline fallback: base64 into note (will be large but functional)
-            // Replaces itself with a URL when the note syncs — you can improve this later
-            console.warn('[ImageUpload] Offline — falling back to base64');
+            console.warn("[ImageUpload] Offline — falling back to base64");
             imageUrl = await new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onerror = reject;
@@ -2520,28 +2609,32 @@ app.handleImageFile = async function (input) {
 
         // ── Insert image into note ──
         const placeholder = document.getElementById(placeholderId);
-        const imgHtml = `<img src="${imageUrl}" style="max-width:95%;border-radius:12px;" /><div><br></div>`;
+        const imgHtml = '<img src="' + imageUrl + '" style="max-width:95%;border-radius:12px;" /><div><br></div>';
 
         if (placeholder) {
             placeholder.outerHTML = imgHtml;
         } else {
             contentEl.focus();
-            document.execCommand('insertHTML', false, imgHtml);
+            document.execCommand("insertHTML", false, imgHtml);
         }
 
-        this.updateCurrentNote();
+        if (app.updateCurrentNote) {
+            app.updateCurrentNote();
+        }
 
     } catch (err) {
-        console.error('[ImageUpload] Failed:', err);
-
-        // Clean up placeholder
+        console.error("[ImageUpload] Failed:", err);
         const placeholder = document.getElementById(placeholderId);
         if (placeholder) placeholder.remove();
-
-        alert(`Image upload failed: ${err.message}`);
+        alert("Image upload failed: " + (err.message || err));
     }
+};
 
-    input.value = '';
+app.handleImageFile = async function (input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    await app.processAndInsertImage(file);
+    input.value = "";
 };
 
 // ========================================================================

@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Wallpaper</title>
+<link rel="icon" type="image/png" href="../assets/icons/logo.png">
+<link rel="apple-touch-icon" href="../assets/icons/logo.png">
+<!-- Must run before CSS so data-ui / data-theme are set before any selector matches -->
+<script>
+(function () {
+  const root = document.documentElement;
+  const legacyLGFilterKey = "notozApp_lg_filter_all_themes";
+  const lgFilterKey = "notozApp_lg_filter_enabled";
+  if (localStorage.getItem(lgFilterKey) === null) {
+    const legacyValue = localStorage.getItem(legacyLGFilterKey);
+    localStorage.setItem(lgFilterKey, legacyValue ?? "true");
+  }
+  localStorage.removeItem(legacyLGFilterKey);
+  const ui = localStorage.getItem("ui-theme") || "ios";
+  const savedMode = localStorage.getItem("notozApp_theme") || "dark";
+  const mode = savedMode === "system"
+    ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : savedMode;
+  root.setAttribute("data-ui", ui);
+  root.setAttribute("data-theme", mode);
+  window.updateLGFilterReference = function () {
+    const filterEnabled =
+      root.getAttribute("data-ui") === "ios" &&
+      localStorage.getItem(lgFilterKey) === "true";
+    if (!filterEnabled) {
+      root.removeAttribute("data-lg-filter");
+      root.style.setProperty("--lg-filter-url", "");
+      return;
+    }
+    root.setAttribute("data-lg-filter", "ios");
+    const filter = root.getAttribute("data-theme") === "light"
+      ? "lg-filter-l"
+      : "lg-filter-d";
+    const filterUrl = new URL(window.location.href);
+    filterUrl.hash = filter;
+    root.style.setProperty("--lg-filter-url", `url("${filterUrl.href}")`);
+  };
+  window.updateLGFilterReference();
+  if (ui === "md3e") {
+    const v = (localStorage.getItem("md3e-seed") || "#6750A4").replace("#", "");
+    if (/^[0-9a-f]{6}$/i.test(v)) {
+      root.style.setProperty("--md-seed",
+        `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`);
+    }
+  }
+})();
+</script>
+   
+<!-- Theme-specific tokens -->
+<link rel="stylesheet" href="../css/nthng.css">
+<link rel="stylesheet" href="../css/md3e-app.css">
+<!-- Shared design tokens -->
+<link rel="stylesheet" href="../css/settings.css">
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <filter id="lg-filter-d" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="1" seed="92" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+    <feColorMatrix in="disp" type="matrix" result="r" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="g" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="b" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+    <feOffset in="r" dx="-2" dy="0" result="rShift"/>
+    <feOffset in="b" dx="2" dy="0" result="bShift"/>
+    <feComposite in="rShift" in2="r" operator="over" result="r2"/>
+    <feComposite in="bShift" in2="b" operator="over" result="b2"/>
+    <feComposite in="r2" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg"/>
+    <feComposite in="rg" in2="b2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="aberr"/>
+    <feComposite in="aberr" in2="disp" operator="arithmetic" k1="0" k2="0.7" k3="0.3" k4="0"/>
+  </filter>
+  <filter id="lg-filter-l" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves="1" seed="92" result="noise"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="60" xChannelSelector="R" yChannelSelector="G" result="disp"/>
+    <feColorMatrix in="disp" type="matrix" result="r" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="g" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"/>
+    <feColorMatrix in="disp" type="matrix" result="b" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
+    <feOffset in="r" dx="-1" dy="0" result="rShift"/>
+    <feOffset in="b" dx="1" dy="0" result="bShift"/>
+    <feComposite in="rShift" in2="r" operator="over" result="r2"/>
+    <feComposite in="bShift" in2="b" operator="over" result="b2"/>
+    <feComposite in="r2" in2="g" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="rg"/>
+    <feComposite in="rg" in2="b2" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="aberr"/>
+    <feComposite in="aberr" in2="disp" operator="arithmetic" k1="0" k2="0.4" k3="0.6" k4="0"/>
+  </filter>
+  <filter id="btn-glass" x="0%" y="0%" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.01" numOctaves="1" seed="92" result="buttonNoise" />
+    <feGaussianBlur in="buttonNoise" stdDeviation="1.2" result="smoothButtonMap" />
+    <feDisplacementMap in="SourceGraphic" in2="smoothButtonMap" scale="14" xChannelSelector="R" yChannelSelector="G" />
+  </filter>
+</svg>
+
+<style>
+/* =====================================================
+   BASE RESET — wallpaper page overrides body constraints
+   set by settings.css (overflow:hidden, height:100vh)
+===================================================== */
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  margin: 0;
+  min-height: 100vh;
+  touch-action: pan-y;
+  overflow: auto;
+  height: auto;
+}
+
+/* ── Per-theme body background ─────────────────────── */
+
+/*(default) */
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+}
+
+/* MD3E — tonal surface from md3e-app.css */
+html[data-ui="md3e"] body {
+  background-color: var(--bg-main) !important;
+  color: var(--text-primary);
+  font-family: "Google Sans", sans-serif;
+}
+
+/* Nothing OS — uses its own --bg-main */
+html[data-ui="nothing"] body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-family-ui, sans-serif);
+  letter-spacing: var(--letter-tight, 0.02em);
+}
+
+/* ── Container ─────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 28px 20px 52px;
+}
+
+/* ── Page header ───────────────────────────────────── */
+
+.page-head { display: grid; gap: 12px; margin-bottom: 4px; }
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-main);
+}
+
+html[data-ui="nothing"] h1 {
+  font-family: var(--font-family, monospace);
+  font-size: 24px;
+  letter-spacing: var(--letter-wide, 0.06em);
+  font-weight: 400;
+}
+
+html[data-ui="md3e"] h1 {
+  font-family: "Google Sans", sans-serif;
+  font-weight: 500;
+  font-size: 26px;
+  letter-spacing: 0;
+  color: var(--text-primary, var(--text-main));
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 52ch;
+}
+
+html[data-ui="nothing"] .subtitle {
+  font-family: var(--font-family-ui, 'Geist', sans-serif);
+  color: var(--text-dim);
+}
+
+html[data-ui="md3e"] .subtitle {
+  font-family: "Google Sans", sans-serif;
+  color: var(--text-secondary, var(--text-dim));
+  font-size: 14px;
+}
+
+/* ── State row ─────────────────────────────────────── */
+
+.state-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+/* ── Badge ─────────────────────────────────────────── */
+
+.badge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--sep);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.badge strong { color: var(--text-main); }
+
+/* UI theme picker, matching the app dropdown treatment. */
+.ui-picker {
+  position: relative;
+}
+
+.ui-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--sep);
+  border-radius: 14px;
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.ui-picker-trigger:active {
+  transform: scale(.98);
+}
+
+.ui-picker-trigger svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ui-picker-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 176px;
+  padding: 8px;
+  border: 1px solid rgba(0, 0, 0, .14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .08), 0 28px 60px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(2px) saturate(1.5) var(--lg-filter-url);
+  -webkit-backdrop-filter: blur(2px) saturate(1.5) var(--lg-filter-url);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(.96);
+  transform-origin: top left;
+  transition: opacity 180ms ease, transform 220ms ease;
+}
+[data-theme="dark"] .ui-picker-menu {
+  background: rgba(0, 0, 0, .86);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ui-picker-menu.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.ui-picker-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ui-picker-option:hover,
+.ui-picker-option.active {
+  background: var(--bg-active);
+}
+
+.ui-picker-option .check {
+  opacity: 0;
+  color: var(--accent);
+}
+
+.ui-picker-option.active .check {
+  opacity: 1;
+}
+
+html[data-ui="nothing"] .ui-picker-menu {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(12px) saturate(1.5);
+  padding: 0px;
+  box-shadow: none;
+}
+
+html[data-ui="nothing"] .ui-picker-option {
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+html[data-ui="nothing"] .ui-picker-option:first-child {
+  border-radius: 16px 16px 0px 0px;
+}
+
+html[data-ui="nothing"] .ui-picker-option:last-child {
+  border-bottom: 0;
+  border-radius: 0px 0px 16px 16px;
+}
+
+html[data-ui="md3e"] .ui-picker-menu {
+  background: var(--md-surface-1);
+  border-color: var(--border-color);
+  backdrop-filter: blur(12px) saturate(1.5);
+}
+
+/* Nothing badge */
+html[data-ui="nothing"] .badge {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);       /* 6px — sharp, mechanical */
+  font-family: var(--font-family, 'NType 82 Regular');
+  font-size: 12px;
+}
+
+html[data-ui="nothing"] .badge strong {
+  font-family: var(--font-family-ui, 'Geist', monospace);
+  color: var(--text-main);
+}
+
+/* MD3E badge */
+html[data-ui="md3e"] .badge {
+  background: var(--md-surface-0);
+  border: 0.5px solid var(--border-color);
+  border-radius: 999px;
+  font-family: "Google Sans", sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary, var(--text-dim));
+}
+
+html[data-ui="md3e"] .badge strong {
+  color: var(--text-primary, var(--text-main));
+}
+
+/* ── Toggle row (disable wallpaper) ────────────────── */
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--sep);
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background 0.18s ease;
+}
+
+.toggle-row:active { background: var(--bg-active); }
+
+.toggle-row-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* Nothing toggle row — panel style */
+html[data-ui="nothing"] .toggle-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: background var(--motion-fast, 80ms) var(--motion-ease, ease);
+}
+
+html[data-ui="nothing"] .toggle-row:active {
+  background: var(--bg-elevated);
+}
+
+html[data-ui="nothing"] .toggle-row-label {
+  font-family: var(--font-family, 'NType 82 Regular');
+  font-size: 12px;
+}
+
+/* Nothing pill — square thumb per nothing-theme.css §9 */
+html[data-ui="nothing"] .toggle-pill {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-lg);
+  border: 4px solid var(--border-color);
+  background: transparent;
+}
+
+html[data-ui="nothing"] .toggle-pill .toggle-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--text-dim);
+  box-shadow: none;
+  transform: translateX(0px);
+  transition:
+    transform var(--motion-fast, 80ms) var(--motion-ease, ease),
+    background-color var(--motion-fast, 80ms) var(--motion-ease, ease);
+}
+
+html[data-ui="nothing"] .toggle-pill.on {
+  border-color: var(--accent-color);
+  background: transparent;
+}
+
+html[data-ui="nothing"] .toggle-pill.on .toggle-thumb {
+  background: var(--accent-color);
+  transform: translateX(14px);
+}
+
+/* MD3E toggle row */
+html[data-ui="md3e"] .toggle-row {
+  background: var(--md-surface-0);
+  border: 0.5px solid var(--border-color);
+  border-radius: 999px;
+  transition: background var(--md-fast, 90ms) var(--md-ease, ease);
+}
+
+html[data-ui="md3e"] .toggle-row:active {
+  background: var(--active-item-bg);
+}
+
+html[data-ui="md3e"] .toggle-row-label {
+  font-family: "Google Sans", sans-serif;
+  color: var(--text-secondary, var(--text-dim));
+}
+
+html[data-ui="md3e"] .toggle-pill.on {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+/* ── Status note ───────────────────────────────────── */
+
+.note {
+  margin: 14px 0 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.65;
+  min-height: 20px;
+}
+
+html[data-ui="nothing"] .note {
+  font-family: var(--font-family, 'NType 82 Regular');
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+html[data-ui="md3e"] .note {
+  font-family: "Google Sans", sans-serif;
+  color: var(--text-secondary, var(--text-dim));
+}
+
+/* ── Error banner ──────────────────────────────────── */
+
+.error-banner {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(255, 69, 58, 0.08);
+  border: 0.5px solid rgba(255, 69, 58, 0.28);
+  color: #FF453A;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.error-banner.visible {
+  display: flex;
+  animation: bannerIn 220ms ease-out both;
+}
+
+html[data-ui="nothing"] .error-banner {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(215, 25, 33, 0.4);
+  background: rgba(215, 25, 33, 0.07);
+  color: var(--accent-color);
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+html[data-ui="md3e"] .error-banner {
+  border-radius: 16px;
+  font-family: "Google Sans", sans-serif;
+}
+
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Carousel ──────────────────────────────────────── */
+
+.wallpaper-board {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 4px 2px 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
+}
+
+.wallpaper-board::-webkit-scrollbar { height: 0; }
+
+/* ── Cards — tall portrait rectangle ──────────────── */
+/*
+  Portrait aspect: ~75% width, 75vh+ height
+  This produces a noticeably tall rectangle on all phones.
+*/
+
+.wallpaper-card {
+  position: relative;
+  flex: 0 0 75%;
+  height: min(75vh, 600px);
+  border-radius: 22px;
+  overflow: hidden;
+  scroll-snap-align: center;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 260ms ease;
+  cursor: pointer;
+  border: 0.5px solid var(--sep);
+}
+
+.wallpaper-card:active { transform: scale(0.982); }
+
+@media (hover: hover) and (pointer: fine) {
+  .wallpaper-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.26);
+  }
+  .wallpaper-card.selected:hover {
+    box-shadow:
+      0 0 0 2.5px var(--accent),
+      0 14px 38px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Selected ring */
+.wallpaper-card.selected {
+  box-shadow:
+    0 0 0 2.5px var(--accent),
+    0 10px 32px rgba(0, 0, 0, 0.26);
+}
+
+/* ── Nothing OS card ───────────────────────────────── */
+/* Sharp corners (8px), red selection ring */
+
+html[data-ui="nothing"] .wallpaper-card {
+  border-radius: var(--radius-md);          /* 8px */
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+html[data-ui="nothing"] .wallpaper-card.selected {
+  box-shadow: 0 0 0 2px var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+html[data-ui="nothing"] .wallpaper-card:active {
+  transform: scale(0.988);
+  transition-duration: var(--motion-fast, 80ms);
+}
+
+/* ── MD3E card ─────────────────────────────────────── */
+/* Expressive large radius, no border, elevation */
+
+html[data-ui="md3e"] .wallpaper-card {
+  border-radius: 28px;
+  border: none;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.18),
+    0 6px 20px rgba(0,0,0,0.14);
+}
+
+html[data-ui="md3e"] .wallpaper-card.selected {
+  box-shadow:
+    0 0 0 2.5px var(--accent-color),
+    0 6px 20px rgba(0,0,0,0.2);
+}
+
+html[data-ui="md3e"] .wallpaper-card:active {
+  transform: scale(0.984);
+  transition-duration: var(--md-fast, 90ms);
+}
+
+/* ── Card frost overlay ────────────────────────────── */
+/* Always dark so text on any wallpaper is readable */
+
+.card-frost {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  background: rgba(0, 0, 0, 0.38);
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  display: grid;
+  gap: 4px;
+}
+
+/* Nothing frost — translucent panel, sharp corners */
+html[data-ui="nothing"] .card-frost {
+  border-radius: var(--radius-sm);          /* 6px */
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  left: 10px; right: 10px; bottom: 10px;
+  padding: 12px 14px;
+}
+
+html[data-ui="nothing"][data-theme="light"] .card-frost {
+  background: rgba(0, 0, 0, 0.24);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* MD3E frost — seed-tinted blur, large radius */
+html[data-ui="md3e"] .card-frost {
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 0.5px solid rgba(var(--md-seed, 44,126,255), 0.22);
+  backdrop-filter: blur(16px) saturate(200%);
+  -webkit-backdrop-filter: blur(16px) saturate(200%);
+}
+
+/* ── Card text ─────────────────────────────────────── */
+/* Always white — frost is always dark */
+
+.card-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.card-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+/* Nothing — Ndot title, NType body */
+html[data-ui="nothing"] .card-title {
+  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-size: 1rem;
+  letter-spacing: var(--letter-wide, 0.06em);
+  font-weight: 400;
+}
+
+html[data-ui="nothing"] .card-description {
+  font-family: var(--font-family, 'NType 82 Regular', monospace);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* MD3E — Google Sans */
+html[data-ui="md3e"] .card-title {
+  font-family: "Google Sans", sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0;
+}
+
+html[data-ui="md3e"] .card-description {
+  font-family: "Google Sans", sans-serif;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ── Card badge (top-left label) ───────────────────── */
+
+.card-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.4);
+  border: 0.5px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+html[data-ui="nothing"] .card-badge {
+  top: 10px; left: 10px;
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);          /* 4px */
+  font-family: var(--font-family2, 'Ndot 57 Aligned', monospace);
+  font-size: 0.68rem;
+  letter-spacing: var(--letter-wide, 0.06em);
+  font-weight: 400;
+  background: rgba(0, 0, 0, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+html[data-ui="md3e"] .card-badge {
+  border-radius: 999px;
+  font-family: "Google Sans", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.32);
+  border: none;
+}
+
+/* ── Nothing — dot-matrix selected indicator ──────── */
+/* Red animated dot strip on left edge of selected card */
+
+html[data-ui="nothing"] .wallpaper-card.selected::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  background-image: radial-gradient(
+    var(--accent-color) var(--dot-size, 1.6px),
+    transparent var(--dot-size, 1.6px)
+  );
+  background-size: 4px var(--dot-gap, 6px);
+  animation: nothing-sync 1.6s linear infinite;
+  border-radius: 2px;
+}
+
+@keyframes nothing-sync {
+  0%   { opacity: 0.3; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* ── Shake animation ───────────────────────────────── */
+
+.wallpaper-board.shake {
+  animation: shake 380ms ease-in-out;
+}
+
+@keyframes shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-10px); }
+  30%  { transform: translateX(10px); }
+  45%  { transform: translateX(-7px); }
+  60%  { transform: translateX(7px); }
+  75%  { transform: translateX(-3px); }
+  100% { transform: translateX(0); }
+}
+
+/* =====================================================
+   MD3E COLOR PRESETS
+   Replaces the wallpaper board when ui === 'md3e'.
+   Swatch technique carried over from theme.html's .preset
+   circles (pop-in animation + accent ring on selection).
+===================================================== */
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
+  margin-top: 22px;
+  padding: 4px 4px 20px;
+}
+
+.preset-swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.preset-swatch .swatch-dot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: md3ePresetPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.04s);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.18), 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.preset-swatch:active .swatch-dot { transform: scale(0.88); }
+
+.preset-swatch.active .swatch-dot {
+  border-color: var(--accent-color);
+  box-shadow:
+    0 0 0 3px var(--md-surface-0, var(--bg-secondary)),
+    0 0 0 5px var(--accent-color);
+  animation: md3eSelectPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes md3eSelectPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.16); }
+  100% { transform: scale(1); }
+}
+
+.preset-swatch.active .swatch-dot::after {
+  content: '✓';
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+  animation: md3eCheckPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+
+@keyframes md3eCheckPop {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.swatch-label {
+  font-family: "Google Sans", sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary, var(--text-dim));
+  text-align: center;
+  line-height: 1.2;
+}
+
+@keyframes md3ePresetPop {
+  0%   { transform: scale(0.8); opacity: 0; }
+  70%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 400px) {
+  .preset-grid { grid-template-columns: repeat(3, 1fr); }
+  .preset-swatch .swatch-dot { width: 44px; height: 44px; }
+}
+
+
+/* =====================================================
+   DESKTOP LAYOUT
+===================================================== */
+@media (min-width: 760px) {
+  html, body { min-height: 100%; }
+
+  .container {
+    max-width: 1180px;
+    padding: 42px 44px 72px;
+  }
+
+  .page-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 32px;
+    margin-bottom: 6px;
+  }
+
+  .subtitle { max-width: 70ch; font-size: 14px; }
+
+  .state-row {
+    justify-content: flex-end;
+    margin-bottom: 2px;
+  }
+
+  .wallpaper-board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    padding: 10px 2px 28px;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .wallpaper-card {
+    min-width: 0;
+    width: 100%;
+    height: clamp(460px, 58vh, 620px);
+    flex: none;
+    scroll-snap-align: none;
+  }
+
+  .wallpaper-card:hover { transform: translateY(-4px); }
+
+  .card-frost {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    padding: 16px 18px;
+  }
+
+  .preset-grid {
+    grid-template-columns: repeat(6, minmax(90px, 1fr));
+    gap: 28px 18px;
+    margin-top: 28px;
+    padding: 8px 6px 30px;
+  }
+
+  .preset-swatch .swatch-dot {
+    width: 58px;
+    height: 58px;
+  }
+
+  .ui-picker-menu {
+    left: auto;
+    right: 0;
+    transform-origin: top right;
+  }
+
+  .wallpaper-board.shake { animation: none; }
+}
+
+@media (min-width: 1180px) {
+  .wallpaper-board { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .wallpaper-card { height: 560px; }
+}
+
+/* ── Responsive ────────────────────────────────────── */
+
+@media (max-width: 400px) {
+  .wallpaper-card {
+    flex: 0 0 86%;
+    height: min(72vh, 560px);
+  }
+  .card-frost { left: 10px; right: 10px; bottom: 10px; padding: 10px 12px; }
+  h1 { font-size: 22px; }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="page-head">
+    <div>
+      <h1 id="pageTitle">Wallpaper & Colors</h1>
+      <p class="subtitle" id="pageSubtitle">Click to apply a UI<br>Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.</p>
+    </div>
+
+    <div class="state-row">
+      <div class="ui-picker">
+        <button class="ui-picker-trigger" id="uiPickerTrigger" type="button" aria-haspopup="menu" aria-expanded="false">
+          <span>UI: <strong id="current-ui-label">Loading...</strong></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+        </button>
+        <div class="ui-picker-menu" id="uiPickerMenu" role="menu">
+          <button class="ui-picker-option" type="button" data-ui="ios" role="menuitem">iOS <span class="check">&#10003;</span></button>
+          <button class="ui-picker-option" type="button" data-ui="md3e" role="menuitem">MD3E <span class="check">&#10003;</span></button>
+          <button class="ui-picker-option" type="button" data-ui="nothing" role="menuitem">Nothing <span class="check">&#10003;</span></button>
+        </div>
+      </div>
+
+      <div class="toggle-row"
+           id="wallpaperToggleRow"
+           onclick="toggleWallpaperState()"
+           role="switch"
+           aria-checked="false">
+        <span class="toggle-row-label" id="wallpaperToggleLabel">Disable wallpaper</span>
+        <span class="toggle-pill" id="wallpaperTogglePill">
+          <span class="toggle-thumb"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <p id="errorBanner" class="error-banner"></p>
+  <p id="wallpaperStatus" class="note"></p>
+  <div id="wallpaperBoard" class="wallpaper-board" role="list"></div>
+  <div id="md3ePresetGrid" class="preset-grid" role="list" style="display:none;"></div>
+
+</div>
+
+<script>
+/* =====================================================
+   CONSTANTS
+===================================================== */
+const WALLPAPER_KEY         = 'notozApp_wallpaper';
+const WALLPAPER_DISABLE_KEY = 'notozApp_wallpaper_disabled';
+const MD3E_SEED_KEY         = 'md3e-seed'; // same key theme.html writes to
+
+const $board       = document.getElementById('wallpaperBoard');
+const $presetGrid  = document.getElementById('md3ePresetGrid');
+const $status      = document.getElementById('wallpaperStatus');
+const $error       = document.getElementById('errorBanner');
+const $pill        = document.getElementById('wallpaperTogglePill');
+const $trow        = document.getElementById('wallpaperToggleRow');
+const $tlabel      = document.getElementById('wallpaperToggleLabel');
+const $pageTitle   = document.getElementById('pageTitle');
+const $pageSubtitle= document.getElementById('pageSubtitle');
+const $uiTrigger   = document.getElementById('uiPickerTrigger');
+const $uiMenu      = document.getElementById('uiPickerMenu');
+
+// MD3E accent presets. First 5 match theme.html's original set so a seed
+// picked there still resolves to a labeled swatch here; the remaining 7
+// round the palette out closer to the wider accent spread Android 17's
+// leaked Material 3 Expressive color picker exposes (beyond just the
+// old blue/green/purple/sand/mono set).
+const md3ePresets = [
+  { hex:'#4285F4', label:'Ocean'    },
+  { hex:'#46707c', label:'Slate'    },
+  { hex:'#6750A4', label:'Violet'   },
+  { hex:'#C2B280', label:'Sand'     },
+  { hex:'#555555', label:'Graphite' },
+  { hex:'#984061', label:'Rose'     },
+  { hex:'#386A20', label:'Green'    },
+
+  { hex:'#0F9D58', label:'Forest'             },
+  { hex:'#F4B400', label:'Sunflower'          },
+  { hex:'#FF69B4', label:'Hot Pink'           },
+  { hex:'#FF6600', label:'Scarf Bright Orange'},
+  { hex:'#00FFCC', label:'Energy Cyan'        },
+  { hex:'#00FF66', label:'Bright MIR Green'   },
+  { hex:'#FFD700', label:'Vibrant Gold'       },
+  { hex:'#33FFFF', label:'Barrier Electric'   },
+  { hex:'#00E5FF', label:'Aura Glow'          },
+  { hex:'#FFAA00', label:'Bright Amber'       },
+  { hex:'#CCFF00', label:'Ki Neon'            }
+];
+
+const wallpaperCards = [
+  { id:'w1', theme:'ios',     title:'Aurora Bloom',  description:'Soft violet glow with deep glass-like depth.',    image:'url(../assets/wallpaper/imd/imd1.jpg)', label:'iOS' },
+  { id:'w2', theme:'ios',     title:'Sunset Drift',  description:'Warm gradient glow with subtle motion.',          image:'url(../assets/wallpaper/imd/imd2.jpg)',   label:'iOS' },
+  { id:'w3', theme:'ios',     title:'Teal Waves',    description:'Cool cyan texture with crisp highlights.',        image:'url(../assets/wallpaper/imd/imd3.jpg)',   label:'iOS' },
+  { id:'w4', theme:'ios',     title:'The OG Fish',   description:'Minimal texture with gentle tonal transitions.',  image:'url(../assets/wallpaper/imd/imd4.jpg)',   label:'iOS' },
+  { id:'n1', theme:'nothing',  title:'Paper Grid',    description:'Dark high-contrast energy with gray & black mixture.',     image:'url(../assets/wallpaper/n/nos1.jpg)', label:'Nothing OS' },
+  { id:'n2', theme:'nothing',  title:'Neon Shift',    description:'Soft white surface with fine neon flares.',     image:'url(../assets/wallpaper/n/nos2.jpg)', label:'Nothing OS' },
+  { id:'n3', theme:'nothing',  title:'Glass Mesh',    description:'Pink-chromic pattern with glass-like depth.',       image:'url(../assets/wallpaper/n/nos3.jpg)', label:'Nothing OS' },
+  { id:'n4', theme:'nothing',  title:'Stone Fade',    description:'Soft blue gradient with tactile shadowing.',      image:'url(../assets/wallpaper/n/nos4.jpg)', label:'Nothing OS' }
+];
+
+// NOTE:
+// The buildWallpaperBoard() uses these `image` values directly as `background-image`.
+// Keep them as absolute paths from `app/src/pages/` so they resolve correctly inside the iframe.
+
+
+/* =====================================================
+   THEME BOOT — mirrors the inline script in settings.html
+===================================================== */
+function resolveThemeMode() {
+  const saved = localStorage.getItem('notozApp_theme') || 'dark';
+  if (saved !== 'system') return saved;
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark' : 'light';
+}
+
+function applyResolvedTheme() {
+  document.documentElement.setAttribute('data-theme', resolveThemeMode());
+  window.updateLGFilterReference?.();
+}
+
+function refreshWallpaperAppearance() {
+  const root = document.documentElement;
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+
+  root.setAttribute('data-ui', ui);
+  applyResolvedTheme();
+  window.updateLGFilterReference?.();
+
+  if (ui === 'md3e') {
+    applySeedVar(localStorage.getItem(MD3E_SEED_KEY) || '#6750A4');
+    buildPresetGrid();
+  } else {
+    buildWallpaperBoard();
+    syncToggleUI();
+  }
+
+  applyPageModeForUI(ui);
+  syncUIPicker(ui);
+}
+
+function initializeTheme() {
+  const root = document.documentElement;
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+  root.setAttribute('data-ui', ui);
+  applyResolvedTheme();
+
+  if (ui === 'md3e') {
+    applySeedVar(localStorage.getItem(MD3E_SEED_KEY) || '#6750A4');
+  }
+
+  const labels = { ios: 'iOS', md3e: 'Material You', nothing: 'Nothing OS' };
+  document.getElementById('current-ui-label').textContent = labels[ui] || 'iOS';
+  applyPageModeForUI(ui);
+  syncUIPicker(ui);
+}
+
+function syncUIPicker(ui) {
+  const labels = { ios: 'iOS', md3e: 'MD3E', nothing: 'Nothing' };
+  document.getElementById('current-ui-label').textContent = labels[ui] || labels.ios;
+  $uiMenu.querySelectorAll('.ui-picker-option').forEach(option => {
+    option.classList.toggle('active', option.dataset.ui === ui);
+  });
+}
+
+function closeUIPicker() {
+  $uiMenu.classList.remove('open');
+  $uiTrigger.setAttribute('aria-expanded', 'false');
+}
+
+function setUITheme(ui) {
+  if (!['ios', 'md3e', 'nothing'].includes(ui)) return;
+
+  localStorage.setItem('ui-theme', ui);
+  refreshWallpaperAppearance();
+  closeUIPicker();
+
+  window.parent.postMessage({
+    type: 'SET_UI_THEME',
+    theme: ui,
+    mode: resolveThemeMode()
+  }, window.location.origin);
+}
+
+/* =====================================================
+   PAGE MODE — wallpaper board (iOS/Nothing) vs.
+   color presets (MD3E)
+===================================================== */
+function applyPageModeForUI(ui) {
+  const isColorMode = ui === 'md3e';
+
+  $board.style.display      = isColorMode ? 'none' : '';
+  $presetGrid.style.display = isColorMode ? 'grid' : 'none';
+  $trow.style.display       = isColorMode ? 'none' : '';
+
+  $pageTitle.textContent = isColorMode ? 'Color' : 'Wallpaper';
+  $pageSubtitle.textContent = isColorMode
+    ? 'Pick an accent color for Material You. It applies across the whole app.'
+    : 'Swipe to pick a wallpaper. Only wallpapers matching your current UI theme can be applied.';
+}
+
+/* =====================================================
+   TOGGLE — disable / enable wallpaper
+===================================================== */
+const isDisabled = () => localStorage.getItem(WALLPAPER_DISABLE_KEY) === 'true';
+
+function syncToggleUI() {
+  const off = isDisabled();
+  $pill.classList.toggle('on', off);
+  $trow.setAttribute('aria-checked', String(off));
+  $tlabel.textContent = off ? 'Enable wallpaper' : 'Disable wallpaper';
+  updateStatus();
+}
+
+function toggleWallpaperState() {
+  localStorage.setItem(WALLPAPER_DISABLE_KEY, String(!isDisabled()));
+  syncToggleUI();
+  notifyParent();
+}
+
+/* =====================================================
+   STATUS NOTE
+===================================================== */
+function updateStatus() {
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+
+  if (ui === 'md3e') {
+    const hex    = localStorage.getItem(MD3E_SEED_KEY) || '#6750A4';
+    const preset = md3ePresets.find(p => p.hex.toLowerCase() === hex.toLowerCase());
+    $status.textContent = preset ? `Active: ${preset.label}` : `Active: Custom (${hex})`;
+    return;
+  }
+
+  if (isDisabled()) {
+    $status.textContent = 'Wallpapers are disabled. Your selection is saved and will apply when re-enabled.';
+    return;
+  }
+  const id   = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+  const card = wallpaperCards.find(c => c.id === id);
+  $status.textContent = card ? `Active: ${card.title} · ${card.label}` : 'No wallpaper selected.';
+}
+
+/* =====================================================
+   MD3E PRESET GRID
+===================================================== */
+function buildPresetGrid() {
+  const current = (localStorage.getItem(MD3E_SEED_KEY) || '#6750A4').toLowerCase();
+
+  $presetGrid.innerHTML = md3ePresets.map((p, i) => `
+    <div
+      class="preset-swatch${p.hex.toLowerCase() === current ? ' active' : ''}"
+      style="--i:${i}"
+      data-hex="${p.hex.toLowerCase()}"
+      role="listitem"
+      onclick="handlePresetTap('${p.hex}')"
+    >
+      <span class="swatch-dot" style="background:${p.hex};"></span>
+      <span class="swatch-label">${p.label}</span>
+    </div>
+  `).join('');
+
+  updateStatus();
+}
+
+function handlePresetTap(hex) {
+  localStorage.setItem(MD3E_SEED_KEY, hex);
+  applySeedVar(hex);
+  applyResolvedTheme();
+
+  const hexLower = hex.toLowerCase();
+  $presetGrid.querySelectorAll('.preset-swatch').forEach(el => {
+    el.classList.toggle('active', el.dataset.hex === hexLower);
+  });
+
+  updateStatus();
+  window.parent.postMessage({
+    type: 'SET_MD3E_COLOR',
+    color: hex,
+    seed: hex
+  }, window.location.origin);
+}
+
+function applySeedVar(hex) {
+  const v = hex.replace('#', '');
+  document.documentElement.style.setProperty(
+    '--md-seed',
+    `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`
+  );
+}
+
+/* =====================================================
+   BOARD BUILDER
+===================================================== */
+function buildWallpaperBoard() {
+  const ui           = localStorage.getItem('ui-theme') || 'ios';
+  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios';
+  let   selected     = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+
+  const visible = wallpaperCards.filter(c => c.theme === currentTheme);
+  if (!visible.some(c => c.id === selected)) {
+    selected = visible[0]?.id || selected;
+    if (visible[0]) localStorage.setItem(WALLPAPER_KEY, selected);
+  }
+
+  if (!visible.length) {
+    $board.innerHTML = '<p class="note">No wallpapers available for this theme.</p>';
+    return;
+  }
+
+  $board.innerHTML = visible.map(card => `
+    <article
+      class="wallpaper-card${card.id === selected ? ' selected' : ''}"
+      data-key="${card.id}"
+      role="listitem"
+      onclick="handleWallpaperTap('${card.id}')"
+      style="background-image:${card.image};"
+    >
+      <span class="card-badge">${card.label}</span>
+      <div class="card-frost">
+        <h2 class="card-title">${card.title}</h2>
+        <p class="card-description">${card.description}</p>
+      </div>
+    </article>
+  `).join('');
+
+  updateStatus();
+  requestAnimationFrame(scrollSelectedIntoView);
+}
+
+/* =====================================================
+   TAP HANDLER
+===================================================== */
+function handleWallpaperTap(id) {
+  const ui = localStorage.getItem('ui-theme') || 'ios';
+
+  if (ui === 'md3e') {
+    showError('Wallpaper selection is not available for Material You 3 Expresive.');
+    return;
+  }
+
+  const currentTheme = ui === 'nothing' ? 'nothing' : 'ios';
+  const card         = wallpaperCards.find(c => c.id === id);
+  if (!card) return;
+
+  if (card.theme !== currentTheme) {
+    showError(card.theme === 'nothing'
+      ? 'This wallpaper is only available for Nothing OS theme.'
+      : 'This wallpaper is only available for iOS theme.');
+    return;
+  }
+
+  if (isDisabled()) {
+    localStorage.setItem(WALLPAPER_DISABLE_KEY, 'false');
+    syncToggleUI();
+  }
+
+  localStorage.setItem(WALLPAPER_KEY, id);
+  buildWallpaperBoard();
+  notifyParent();
+}
+
+/* =====================================================
+   POST TO PARENT
+===================================================== */
+function notifyParent() {
+  const id = localStorage.getItem(WALLPAPER_KEY) || 'w1';
+  const card = wallpaperCards.find(c => c.id === id);
+  window.parent.postMessage({
+    type:      'WALLPAPER_CHANGED',
+    wallpaper: id,
+    label:     card?.label || 'Wallpaper',
+    disabled:  isDisabled()
+  }, window.location.origin);
+}
+
+/* =====================================================
+   ERROR BANNER
+===================================================== */
+function showError(msg) {
+  $error.textContent = msg;
+  $error.classList.add('visible');
+  $board.classList.add('shake');
+  setTimeout(() => {
+    $error.classList.remove('visible');
+    $board.classList.remove('shake');
+  }, 1500);
+}
+
+/* =====================================================
+   SCROLL SELECTED INTO VIEW
+===================================================== */
+function scrollSelectedIntoView() {
+  const sel = document.querySelector('.wallpaper-card.selected');
+  if (!sel) return;
+  const r = sel.getBoundingClientRect();
+  const b = $board.getBoundingClientRect();
+  $board.scrollBy({ left: (r.left+r.right)/2 - (b.left+b.right)/2, behavior: 'smooth' });
+}
+
+/* =====================================================
+   DRAG-TO-SCROLL
+===================================================== */
+(function enableDragScroll(el) {
+  let down = false, dragging = false, startX = 0, scrollLeft = 0;
+  const THRESHOLD = 6; // px — below this, treat as a click, not a drag
+
+  el.style.cursor = 'grab';
+
+  el.addEventListener('pointerdown', e => {
+    down = true;
+    dragging = false;
+    startX = e.clientX;
+    scrollLeft = el.scrollLeft;
+    // Capture lazily — only once we know it's a drag (see pointermove)
+  });
+
+  window.addEventListener('pointerup', e => {
+    if (!down) return;
+    down = false;
+    if (dragging) {
+      dragging = false;
+      el.style.cursor = 'grab';
+      try { el.releasePointerCapture(e.pointerId); } catch {}
+    }
+  });
+
+  el.addEventListener('pointermove', e => {
+    if (!down) return;
+    const delta = startX - e.clientX;
+    if (!dragging && Math.abs(delta) > THRESHOLD) {
+      dragging = true;
+      el.style.cursor = 'grabbing';
+      try { el.setPointerCapture(e.pointerId); } catch {}
+    }
+    if (dragging) {
+      el.scrollLeft = scrollLeft + delta;
+    }
+  });
+
+  // Prevent the click that follows a real drag from selecting a card,
+  // but let genuine taps/clicks (no movement) through untouched.
+  el.addEventListener('click', e => {
+    if (dragging) e.stopPropagation();
+  }, true);
+})($board);
+
+/* =====================================================
+   UI THEME PICKER
+===================================================== */
+$uiTrigger.addEventListener('click', (event) => {
+  event.stopPropagation();
+  const open = $uiMenu.classList.toggle('open');
+  $uiTrigger.setAttribute('aria-expanded', String(open));
+});
+
+$uiMenu.addEventListener('click', (event) => {
+  const option = event.target.closest('.ui-picker-option');
+  if (!option) return;
+  setUITheme(option.dataset.ui);
+});
+
+document.addEventListener('click', (event) => {
+  if (!$uiMenu.contains(event.target) && !$uiTrigger.contains(event.target)) {
+    closeUIPicker();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeUIPicker();
+});
+
+/* =====================================================
+   BOOT
+===================================================== */
+initializeTheme();
+refreshWallpaperAppearance();
+
+/* =====================================================
+   LIVE APPEARANCE SYNC
+   Handles:
+   - system light/dark changes
+   - theme changes coming from another Notoz page
+   - UI changes coming from the Settings parent
+===================================================== */
+(function syncWallpaperAppearanceLive() {
+  let lastUI = localStorage.getItem('ui-theme') || 'ios';
+  let lastMode = localStorage.getItem('notozApp_theme') || 'dark';
+  let lastResolved = document.documentElement.getAttribute('data-theme');
+
+  function applyIfChanged() {
+    const ui = localStorage.getItem('ui-theme') || 'ios';
+    const mode = localStorage.getItem('notozApp_theme') || 'dark';
+    const resolved = mode === 'system'
+      ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : mode;
+
+    if (ui === lastUI && mode === lastMode && resolved === lastResolved) return;
+
+    lastUI = ui;
+    lastMode = mode;
+    lastResolved = resolved;
+
+    refreshWallpaperAppearance();
+
+    window.parent.postMessage({
+      type: 'SYSTEM_THEME_CHANGED',
+      theme: resolved
+    }, window.location.origin);
+  }
+
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onSystemChange = () => {
+      if (localStorage.getItem('notozApp_theme') === 'system') {
+        applyIfChanged();
+      }
+    };
+
+    if (mq.addEventListener) mq.addEventListener('change', onSystemChange);
+    else if (mq.addListener) mq.addListener(onSystemChange);
+  }
+
+  window.addEventListener('storage', event => {
+    if (event.key === 'notozApp_lg_filter_enabled') {
+      window.updateLGFilterReference();
+      return;
+    }
+    if (event.key === 'ui-theme' || event.key === 'notozApp_theme' || event.key === MD3E_SEED_KEY) {
+      applyIfChanged();
+    }
+  });
+
+  window.addEventListener('message', event => {
+    if (event.origin !== window.location.origin) return;
+
+    const data = event.data || {};
+
+    if (
+      data.type === 'SET_UI_THEME' ||
+      data.type === 'SET_THEME' ||
+      data.type === 'THEME_CHANGED' ||
+      data.type === 'APPEARANCE_CHANGED' ||
+      data.type === 'SYSTEM_THEME_CHANGED'
+    ) {
+      if (data.theme === 'dark' || data.theme === 'light' || data.theme === 'system') {
+        localStorage.setItem('notozApp_theme', data.theme);
+      }
+      if (['ios', 'md3e', 'nothing'].includes(data.ui || data.themeUI)) {
+        localStorage.setItem('ui-theme', data.ui || data.themeUI);
+      }
+      applyIfChanged();
+    }
+  });
+
+  // Covers same-tab changes made by another iframe/page.
+  window.setInterval(applyIfChanged, 500);
+})();
+</script>
+</body>
+</html>

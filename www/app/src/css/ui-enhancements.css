@@ -1,0 +1,387 @@
+/* =====================================================
+   UI ENHANCEMENTS & VISUAL IMPROVEMENTS
+   For: Notoz
+   No More In Use
+   Can be used elsewhere
+   ===================================================== */
+
+/* =====================================================
+   1. SMOOTH TRANSITIONS FOR ALL INTERACTIVE ELEMENTS
+   ===================================================== */
+
+* {
+  transition: background-color 0.2s ease-out,
+              color 0.2s ease-out,
+              border-color 0.2s ease-out,
+              box-shadow 0.2s ease-out;
+}
+
+/* Exclude elements that shouldn't have transitions */
+input,
+textarea,
+.note-content-editable,
+svg {
+  transition: none !important;
+}
+
+/* =====================================================
+   2. BUTTON ENHANCEMENTS
+   ===================================================== */
+
+button,
+.icon-btn,
+.folder-item,
+.note-item,
+.account-btn,
+.new-folder-btn,
+.new-note-btn,
+.multi-select-delete-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+button:active,
+.icon-btn:active,
+.folder-item:active,
+.note-item:active,
+.account-btn:active {
+  transform: scale(0.97);
+}
+
+button:hover:not(:disabled),
+.icon-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   3. FAB (FLOATING ACTION BUTTON) IMPROVEMENTS WERE REMOVED 
+   ===================================================== */
+
+/* =====================================================
+   4. LIST ITEM ENHANCEMENTS
+   ===================================================== */
+
+.folder-item,
+.note-item {
+  position: relative;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+}
+
+.folder-item::before,
+.note-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition: background-color 0.2s ease-out;
+}
+
+.folder-item:hover::before,
+.note-item:hover::before {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.folder-item:active::before,
+.note-item:active::before {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="dark"] .folder-item::before,
+html[data-theme="dark"] .note-item::before {
+  background: rgba(255, 255, 255, 0);
+}
+
+html[data-theme="dark"] .folder-item:hover::before,
+html[data-theme="dark"] .note-item:hover::before {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .folder-item:active::before,
+html[data-theme="dark"] .note-item:active::before {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.folder-item.active,
+.note-item.active {
+  background: var(--highlight-color);
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+/* =====================================================
+   5. SEARCH BAR ENHANCEMENTS
+   ===================================================== */
+
+.search-bar {
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 16px;
+  border: 1px solid var(--sep);
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  transition: all 0.2s ease-out;
+}
+
+.search-bar:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+  outline: none;
+}
+
+.search-bar::placeholder {
+  color: var(--text-dim);
+}
+
+/* =====================================================
+   6. INPUT FIELD ENHANCEMENTS
+   ===================================================== */
+
+#noteTitleInput,
+#noteContentInput,
+.note-content-editable {
+  transition: box-shadow 0.2s ease-out !important;
+}
+
+#noteTitleInput:focus,
+#noteContentInput:focus,
+.note-content-editable:focus {
+  box-shadow: none !important;
+  outline: none;
+}
+
+/* =====================================================
+   7. MULTI-SELECT BAR ENHANCEMENTS
+   ===================================================== */
+
+.multi-select-label {
+  font-weight: 600;
+}
+
+.multi-select-delete-btn, .multi-select-done-btn {
+  font-weight: 600;
+}
+
+.multi-select-delete-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
+}
+
+.multi-select-done-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgb(0, 122, 255, 0.3);
+}
+
+.multi-select-delete-btn:active, .multi-select-delete-btn:active {
+  transform: scale(0.95);
+}
+
+/* =====================================================
+   8. SIDEBAR ENHANCEMENTS
+   ===================================================== */
+
+.sidebar-header {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--sep);
+  margin-bottom: 1.5vh;
+}
+
+.sidebar-header h2 {
+  margin: 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.account-avatar-pill {
+  transition: all 0.2s ease-out;
+}
+
+.account-btn:hover {
+  transform: scale(1.08);
+}
+
+.account-btn:active .account-avatar-pill {
+  transform: scale(0.95);
+}
+
+/* =====================================================
+   9. EMPTY STATE ENHANCEMENTS
+   ===================================================== */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  animation: pageFadeIn 0.4s ease-out forwards;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 20px;
+  opacity: 0.3;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.empty-state p {
+  font-size: 18px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+/* =====================================================
+   10. EDITOR AREA ENHANCEMENTS
+   removed due to conflicts with existing styles
+   ===================================================== */
+   
+
+/* =====================================================
+   11. TOOLBAR ENHANCEMENTS
+   ===================================================== */
+
+.toolbar button:hover {
+  border-color: var(--accent);
+}
+
+.toolbar button:active {
+  transform: scale(0.95);
+  background: var(--accent);
+}
+
+.toolbar button.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* =====================================================
+   12. SCROLL AREA ENHANCEMENTS
+   ===================================================== */
+
+.notes-scroll-area,
+.folder-list {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sep) transparent;
+}
+
+.notes-scroll-area::-webkit-scrollbar,
+.folder-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-scroll-area::-webkit-scrollbar-track,
+.folder-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notes-scroll-area::-webkit-scrollbar-thumb,
+.folder-list::-webkit-scrollbar-thumb {
+  background: var(--sep);
+  border-radius: 3px;
+}
+
+.notes-scroll-area::-webkit-scrollbar-thumb:hover,
+.folder-list::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}
+
+/* =====================================================
+   13. RESPONSIVE UI IMPROVEMENTS
+   ===================================================== */
+
+@media (max-width: 1024px) {
+  .new-note-fab {
+    bottom: 80px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .multi-select-bar {
+    height: 56px;
+    padding: 0 16px;
+  }
+
+  .folder-item,
+  .note-item {
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 20px;
+  }
+
+  .empty-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .empty-state p {
+    font-size: 16px;
+  }
+}
+
+/* =====================================================
+   14. ACCESSIBILITY IMPROVEMENTS
+   ===================================================== */
+
+button:focus-visible,
+.icon-btn:focus-visible,
+.folder-item:focus-visible,
+.note-item:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  button,
+  .icon-btn,
+  .folder-item,
+  .note-item {
+    border: 1px solid var(--accent);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =====================================================
+   15. THEME-SPECIFIC ENHANCEMENTS
+   ===================================================== */
+
+/* Material You - Sharp, Modern look */
+html[data-ui="md3e"] button,
+html[data-ui="md3e"] .icon-btn {
+  border-radius: 80px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+html[data-ui="nothing"] .account-btn {
+  font-family: 'NDot 57 Aligned', monospace;
+  letter-spacing: 0.02em;
+  border: none;
+}

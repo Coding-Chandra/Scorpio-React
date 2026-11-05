@@ -370,15 +370,52 @@
 
   /* ---------- Biometrics ---------- */
 
-  function biometricAvailable() {
+  function getNativeBiometricPlugin() {
+    const cap = window.Capacitor || window.parent?.Capacitor;
+    return cap?.Plugins?.BiometricAuthNative || null;
+  }
+
+  async function biometricAvailable() {
+    const nativeBio = getNativeBiometricPlugin();
+    if (nativeBio) {
+      try {
+        const res = await nativeBio.checkBiometry();
+        return !!(res && (res.isAvailable || res.strongBiometryIsAvailable || res.deviceIsSecure));
+      } catch (e) {
+        console.warn('[LF-Engine] Biometrics check error:', e);
+      }
+    }
+
     return !!(
       window.PublicKeyCredential &&
-      navigator.credentials
+      navigator.credentials &&
+      window.isSecureContext
     );
   }
 
   async function registerBiometric() {
-    if (!biometricAvailable()) {
+    const nativeBio = getNativeBiometricPlugin();
+    if (nativeBio) {
+      const check = await nativeBio.checkBiometry();
+      if (!check || (!check.isAvailable && !check.strongBiometryIsAvailable && !check.deviceIsSecure)) {
+        throw new Error(check?.reason || 'Biometric authentication is not enrolled or available on this device.');
+      }
+
+      try {
+        await nativeBio.internalAuthenticate({
+          androidTitle: 'Setup Biometrics',
+          androidSubtitle: 'Confirm your fingerprint, face, or screen lock to enable biometric unlock for Notoz',
+          reason: 'Enable biometric unlock',
+          cancelTitle: 'Cancel',
+          allowDeviceCredential: true
+        });
+        return 'capacitor-biometric-auth-' + Date.now();
+      } catch (err) {
+        throw new Error(err?.message || 'Biometric authentication was cancelled or not recognized.');
+      }
+    }
+
+    if (!(await biometricAvailable())) {
       throw new Error(
         'Biometric authentication is not available on this device.'
       );
@@ -441,6 +478,23 @@
   async function biometricAuth() {
     if (!cfg?.credId)
       return false;
+
+    const nativeBio = getNativeBiometricPlugin();
+    if (nativeBio) {
+      try {
+        await nativeBio.internalAuthenticate({
+          androidTitle: 'Unlock Private Folder',
+          androidSubtitle: 'Confirm your fingerprint, face, or screen lock',
+          reason: 'Authenticate to access locked notes',
+          cancelTitle: 'Cancel',
+          allowDeviceCredential: true
+        });
+        return true;
+      } catch (err) {
+        console.warn('[LF-Engine] Biometrics cancelled or failed:', err);
+        return false;
+      }
+    }
 
     try {
       await navigator.credentials.get({

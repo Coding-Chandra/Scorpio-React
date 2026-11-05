@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About This App - Notoz Notes</title>   
+    <link rel="manifest" href="./manifest.json">    
+    <link rel="icon" type="image/png" href="./app/src/assets/icons/logo.png">
+    <link rel="apple-touch-icon" href="/app/src/assets/icons/logo.png">
+    <script>
+    (function () {
+      const root = document.documentElement;
+      const ui = localStorage.getItem("ui-theme") || "ios";
+      root.setAttribute("data-ui", ui);
+      const mode = localStorage.getItem("notozApp_theme");
+      if (mode) root.setAttribute("data-theme", mode);
+      if (ui === "md3e") {
+        const hex = localStorage.getItem("md3e-seed");
+        if (hex) {
+          const v = hex.replace("#", "");
+          root.style.setProperty(
+            "--md-seed",
+            `${parseInt(v.slice(0,2),16)},${parseInt(v.slice(2,4),16)},${parseInt(v.slice(4,6),16)}`
+          );
+        }
+      }
+    })();
+  </script>
+    <style>
+        @import url(./src/assets/fonts/SFR.ttf);
+
+        :root {
+            --bg-color: #000000;
+            --text-primary: #f5f5f7;
+            --text-secondary: #86868b;
+            --link-color: #2997ff;
+            --section-border: #38383a;
+            --callout-bg: #1c1c1e;
+            --warning-bg: rgba(255, 69, 58, 0.15);
+            --warning-border: rgba(255, 69, 58, 0.3);
+            --warning-text: #ff453a;
+            --accent-green: #30d158;
+        }
+
+        /* --- Theme Data --- */
+        :root[data-theme="light"] {
+            --bg-color: #F2F2F7;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --link-color: #007aff;
+            --section-border: #d2d2d7;
+            --callout-bg: #ffffff;
+            --warning-bg: rgba(255, 59, 48, 0.1);
+            --warning-border: rgba(255, 59, 48, 0.2);
+            --warning-text: #ff3b30;
+        }
+
+        body {
+            font-family: SF Pro Rounded, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Roboto";
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }        
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px 100px 24px;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            letter-spacing: -0.005em;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-size: 24px;
+            line-height: 1.2;
+            font-weight: 600;
+            margin-bottom: 40px;
+            color: var(--text-secondary);
+        }
+
+        h2 {
+            font-size: 30px;
+            font-weight: 700;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--section-border);
+            color: var(--text-primary);
+        }
+
+        h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        p {
+            font-size: 17px;
+            margin-bottom: 1.2em;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        ul {
+            padding-left: 20px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        li {
+            font-size: 17px;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Core Feature Callout */
+        .callout-core {
+            background-color: var(--callout-bg);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid var(--section-border);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Warning Callout (Red Tint) */
+        .callout-warning {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 30px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .callout-warning h3 {
+            color: var(--warning-text);
+            margin-top: 0;
+        }
+        .callout-warning p, .callout-warning li {
+            color: var(--text-primary);
+        }
+
+
+        /* Footer & Metadata */
+        .intro-text {
+            font-size: 19px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+        
+        .philosophy {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 50px;
+            border-top: 1px solid var(--section-border);
+            padding-top: 40px;
+            color: var(--accent-green);
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--section-border);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>About Notoz</h1>
+        <div class="subtitle">A private place for your notes.</div>
+
+        <p class="intro-text">Notoz is an independent project published by <strong>webg</strong>, a solo developer. It is built for writing and syncing notes while keeping your note content encrypted before it reaches the server.</p>
+        <p class="intro-text">I can't read your notes because I don't have the key needed to decrypt them. Notoz encrypts them in your browser before they are sent to the server.</p>
+
+        <h2>How Your Notes Are Protected</h2>
+        <div class="callout-core">
+            <h3>In plain language</h3>
+            <ul>
+                <li>Your notes are encrypted in the browser with AES-256-GCM.</li>
+                <li>The server stores ciphertext, not readable note content.</li>
+                <li>Your personal master encryption key is protected by a key derived from your password.</li>
+                <li>After login, the key is held in your browser as a non-extractable CryptoKey for the session.</li>
+            </ul>
+        </div>
+        <p>Your password is important: if you lose it, there is no server-side password reset that can recover your encrypted notes.</p>
+
+        <h2>What Notoz Includes</h2>
+        <ul>
+            <li>Client-side, end-to-end encrypted notes.</li>
+            <li>Account login and encrypted note syncing.</li>
+            <li>Sanitization of content pasted or synced into the editor before it is rendered.</li>
+            <li>A client-side security monitor that can warn about suspicious activity in your browser session and offer a one-tap logout.</li>
+            <li>User-initiated account deletion with password re-confirmation, including removal of the account and its encrypted notes.</li>
+            <li>Logout that clears the locally held session key from your device.</li>
+        </ul>
+
+        <div class="callout-warning">
+            <h3>A Note About Security</h3>
+            <p>Notoz uses the protections described above, but no online service can promise that every risk is eliminated. The security monitor is a convenience and awareness feature, not a guarantee against account compromise.</p>
+        </div>
+
+        <h2>Independent by Design</h2>
+        <p>Notoz is maintained by one independent developer, not a company or dedicated support team. Support response times may therefore be limited.</p>
+
+        <p class="philosophy">Your notes should belong to you.</p>
+
+        <div class="footer">
+            Published by webg. Contact: [Will Update]
+        </div>
+    </div>
+
+<script>
+    const updateTheme = (t) => {
+        if (t) document.documentElement.setAttribute('data-theme', t);
+    };
+
+    // 1. Check local storage (for solo view)
+    updateTheme(localStorage.getItem('notozApp_theme') || 'light');
+
+    // 2. Catch the message from account.html (for iframe view)
+    window.addEventListener('message', (e) => {
+        if (e.origin === window.location.origin && e.data?.type === 'INIT_THEME') {
+            updateTheme(e.data.theme);
+        }
+    });
+
+    // 3. Sync if user changes theme in another tab
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'notozApp_theme') updateTheme(e.newValue);
+    });
+    
+</script>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Appearance</title>
+
+<link rel="icon" type="image/png" href="../assets/icons/logo.png">
+<link rel="apple-touch-icon" href="../assets/icons/logo.png">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:ital,wght@0,100..900;1,100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
+/* =====================================================
+   BASE ANIMATIONS
+   ===================================================== */
+
+@keyframes pageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes listItemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes checkmarkScale {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes presetPop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes rowPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+* {
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
+/* =====================================================
+   BASE (iOS-like default)
+   ===================================================== */
+
+@font-face {
+  font-family: 'SF Pro Rounded';
+  src: url('../assets/fonts/SFR.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'NType 82 Regular';
+  src: url('../assets/fonts/NType82-Regular.otf') format('opentype');
+  font-display: swap;
+}
+
+:root {
+  --bg-main: #000;
+  --bg-card: #1C1C1E;
+  --text-main: #fff;
+  --text-dim: #8E8E93;
+  --border: rgba(84,84,88,0.65);
+  --accent: #0A84FF;
+  --radius: 20px;
+  --font: SF Pro Rounded, BlinkMacSystemFont, Roboto, system-ui;
+}
+
+:root[data-theme="light"] {
+  --bg-main: #F2F2F7;
+  --bg-card: #FFFFFF;
+  --text-main: #000;
+  --text-dim: #8A8A8E;
+  --border: rgba(60,60,67,0.29);
+}
+
+/* =====================================================
+   MD3E THEME
+   ===================================================== */
+
+:root[data-ui="md3e"] {
+  --md-neutral-base: color-mix(in srgb,
+              #ffffff,
+              rgb(var(--md-seed)) 5%);
+
+  --bg-main:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 96%,
+      rgb(var(--md-seed)) 4%
+    );
+
+  --bg-card:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 85%,
+      rgb(var(--md-seed)) 15%
+    );
+
+  --text-main: #1C1B1F;
+  --text-dim: #5F6368;
+  --border: rgba(0,0,0,0.12);
+  --accent: rgb(var(--md-seed, 103,80,164));
+  --radius: 26px;
+  --font: "Google Sans", sans-serif, system-ui;
+}
+
+:root[data-ui="md3e"][data-theme="dark"] {
+  --md-neutral-base: color-mix(in srgb,
+              #1c1b1f,
+              rgb(var(--md-seed)) 5%);
+
+  --bg-main:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 98%,
+      rgb(var(--md-seed)) 2%
+    );
+
+  --bg-card:
+    color-mix(
+      in srgb,
+      var(--md-neutral-base) 80%,
+      rgb(var(--md-seed)) 20%
+    );
+
+  --text-main: #E6E1E5;
+  --text-dim: #CAC4D0;
+  --border: rgba(255,255,255,0.12);
+}
+
+:root[data-ui="md3e"] .card{
+  border: none;
+  background: none;
+}
+
+:root[data-ui="md3e"] .row{
+  border: none;
+  border-bottom: 3.25px solid var(--bg-main);
+  background: var(--bg-card);
+  border-radius: 7px;
+}
+:root[data-ui="md3e"] .row:last-child {border-bottom: none;}
+
+/* =====================================================
+   NOTHING OS THEME
+   ===================================================== */
+
+:root[data-ui="nothing"] {
+  --bg-main: #000;
+  --bg-card: #1B1B1B;
+  --text-main: #fff;
+  --text-dim: rgba(255,255,255,0.6);
+  --border: rgba(255,255,255,0.18);
+  --accent: #D71921;
+  --radius: 24px;
+  --font: 'NType 82 Headline', monospace;
+}
+:root[data-ui="nothing"][data-theme="light"] {
+  --bg-main: #F3F3F3;
+  --bg-card: #FFFFFF;
+  --text-main: #000;
+  --text-dim: rgba(0,0,0,0.6);
+  --border: rgba(0,0,0,0.18);
+}
+:root[data-ui="nothing"] .card{
+  border: none;
+  background: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.008), 0 2px 6px rgba(0, 0, 0, 0.002);
+}
+:root[data-ui="nothing"] .row {
+    display: flex;
+    font-family: 'Geist', sans-serif;
+    align-items: center;
+    background: var(--bg-card);
+    justify-content: space-between;
+    padding: 12px 20px;
+    font-size: 17px;
+    font-weight: 400;
+    min-height: 48px;
+    border-radius: 5px;
+    border: none;
+    border-top: 2px solid var(--bg-main);
+    border-bottom: 2px solid var(--bg-main);
+    transition: background-color 0.2s;
+}
+:root[data-ui="nothing"] .row:first-child {
+    border-radius: 26px 26px 5px 5px;
+}
+:root[data-ui="nothing"] .row:last-child {
+    border-bottom: none;
+    border-radius: 5px 5px 26px 26px;
+}
+
+html[data-ui="nothing"][data-theme="light"] .row:hover {
+  background-color: rgba(0, 0, 0, 0.129);
+}
+html[data-ui="nothing"][data-theme="dark"] .row:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* =====================================================
+   LAYOUT
+   ===================================================== */
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none; 
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font);
+  padding: 20px 16px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.container {
+  max-width: 610px;
+  padding: 10px 10px;
+  margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
+  animation: pageSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+h2 {
+  font-size: 13px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin: 16px 16px 8px;
+  animation: slideDown 0.3s ease-out;
+  animation-fill-mode: both;
+  font-weight: normal;
+}
+
+h2:nth-of-type(1) { animation-delay: 0.05s; }
+h2:nth-of-type(2) { animation-delay: 0.15s; }
+
+/* =====================================================
+   CARDS & ROWS
+   ===================================================== */
+
+.card {
+  background: none;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  animation: listItemSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  opacity: 0;
+}
+
+.card:nth-child(2) { animation-delay: 0.1s; }
+.card:nth-child(3) { animation-delay: 0.2s; }
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  border-radius: 0px;
+  border: 1px solid var(--border);
+  padding: 12px 20px;
+  min-height: 48px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+}
+.row:first-child{border-radius: 20px 20px 0 0;}
+.row:last-child{border-radius: 0 0 20px 20px; border-bottom: 1px solid var(--border);}
+
+.row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  pointer-events: none;
+}
+
+.row:active::before {
+  opacity: 0.08;
+}
+
+.row:active {
+  animation: rowPress 0.2s ease-out;
+}
+
+.label {
+  font-size: 17px;
+  position: relative;
+  z-index: 1;
+  transition: color 0.2s ease-out;
+}
+
+.filter-option {
+  gap: 16px;
+  cursor: default;
+}
+
+.filter-option-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-option-description,
+.filter-option-status {
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.filter-option-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 60px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #e4e4e5;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s ease;
+}
+
+.filter-option-switch:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.filter-option-switch::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 21px;
+  border: 1px solid #ffffff46;
+  border-radius: 38px;
+  background: #fff;
+  box-shadow: -1.5px 1.5px 10px 0px #2c2c2e5a;
+  transform: translate(-50%, -50%) translateX(-11px);
+  transition: transform 0.2s ease;
+}
+
+.filter-option-switch[aria-checked="true"] {
+  background: #65c466;
+}
+
+.filter-option-switch[aria-checked="true"]::before {
+  transform: translate(-50%, -50%) translateX(11px);
+}
+
+/* Match the switch geometry and colors used by each appearance. */
+:root[data-ui="md3e"] .filter-option-switch {
+  width: 55px;
+  height: 30px;
+  border: 2px solid var(--text-dim);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text-main) 8%, var(--bg-card));
+}
+
+:root[data-ui="md3e"] .filter-option-switch::before {
+  top: 5px;
+  left: 5px;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  box-shadow: none;
+}
+
+:root[data-ui="md3e"] .filter-option-switch[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+:root[data-ui="md3e"] .filter-option-switch[aria-checked="true"]::before {
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: var(--bg-card);
+  transform: translateX(23px);
+}
+
+:root[data-ui="nothing"] .filter-option-switch {
+  width: 34px;
+  height: 24px;
+  padding: 0;
+  border-radius: 99px;
+  background: #1b1b1b;
+}
+
+:root[data-ui="nothing"] .filter-option-switch::before {
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #f3f3f3;
+  box-shadow: none;
+}
+
+:root[data-ui="nothing"] .filter-option-switch[aria-checked="true"] {
+  background: #f3f3f3;
+}
+
+:root[data-ui="nothing"] .filter-option-switch[aria-checked="true"]::before {
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #1b1b1b;
+  transform: translateX(10px);
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch {
+  background: #f3f3f3;
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch::before {
+  background: #1b1b1b;
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch[aria-checked="true"] {
+  background: #000;
+}
+
+:root[data-ui="nothing"][data-theme="light"] .filter-option-switch[aria-checked="true"]::before {
+  background: #fff;
+}
+
+.filter-option-switch[aria-checked="true"]::before {
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 21px;
+  transform: translate(-50%, -50%) translateX(11px);
+}
+
+.row:active .label {
+  color: var(--accent);
+}
+
+.check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  display: none;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  transition: all 0.2s ease-out;
+}
+
+.row.selected .check {
+  display: block;
+  background: var(--accent);
+  animation: checkmarkScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.check::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0;
+  animation: fadeIn 0.2s ease-out 0.1s forwards;
+}
+
+/* =====================================================
+   MD3E PRESETS
+   ===================================================== */
+
+#md3ePresets {
+  display: none;
+  padding: 14px 16px;
+  gap: 14px;
+  opacity: 0;
+  animation: slideDown 0.3s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
+#md3ePresets.visible {
+  display: flex;
+  opacity: 1;
+}
+
+.preset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.label-preset {
+  font-size: 14px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.preset {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: presetPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+.preset:nth-child(2) { animation-delay: 0.1s; }
+.preset:nth-child(3) { animation-delay: 0.15s; }
+.preset:nth-child(4) { animation-delay: 0.2s; }
+.preset:nth-child(5) { animation-delay: 0.25s; }
+.preset:nth-child(6) { animation-delay: 0.3s; }
+
+.preset:active {
+  transform: scale(0.85);
+}
+
+.preset.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+  animation: checkmarkScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.preset.blue   { background: #4285F4; }
+.preset.green  { background: #46707c; }
+.preset.purple { background: #6750A4; }
+.preset.sand   { background: #C2B280; }
+.preset.mono   { background: #555555; }
+
+/* =====================================================
+   ACCESSIBILITY
+   ===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =====================================================
+   MOBILE OPTIMIZATIONS
+   ===================================================== */
+
+@media (max-width: 768px) {
+  .preset {
+    width: 24px;
+    height: 24px;
+  }
+
+  .row {
+    padding: 10px 16px;
+    min-height: 44px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>Appearence</h2>
+<div class="card">
+
+  <div class="row" id="ui-ios" onclick="setUI('ios')">
+    <span class="label">iOS</span>
+    <span class="check"></span>
+  </div>
+
+  <div class="row" id="ui-md3e" onclick="setUI('md3e')">
+    <span class="label">Material You (MD3E)</span>
+    <span class="check"></span>
+  </div>
+
+  <div class="row" id="md3ePresets">
+    <div class="preset-row">
+      <span class="label-preset">Presets:</span>
+      <div class="preset blue"   onclick="setPreset('#4285F4')"></div>
+      <div class="preset green"  onclick="setPreset('#46707c')"></div>
+      <div class="preset purple" onclick="setPreset('#6750A4')"></div>
+      <div class="preset sand"   onclick="setPreset('#C2B280')"></div>
+      <div class="preset mono"   onclick="setPreset('#555555')"></div>
+    </div>
+  </div>
+
+  <div class="row" id="ui-nothing" onclick="setUI('nothing')">
+    <span class="label">Nothing OS</span>
+    <span class="check"></span>
+  </div>
+
+</div>
+
+<h2>Theme</h2>
+<div class="card">
+  <div class="row" id="mode-light" onclick="setMode('light')">
+    <span class="label">Light</span>
+    <span class="check"></span>
+  </div>
+  <div class="row" id="mode-dark" onclick="setMode('dark')">
+    <span class="label">Dark</span>
+    <span class="check"></span>
+  </div>
+  <div class="row" id="mode-system" onclick="setMode('system')">
+    <span class="label">System</span>
+    <span class="check"></span>
+  </div>
+</div>
+
+<div id="lgFilterSection">
+<h2>Liquid Glass</h2>
+<div class="card">
+  <div class="row filter-option">
+    <div class="filter-option-copy">
+      <span class="label">Liquid Glass</span>
+      <span class="filter-option-description">iOS appearance only.</span>
+      <span class="filter-option-status" id="lgFilterStatus">Off</span>
+    </div>
+    <button
+      id="lgFilterToggle"
+      class="filter-option-switch"
+      type="button"
+      role="switch"
+      aria-checked="false"
+      aria-label="Liquid Glass"
+      aria-describedby="lgFilterStatus"
+      onclick="toggleLGFilter()"></button>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* =====================================================
+   STATE & RESTORE
+   ===================================================== */
+
+const UI_KEY = "ui-theme";
+const MODE_KEY = "notozApp_theme";
+const SEED_KEY = "md3e-seed";
+const LG_FILTER_KEY = "notozApp_lg_filter_enabled";
+const LEGACY_LG_FILTER_KEY = "notozApp_lg_filter_all_themes";
+if (localStorage.getItem(LG_FILTER_KEY) === null) {
+  const legacyValue = localStorage.getItem(LEGACY_LG_FILTER_KEY);
+  localStorage.setItem(LG_FILTER_KEY, legacyValue ?? "true");
+}
+localStorage.removeItem(LEGACY_LG_FILTER_KEY);
+
+const ui = localStorage.getItem(UI_KEY) || "ios";
+const mode = localStorage.getItem(MODE_KEY) || "system";
+const seed = localStorage.getItem(SEED_KEY) || "#6750A4";
+
+applyUI(ui);
+applyMode(mode);
+applySeed(seed);
+applyLGFilter(localStorage.getItem(LG_FILTER_KEY) === "true");
+
+/* =====================================================
+   FUNCTIONS
+   ===================================================== */
+
+function setUI(v) {
+  localStorage.setItem(UI_KEY, v);
+  applyUI(v);
+  window.parent.postMessage({ type: "SET_UI_THEME", theme: v }, window.location.origin);
+}
+
+function setMode(v) {
+  localStorage.setItem(MODE_KEY, v);
+  applyMode(v);
+  window.parent.postMessage({ type: "SET_THEME", theme: v }, window.location.origin);
+}
+
+function setPreset(hex) {
+  localStorage.setItem(SEED_KEY, hex);
+  applySeed(hex);
+  window.parent.postMessage({ type: "SET_MD3E_COLOR", color: hex }, window.location.origin);
+}
+
+function toggleLGFilter() {
+  const enabled = document.getElementById("lgFilterToggle").getAttribute("aria-checked") !== "true";
+  localStorage.setItem(LG_FILTER_KEY, String(enabled));
+  applyLGFilter(enabled);
+  window.parent.postMessage(
+    { type: "SET_LG_FILTER", enabled },
+    window.location.origin
+  );
+}
+
+function applyLGFilter(enabled) {
+  const active = enabled && localStorage.getItem(UI_KEY) === "ios";
+  if (active) {
+    document.documentElement.setAttribute("data-lg-filter", "ios");
+  } else {
+    document.documentElement.removeAttribute("data-lg-filter");
+  }
+  document.getElementById("lgFilterToggle")?.setAttribute("aria-checked", String(active));
+  const status = document.getElementById("lgFilterStatus");
+  if (status) status.textContent = active ? "On" : "Off";
+  const filter = active
+    ? (document.documentElement.getAttribute("data-theme") === "light"
+      ? "lg-filter-l"
+      : "lg-filter-d")
+    : "";
+  if (filter) {
+    const filterUrl = new URL(window.location.href);
+    filterUrl.hash = filter;
+    document.documentElement.style.setProperty("--lg-filter-url", `url("${filterUrl.href}")`);
+  } else {
+    document.documentElement.style.setProperty("--lg-filter-url", "");
+  }
+}
+
+function applyUI(v) {
+  document.documentElement.setAttribute("data-ui", v);
+  document.querySelectorAll('[id^="ui-"]').forEach(r => r.classList.remove("selected"));
+  document.getElementById("ui-" + v)?.classList.add("selected");
+  document.getElementById("lgFilterSection").hidden = v !== "ios";
+  applyLGFilter(localStorage.getItem(LG_FILTER_KEY) === "true");
+  
+  // Show/hide presets with animation
+  const presetsRow = document.getElementById("md3ePresets");
+  if (v === "md3e") {
+    presetsRow.classList.add("visible");
+  } else {
+    presetsRow.classList.remove("visible");
+  }
+}
+
+function applyMode(v) {
+  const actualTheme = v === 'system' ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : v;
+  document.documentElement.setAttribute("data-theme", actualTheme);
+  applyLGFilter(localStorage.getItem(LG_FILTER_KEY) === "true");
+  document.querySelectorAll('[id^="mode-"]').forEach(r => r.classList.remove("selected"));
+  document.getElementById("mode-" + v)?.classList.add("selected");
+}
+
+function applySeed(hex) {
+  const v = hex.replace("#", "");
+  document.documentElement.style.setProperty(
+    "--md-seed",
+    `${parseInt(v.slice(0, 2), 16)},${parseInt(v.slice(2, 4), 16)},${parseInt(v.slice(4, 6), 16)}`
+  );
+  document.querySelectorAll(".preset").forEach(p => p.classList.remove("active"));
+  document.querySelector(`.preset[onclick*="${hex}"]`)?.classList.add("active");
+}
+</script>
+
+</body>
+</html>

@@ -11,7 +11,7 @@
 
 @font-face {
     font-family: SF Pro Rounded;
-    src: url(../assets/fonts/SFR.ttf) format("truetype");
+    src: url(../../app/src/assets/fonts/SFR.ttf) format("truetype");
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

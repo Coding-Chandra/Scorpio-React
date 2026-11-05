@@ -1,0 +1,242 @@
+/**
+ * ============================================================================
+ * HFR MOTION & COMPONENT STYLES
+ * ============================================================================
+ * Optimized for 120Hz/144Hz displays (iOS WKWebView ProMotion & Android Chromium)
+ * Enforces GPU layer isolation, eliminates layout reflows, and provides hardware
+ * accelerated styling for sheets, cards, and telemetry.
+ * ============================================================================
+ */
+
+/* ── 1. HARDWARE ACCELERATED GPU COMPOSITOR LAYER ────────────────────────── */
+.hfr-gpu-layer {
+  /* Promote element to isolated compositor layer */
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+
+  /* Eliminate 3D flickering & subpixel anti-aliasing stutters */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+
+  /* CSS Containment: Prevents layout reflows inside the element from escaping */
+  contain: layout paint style;
+
+  /* Sub-pixel font smoothing */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 2. HFR BOTTOM SHEET ─────────────────────────────────────────────────── */
+.hfr-sheet-container {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hfr-sheet-container[aria-hidden="false"] {
+  pointer-events: auto;
+}
+
+.hfr-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hfr-sheet-surface {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 92vh;
+  max-height: 92vh;
+  z-index: 2;
+  background: var(--bg-surface, #1c1c1e);
+  color: var(--text-primary, #ffffff);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom, 24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Light theme overrides */
+[data-theme="light"] .hfr-sheet-surface {
+  background: #ffffff;
+  color: #000000;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.15);
+}
+
+/* Drag Handle Zone */
+.hfr-sheet-handle-zone {
+  width: 100%;
+  padding: 14px 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  touch-action: none; /* Compositor handles gesture directly */
+  cursor: grab;
+}
+
+.hfr-sheet-handle-zone:active {
+  cursor: grabbing;
+}
+
+.hfr-sheet-pill {
+  width: 44px;
+  height: 5px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+[data-theme="light"] .hfr-sheet-pill {
+  background: rgba(0, 0, 0, 0.24);
+}
+
+/* Sheet Content Container */
+.hfr-sheet-header {
+  padding: 8px 24px 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hfr-sheet-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.hfr-sheet-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  margin-top: 2px;
+}
+
+[data-theme="light"] .hfr-sheet-subtitle {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.hfr-sheet-body {
+  flex: 1;
+  padding: 0 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── 3. HFR INTERACTIVE CARD ─────────────────────────────────────────────── */
+.hfr-interactive-card {
+  position: relative;
+  background: var(--bg-card, rgba(255, 255, 255, 0.07));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 16px 0;
+  touch-action: pan-y;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .hfr-interactive-card {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* ── 4. TELEMETRY HUD OVERLAY ────────────────────────────────────────────── */
+.hfr-telemetry-hud {
+  position: fixed;
+  top: max(env(safe-area-inset-top, 16px), 16px);
+  right: 16px;
+  z-index: 10090;
+  background: rgba(18, 18, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Roboto", sans-serif;
+  color: #ffffff;
+  min-width: 200px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.hfr-hud-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hfr-hud-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #30d158; /* Green for 120Hz */
+  box-shadow: 0 0 8px #30d158;
+}
+
+.hfr-hud-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hfr-hud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.hfr-hud-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.hfr-hud-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+
+.hfr-hud-value {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #30d158;
+}
+
+.hfr-hud-status {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hfr-hud-status-chip {
+  font-size: 0.62rem;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.8);
+}
