@@ -98,13 +98,6 @@
       Keyboard.addListener('keyboardWillShow', (info) => {
         document.documentElement.style.setProperty('--keyboard-height', info.keyboardHeight + 'px');
         document.body.classList.add('keyboard-visible');
-
-        setTimeout(() => {
-          const active = document.activeElement;
-          if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
-            active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 120);
       });
 
       Keyboard.addListener('keyboardWillHide', () => {

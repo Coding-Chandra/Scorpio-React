@@ -34,11 +34,6 @@ html.capacitor-native body.keyboard-visible .legal-footer {
   display: none !important;
 }
 
-html.capacitor-native body.keyboard-visible .note-editor,
-html.capacitor-native body.keyboard-visible [contenteditable] {
-  padding-bottom: var(--keyboard-height);
-}
-
 /* ── Android tap feedback ─────────────────────────────────────────────────── */
 html.capacitor-native * {
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0.05);
