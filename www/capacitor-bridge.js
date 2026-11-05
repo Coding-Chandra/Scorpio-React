@@ -156,8 +156,17 @@
       // 3. Primary: Delegate to Notoz's native BackHandler
       // This correctly handles dropdowns, toolbars, multi-select, and triggers mtrans container transitions
       // between editor -> notes -> folders, plus double-back to exit!
-      if (typeof window.BackHandler !== 'undefined' && typeof window.BackHandler.intercept === 'function') {
-        const intercepted = window.BackHandler.intercept();
+      let handler = null;
+      try {
+        if (typeof window.BackHandler !== 'undefined' && window.BackHandler.intercept) {
+          handler = window.BackHandler;
+        } else if (typeof BackHandler !== 'undefined' && BackHandler.intercept) {
+          handler = BackHandler;
+        }
+      } catch (_) {}
+
+      if (handler && typeof handler.intercept === 'function') {
+        const intercepted = handler.intercept();
         if (intercepted) {
           console.log('[CapBridge] Back → handled by BackHandler.');
           return;
@@ -165,14 +174,23 @@
       }
 
       // 4. Fallback for mobile view navigation stack
-      if (window.app && window.app.ui && window.app.ui.isMobile) {
-        if (window.app.ui.mobileView === 'editor') {
-          window.app.goToMobileView('notes');
+      let currentApp = null;
+      try {
+        if (typeof window.app !== 'undefined' && window.app.ui) {
+          currentApp = window.app;
+        } else if (typeof app !== 'undefined' && app.ui) {
+          currentApp = app;
+        }
+      } catch (_) {}
+
+      if (currentApp && currentApp.ui && currentApp.ui.isMobile) {
+        if (currentApp.ui.mobileView === 'editor') {
+          currentApp.goToMobileView('notes');
           console.log('[CapBridge] Back → editor to notes.');
           return;
         }
-        if (window.app.ui.mobileView === 'notes') {
-          window.app.goToMobileView('folders');
+        if (currentApp.ui.mobileView === 'notes') {
+          currentApp.goToMobileView('folders');
           console.log('[CapBridge] Back → notes to folders.');
           return;
         }

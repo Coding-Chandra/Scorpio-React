@@ -1884,6 +1884,7 @@ const app = {
         });
     }
 };
+window.app = app;
 
 // ============================================================================
 // 6. RENDERING FUNCTIONS (Notes List, Folders, Editor, Mobile Navigation, and UI State)
@@ -3187,6 +3188,10 @@ app.goToMobileView = function (view) {
     const previousView = this.ui.mobileView;
     if (previousView === view) return;
 
+    if (previousView === 'editor' && view !== 'editor') {
+        this.doneEditingMobile();
+    }
+
     this.ui.mobileViewDirection = this.getMobileViewDirection(previousView, view);
     this.ui.mobileView = view;
     this.updateLayout();
@@ -4070,6 +4075,7 @@ const BackHandler = {
         });
     }
 };
+window.BackHandler = BackHandler;
 
 // ============================================================================
 // LOAD NOTES (OVERRIDE)
@@ -4493,6 +4499,10 @@ app.handleActionParams = function () {
 
 // Initialize app
 app.init();
+
+// Expose on window for Capacitor native bridge & external integrations
+window.app = app;
+window.BackHandler = BackHandler;
 
 // ============================================================================
 // DONE
