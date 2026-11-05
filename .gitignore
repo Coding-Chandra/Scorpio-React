@@ -1,3 +1,11 @@
 # Ignore local repository structure definition
 structure.ini
+.DS_Store
+Thumbs.db
 
+# Gradle build files & local properties
+.gradle/
+**/.gradle/
+build/
+**/build/
+local.properties
