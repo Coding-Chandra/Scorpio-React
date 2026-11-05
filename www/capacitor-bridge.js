@@ -120,7 +120,7 @@
   function setupBackButton() {
     if (!App) return;
 
-    App.addListener('backButton', ({ canGoBack }) => {
+    App.addListener('backButton', () => {
       haptics.impact('LIGHT');
 
       // 1. App Dialog Overlay (app.js AppDialog)
@@ -160,35 +160,18 @@
         return;
       }
 
-      // 3. Multi-Select mode in app.js
-      if (window.app && window.app.ui && window.app.ui.multiSelect) {
-        window.app.toggleMultiSelect();
-        console.log('[CapBridge] Back → cancelled Multi-Select.');
-        return;
-      }
-
-      // 4. Any other open modals / drawers
-      const genericOverlays = [
-        '.modal.active', '.modal.show', '.modal[open]',
-        '.dialog.active', '.dialog.show',
-        '.drawer.open', '.drawer.active',
-        '.bottom-sheet.active', '.bottom-sheet.show',
-        '.overlay.active', '.overlay.show',
-        '.sidebar.open', '.sidebar.active'
-      ];
-
-      for (const sel of genericOverlays) {
-        const el = document.querySelector(sel);
-        if (el) {
-          const closeBtn = el.querySelector('.close, .close-btn, [data-dismiss], .btn-close');
-          if (closeBtn) closeBtn.click();
-          else el.classList.remove('active', 'show', 'open');
-          console.log('[CapBridge] Back → closed generic overlay:', sel);
+      // 3. Primary: Delegate to Notoz's native BackHandler
+      // This correctly handles dropdowns, toolbars, multi-select, and triggers mtrans container transitions
+      // between editor -> notes -> folders, plus double-back to exit!
+      if (typeof window.BackHandler !== 'undefined' && typeof window.BackHandler.intercept === 'function') {
+        const intercepted = window.BackHandler.intercept();
+        if (intercepted) {
+          console.log('[CapBridge] Back → handled by BackHandler.');
           return;
         }
       }
 
-      // 5. Mobile App Navigation Stack (folders -> notes -> editor)
+      // 4. Fallback for mobile view navigation stack
       if (window.app && window.app.ui && window.app.ui.isMobile) {
         if (window.app.ui.mobileView === 'editor') {
           window.app.goToMobileView('notes');
@@ -202,32 +185,15 @@
         }
       }
 
-      // 6. Settings Page -> Return to main app
+      // 5. Settings Page -> Return to main app
       const path = window.location.pathname;
-      if (path.includes('settings.html')) {
+      if (path.includes('settings.html') || path.includes('/pages/')) {
         window.location.href = './index.html';
         console.log('[CapBridge] Back → settings to app index.');
         return;
       }
 
-      // 7. Sub-pages -> History back
-      if (path.includes('/pages/')) {
-        if (canGoBack) {
-          window.history.back();
-          return;
-        } else {
-          window.location.href = '../../index.html';
-          return;
-        }
-      }
-
-      // 8. Standard Browser History
-      if (canGoBack) {
-        window.history.back();
-        return;
-      }
-
-      // 9. Root level reached -> Minimise instead of killing process
+      // 6. Root level reached (folders view and double-back confirmed) -> Minimise instead of killing process
       console.log('[CapBridge] Back → minimise app.');
       App.minimizeApp();
     });

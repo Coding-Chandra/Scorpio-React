@@ -15,7 +15,7 @@
   },
   "android": {
     "allowMixedContent": false,
-    "backgroundColor": "#000000",
+    "backgroundColor": "#00000000",
     "webContentsDebuggingEnabled": false
   },
   "plugins": {
@@ -32,7 +32,7 @@
     },
     "StatusBar": {
       "style": "DARK",
-      "backgroundColor": "#000000",
+      "backgroundColor": "#00000000",
       "overlaysWebView": true
     },
     "Keyboard": {

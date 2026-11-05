@@ -1924,8 +1924,8 @@
 
             #sidebar{
                 height: calc(var(--vh) * 100 + 1vh);
-                padding-top: calc(var(--vh) * 3);
-                padding-bottom: calc(var(--vh) * 2);
+                padding-top: calc(var(--vh) * 4);
+                padding-bottom: calc(var(--vh) * 3);
             }
 
             #notes-list-pane,
