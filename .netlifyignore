@@ -1,0 +1,6 @@
+# Exclude mobile native build and developer directories from Netlify deployments
+android/
+.github/
+scripts/
+capacitor.config.json
+CAPACITOR_ANDROID.md
