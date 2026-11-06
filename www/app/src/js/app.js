@@ -26,11 +26,12 @@ const NOTE_HTML_ALLOWED_TAGS = [
     'span', 'b', 'strong', 'i', 'em', 'u', 'strike', 's', 'del', 'ins',
     'small', 'mark', 'sub', 'sup', 'a', 'img',
     'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'hr',
-    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'
+    'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'figure', 'figcaption'
 ];
 const NOTE_HTML_ALLOWED_ATTR = [
     'style', 'class', 'contenteditable', 'href', 'target', 'rel',
-    'src', 'alt', 'title', 'width', 'height', 'colspan', 'rowspan'
+    'src', 'alt', 'title', 'width', 'height', 'colspan', 'rowspan',
+    'data-full-src'
 ];
 
 function sanitizeNoteHtml(html) {
@@ -2753,6 +2754,17 @@ app.toggleDropdown = function (e, dropdownId, triggerId) {
     const trigger = document.getElementById(triggerId);
     if (!dropdown || !trigger) return;
 
+    if (dropdownId === 'accountDropdown') {
+        const isClosing = dropdown.classList.contains('account-closing');
+        const isOpen = dropdown.classList.contains('open') || dropdown.classList.contains('is-open');
+        if (isOpen && !isClosing) {
+            this.closeAccountDropdown(dropdown, trigger);
+        } else {
+            this.openAccountDropdown(dropdown, trigger);
+        }
+        return;
+    }
+
     const isOpen = dropdown.classList.contains('open') || dropdown.classList.contains('is-open');
     if (isOpen) {
         this.closeDropdown(dropdownId);
@@ -2774,8 +2786,284 @@ app.toggleDropdown = function (e, dropdownId, triggerId) {
     trigger.setAttribute('aria-expanded', 'true');
 };
 
+app.positionAccountDropdown = function (dropdown, trigger) {
+    const viewport = window.visualViewport;
+    const viewportLeft = viewport?.offsetLeft || 0;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportRight = viewportLeft + (viewport?.width || window.innerWidth);
+    const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
+    const origin = dropdown.getBoundingClientRect();
+    const margin = 8;
+    const availableWidth = Math.max(1, viewportRight - origin.left - margin);
+    const availableHeight = Math.max(1, viewportBottom - origin.top - margin);
+    const width = Math.min(280, availableWidth);
+    dropdown.accountPillLeft = origin.left;
+    dropdown.accountPillTop = origin.top;
+    dropdown.accountPillWidth = origin.width;
+    dropdown.accountPillHeight = origin.height;
+    dropdown.accountPillCornerRadius = Math.min(origin.width, origin.height) / 2;
+
+    dropdown.accountCollapsedShadow = getComputedStyle(dropdown).boxShadow;
+    dropdown.classList.add('account-expanded', 'account-measuring');
+    Object.assign(dropdown.style, {
+        position: 'fixed',
+        left: `${origin.left}px`,
+        top: `${origin.top}px`,
+        width: `${width}px`,
+        maxHeight: `${availableHeight}px`,
+        height: 'auto',
+    });
+    if (!dropdown.accountSlot && dropdown.parentNode) {
+        const parent = dropdown.parentNode;
+        dropdown.accountSlot = {
+            parent,
+            minHeight: parent.style.minHeight,
+        };
+        parent.style.minHeight = `${origin.height}px`;
+        document.body.appendChild(dropdown);
+    }
+    const expandedRect = dropdown.getBoundingClientRect();
+    dropdown.accountExpandedShadow = getComputedStyle(dropdown).boxShadow;
+    const height = Math.min(expandedRect.height, availableHeight);
+    dropdown.accountExpandedWidth = width;
+    dropdown.accountExpandedHeight = height;
+    dropdown.accountOpenOvershootWidth = Math.min(width * 1.025, availableWidth);
+    dropdown.accountOpenOvershootHeight = Math.min(height * 1.035, availableHeight);
+    dropdown.accountOpenOvershootLeft = Math.max(viewportLeft + margin, origin.left - 2);
+    dropdown.accountOpenOvershootTop = Math.max(viewportTop + margin, origin.top - 2);
+
+    dropdown.classList.remove('account-measuring', 'account-expanded');
+    Object.assign(dropdown.style, {
+        position: 'fixed',
+        left: `${origin.left}px`,
+        top: `${origin.top}px`,
+        width: `${origin.width}px`,
+        height: `${origin.height}px`,
+        maxHeight: `${availableHeight}px`,
+        overflowY: 'hidden',
+    });
+    dropdown.getBoundingClientRect();
+};
+
+app.openAccountDropdown = function (dropdown, trigger) {
+    const activeAnimation = dropdown.accountAnimation;
+    const interruptedClose = dropdown.classList.contains('account-closing') && activeAnimation;
+    let fromLeft;
+    let fromTop;
+    let fromWidth;
+    let fromHeight;
+    if (interruptedClose) {
+        const currentRect = dropdown.getBoundingClientRect();
+        fromLeft = currentRect.left;
+        fromTop = currentRect.top;
+        fromWidth = currentRect.width;
+        fromHeight = currentRect.height;
+        const currentRadius = getComputedStyle(dropdown).borderRadius;
+        if (activeAnimation.commitStyles) {
+            activeAnimation.commitStyles();
+        } else {
+            dropdown.style.borderRadius = currentRadius;
+        }
+    }
+    activeAnimation?.cancel();
+    dropdown.accountAnimation = null;
+
+    if (interruptedClose) {
+        dropdown.style.left = `${fromLeft}px`;
+        dropdown.style.top = `${fromTop}px`;
+        dropdown.style.width = `${fromWidth}px`;
+        dropdown.style.height = `${fromHeight}px`;
+    } else {
+        this.positionAccountDropdown(dropdown, trigger);
+        fromLeft = dropdown.accountPillLeft;
+        fromTop = dropdown.accountPillTop;
+        fromWidth = dropdown.accountPillWidth;
+        fromHeight = dropdown.accountPillHeight;
+    }
+    const openingRadius = interruptedClose
+        ? getComputedStyle(dropdown).borderRadius
+        : `${dropdown.accountPillCornerRadius}px`;
+    const expandedRadius = `${dropdown.accountPillCornerRadius}px`;
+    const openingShadow = interruptedClose
+        ? getComputedStyle(dropdown).boxShadow
+        : dropdown.accountCollapsedShadow;
+    dropdown.classList.remove('account-closing');
+    dropdown.classList.add('account-expanded', 'open', 'is-open');
+    const expandedShadow = dropdown.accountExpandedShadow || getComputedStyle(dropdown).boxShadow;
+    const menuContent = dropdown.querySelector('.account-dropdown-inner');
+    if (menuContent) {
+        menuContent.inert = false;
+        menuContent.setAttribute('aria-hidden', 'false');
+    }
+    dropdown.querySelector('.account-email')?.setAttribute('aria-hidden', 'false');
+    const themeToggle = dropdown.querySelector('.account-theme-toggle');
+    if (themeToggle) {
+        themeToggle.inert = false;
+        themeToggle.setAttribute('aria-hidden', 'false');
+    }
+    trigger.setAttribute('aria-expanded', 'true');
+
+    if (typeof dropdown.animate !== 'function') {
+        dropdown.style.left = `${dropdown.accountPillLeft}px`;
+        dropdown.style.top = `${dropdown.accountPillTop}px`;
+        dropdown.style.width = `${dropdown.accountExpandedWidth}px`;
+        dropdown.style.height = `${dropdown.accountExpandedHeight}px`;
+        return;
+    }
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ui = document.documentElement.getAttribute('data-ui') || 'ios';
+    const duration = ui === 'nothing' ? 560 : ui === 'md3e' ? 640 : 720;
+    const easing = ui === 'ios'
+        ? 'cubic-bezier(.32,.72,0,1)'
+        : ui === 'nothing'
+            ? 'cubic-bezier(.2,0,0,1)'
+            : 'cubic-bezier(.2,.8,.2,1)';
+    const animation = dropdown.animate([
+        { left: `${fromLeft}px`, top: `${fromTop}px`, width: `${fromWidth}px`, height: `${fromHeight}px`, borderRadius: openingRadius, boxShadow: openingShadow, offset: 0 },
+            {
+                left: `${dropdown.accountOpenOvershootLeft}px`,
+                top: `${dropdown.accountOpenOvershootTop}px`,
+                width: `${dropdown.accountOpenOvershootWidth}px`,
+                height: `${dropdown.accountOpenOvershootHeight}px`,
+                borderRadius: expandedRadius,
+                boxShadow: expandedShadow,
+                offset: 0.84,
+            },
+            {
+                left: `${dropdown.accountPillLeft}px`,
+                top: `${dropdown.accountPillTop}px`,
+                width: `${dropdown.accountExpandedWidth}px`,
+                height: `${dropdown.accountExpandedHeight}px`,
+                borderRadius: expandedRadius,
+                boxShadow: expandedShadow,
+                offset: 1,
+            },
+    ], {
+            duration: reducedMotion ? 1 : duration,
+            easing,
+    });
+    dropdown.accountAnimation = animation;
+    animation.onfinish = () => {
+        if (dropdown.accountAnimation !== animation) return;
+        dropdown.accountAnimation = null;
+        dropdown.style.left = `${dropdown.accountPillLeft}px`;
+        dropdown.style.top = `${dropdown.accountPillTop}px`;
+        dropdown.style.width = `${dropdown.accountExpandedWidth}px`;
+        dropdown.style.height = `${dropdown.accountExpandedHeight}px`;
+        dropdown.style.borderRadius = expandedRadius;
+        dropdown.style.removeProperty('box-shadow');
+        animation.cancel();
+    };
+};
+
+app.closeAccountDropdown = function (dropdown, trigger) {
+    const activeAnimation = dropdown.accountAnimation;
+    const isOpen = dropdown.classList.contains('account-expanded');
+    const isClosing = dropdown.classList.contains('account-closing');
+    if (!isOpen && !isClosing && !activeAnimation) {
+        trigger?.setAttribute('aria-expanded', 'false');
+        return;
+    }
+
+    if (activeAnimation) {
+        if (activeAnimation.commitStyles) {
+            activeAnimation.commitStyles();
+        }
+    }
+    const currentRect = dropdown.getBoundingClientRect();
+    const fromWidth = currentRect.width;
+    const fromHeight = currentRect.height;
+    const fromRadius = getComputedStyle(dropdown).borderRadius;
+    const fromShadow = getComputedStyle(dropdown).boxShadow;
+    activeAnimation?.cancel();
+    dropdown.accountAnimation = null;
+
+    dropdown.classList.remove('open', 'is-open');
+    dropdown.classList.add('account-closing');
+    trigger?.setAttribute('aria-expanded', 'false');
+    const menuContent = dropdown.querySelector('.account-dropdown-inner');
+    if (menuContent) {
+        menuContent.inert = true;
+        menuContent.setAttribute('aria-hidden', 'true');
+    }
+    dropdown.querySelector('.account-email')?.setAttribute('aria-hidden', 'true');
+    const themeToggle = dropdown.querySelector('.account-theme-toggle');
+    if (themeToggle) {
+        themeToggle.inert = true;
+        themeToggle.setAttribute('aria-hidden', 'true');
+    }
+
+    const toWidth = dropdown.accountPillWidth || fromWidth;
+    const toHeight = dropdown.accountPillHeight || fromHeight;
+    const pillCornerRadius = dropdown.accountPillCornerRadius || Math.min(toWidth, toHeight) / 2;
+    const collapsedRadius = `${pillCornerRadius}px`;
+
+    dropdown.style.width = `${fromWidth}px`;
+    dropdown.style.height = `${fromHeight}px`;
+    const finishClose = () => {
+        dropdown.classList.remove('account-expanded', 'account-closing');
+        [
+            'position', 'left', 'top', 'width', 'height', 'max-height',
+            'overflow-y',
+            'border-radius', 'box-shadow',
+        ].forEach(property => dropdown.style.removeProperty(property));
+        dropdown.accountCollapsedShadow = null;
+        dropdown.accountExpandedShadow = null;
+        dropdown.accountPillLeft = null;
+        dropdown.accountPillTop = null;
+        dropdown.accountPillWidth = null;
+        dropdown.accountPillHeight = null;
+        dropdown.accountPillCornerRadius = null;
+        dropdown.accountExpandedWidth = null;
+        dropdown.accountExpandedHeight = null;
+        dropdown.accountOpenOvershootLeft = null;
+        dropdown.accountOpenOvershootTop = null;
+        dropdown.accountOpenOvershootWidth = null;
+        dropdown.accountOpenOvershootHeight = null;
+        if (dropdown.accountSlot?.parent) {
+            const { parent, minHeight } = dropdown.accountSlot;
+            parent.appendChild(dropdown);
+            parent.style.minHeight = minHeight;
+            dropdown.accountSlot = null;
+        }
+        trigger?.setAttribute('aria-expanded', 'false');
+    };
+
+    if (typeof dropdown.animate !== 'function') {
+        finishClose();
+        return;
+    }
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ui = document.documentElement.getAttribute('data-ui') || 'ios';
+    const duration = ui === 'nothing' ? 360 : ui === 'md3e' ? 420 : 460;
+    const easing = ui === 'ios' ? 'cubic-bezier(.4,0,1,1)' : 'cubic-bezier(.2,0,0,1)';
+    const animation = dropdown.animate([
+        { width: `${fromWidth}px`, height: `${fromHeight}px`, borderRadius: fromRadius, boxShadow: fromShadow, offset: 0 },
+        { width: `${toWidth}px`, height: `${toHeight}px`, borderRadius: collapsedRadius, boxShadow: dropdown.accountCollapsedShadow, offset: 1 },
+    ], {
+        duration: reducedMotion ? 1 : duration,
+        easing,
+    });
+    dropdown.accountAnimation = animation;
+    animation.onfinish = () => {
+        if (dropdown.accountAnimation !== animation) return;
+        dropdown.accountAnimation = null;
+        dropdown.style.width = `${toWidth}px`;
+        dropdown.style.height = `${toHeight}px`;
+        dropdown.style.borderRadius = collapsedRadius;
+        animation.cancel();
+        finishClose();
+    };
+};
+
 app.closeDropdown = function (dropdownId) {
     const dropdown = document.getElementById(dropdownId);
+    if (dropdownId === 'accountDropdown' && dropdown) {
+        this.closeAccountDropdown(dropdown, document.getElementById('accountBtn'));
+        return;
+    }
     if (dropdown) {
         dropdown.classList.remove('open', 'is-open');
         dropdown.setAttribute('aria-expanded', 'false');
@@ -2791,6 +3079,10 @@ app.handleDropdownClose = function (dropdownId, triggerId, e) {
     const trigger = document.getElementById(triggerId);
     if (!dropdown || !trigger) return;
     if (!dropdown.contains(e.target) && !trigger.contains(e.target)) {
+        if (dropdownId === 'accountDropdown') {
+            this.closeAccountDropdown(dropdown, trigger);
+            return;
+        }
         dropdown.classList.remove('open', 'is-open');
         dropdown.setAttribute('aria-expanded', 'false');
         dropdown.setAttribute('aria-hidden', 'true');
@@ -3319,7 +3611,7 @@ async function updateAccountUI() {
     const nameEl = document.getElementById('accountDisplayName');
     const emailEl = document.getElementById('accountEmail');
     const smallAvatarSpan = document.getElementById('accountAvatarInitials');
-    const largeAvatarSpan = document.getElementById('accountInitialsLg');
+    const largeAvatarSpan = document.getElementById('accountInitialsLg') || smallAvatarSpan;
     const smallAvatarDiv = document.querySelector('.account-avatar-pill');
     const largeAvatarDiv = document.querySelector('.account-avatar-lg');
 

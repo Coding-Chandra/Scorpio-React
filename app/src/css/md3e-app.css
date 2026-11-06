@@ -59,6 +59,13 @@
   --sidebar-bg-glass: rgba(255, 255, 255, 0.72);
 
   --md-surface-glass: rgba(255, 255, 255, 0.72);
+  --transparent: var(--md-surface-glass);
+  --accent1: color-mix(
+    in srgb,
+    #f9dedc 86%,
+    rgb(var(--md-seed)) 14%
+  );
+  --md-error-text: #410e0b;
 
   /* State layers */
   --active-item-bg: rgba(var(--md-seed), 0.16);
@@ -112,6 +119,13 @@
   --list-bg-glass: rgba(20, 20, 22, 0.78);
   --sidebar-bg-glass: rgba(18, 18, 20, 0.72);
   --md-surface-glass: rgba(18, 18, 20, 0.72);
+  --transparent: var(--md-surface-glass);
+  --accent1: color-mix(
+    in srgb,
+    #601410 88%,
+    rgb(var(--md-seed)) 12%
+  );
+  --md-error-text: #f9dedc;
 
   --active-item-bg: rgba(var(--md-seed),0.22);
   --active-item-bg-sidebar: rgba(var(--md-seed),0.16);
@@ -247,7 +261,7 @@
    10. Popups & toolbars (FIXED) V2
 ----------------------------------------------------- */
 :root[data-ui="md3e"] .search-bar{
-  background-color: transparent;
+  background-color: color-mix(in srgb, var(--md-surface-glass) 86%, rgb(var(--md-seed)) 14%);
 }
 
 
@@ -438,4 +452,79 @@ html[data-ui="md3e"][data-theme="dark"] ::-webkit-scrollbar-track {
 
 html[data-ui="md3e"][data-theme="dark"] {
   scrollbar-color: var(--blue) rgba(255, 255, 255, 0.05);
+}
+
+/* -----------------------------------------------------
+   11. App pill, notifications, title bars, and search
+----------------------------------------------------- */
+
+:root[data-ui="md3e"] .account-dropdown:not(.account-expanded):not(.account-closing) {
+  border: 1px solid color-mix(in srgb, var(--border-color) 72%, rgb(var(--md-seed)) 28%);
+  background: color-mix(in srgb, var(--md-surface-glass) 88%, rgb(var(--md-seed)) 12%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-ui="md3e"] .account-dropdown:not(.account-expanded):not(.account-closing):hover {
+  background: color-mix(in srgb, var(--md-surface-1) 82%, rgb(var(--md-seed)) 18%);
+}
+
+:root[data-ui="md3e"] .account-avatar-pill {
+  border-color: color-mix(in srgb, var(--border-color) 65%, rgb(var(--md-seed)) 35%);
+  background: color-mix(in srgb, var(--md-surface-1) 78%, rgb(var(--md-seed)) 22%);
+  color: var(--text-primary);
+}
+
+:root[data-ui="md3e"] .account-dropdown.account-expanded {
+  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--md-surface-glass) 88%, rgb(var(--md-seed)) 12%);
+  color: var(--text-primary);
+}
+
+:root[data-ui="md3e"] .notif {
+  border: 1px solid color-mix(in srgb, var(--border-color) 75%, rgb(var(--md-seed)) 25%);
+  border-radius: 20px;
+  color: var(--text-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16), 0 8px 20px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(var(--blur-m)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--blur-m)) saturate(1.4);
+}
+
+:root[data-ui="md3e"] .notif-close {
+  background: color-mix(in srgb, var(--md-surface-1) 84%, rgb(var(--md-seed)) 16%);
+  color: var(--text-primary);
+}
+
+:root[data-ui="md3e"] .sidebar-header h2,
+:root[data-ui="md3e"] .list-header,
+:root[data-ui="md3e"] #mobileNavBar,
+:root[data-ui="md3e"] .toolbar {
+  border-color: color-mix(in srgb, var(--border-color) 76%, rgb(var(--md-seed)) 24%);
+  color: var(--text-primary);
+}
+
+:root[data-ui="md3e"] .sidebar-header h2 {
+  font-weight: 600;
+}
+
+:root[data-ui="md3e"] .list-header,
+:root[data-ui="md3e"] #mobileNavBar,
+:root[data-ui="md3e"] .toolbar,
+:root[data-ui="md3e"] .mobile-nav-left,
+:root[data-ui="md3e"] .mobile-nav-right,
+:root[data-ui="md3e"] .mobile-nav-title {
+  background-color: color-mix(in srgb, var(--md-surface-glass) 88%, rgb(var(--md-seed)) 12%);
+}
+
+:root[data-ui="md3e"][data-theme="dark"] .list-header,
+:root[data-ui="md3e"][data-theme="dark"] #mobileNavBar,
+:root[data-ui="md3e"][data-theme="dark"] .toolbar,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-left,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-right,
+:root[data-ui="md3e"][data-theme="dark"] .mobile-nav-title {
+  background-color: color-mix(in srgb, var(--md-surface-glass) 86%, rgb(var(--md-seed)) 14%);
+}
+
+:root[data-ui="md3e"] .mobile-nav-title-text {
+  color: var(--text-primary);
+  font-weight: 600;
 }

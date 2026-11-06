@@ -133,7 +133,7 @@ window.openPortal = (url) => {
     layer.classList.add('active');
 
     // Iframes don't reliably fire `error`. Never leave the frame invisible if load never fires.
-    setTimeout(reveal, 4000);
+    setTimeout(reveal, 3400);
 
     const nav = layer.querySelector('.portal-nav');
     if (nav) animate(nav, 'drawerSlideIn', 300);
@@ -609,7 +609,7 @@ function showNotification(title, message, type = 'info') {
         container = document.createElement('div');
         container.id = 'notification-container';
         container.style.cssText = `
-            position: fixed; top: 20px; left: 20px; right: 20px;
+            position: fixed; top: 4vh; left: 20px; right: 20px;
             z-index: 10000; pointer-events: none; display: flex;
             flex-direction: column; gap: 12px;
         `;

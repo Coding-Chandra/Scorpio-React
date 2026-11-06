@@ -25,7 +25,7 @@ function showNotification(title, message, type = 'info') {
         container = document.createElement('div');
         container.id = 'notification-container';
         container.style.cssText = `
-            position: fixed; top: 20px; left: 20px; right: 20px;
+            position: fixed; top: 4vh; left: 20px; right: 20px;
             z-index: 10000; pointer-events: none; display: flex;
             flex-direction: column; gap: 12px;
         `;
@@ -51,7 +51,7 @@ function showNotification(title, message, type = 'info') {
         textColor = 'var(--text-main)';
     } else if (type === 'error') {
         bgColor = 'var(--accent1)';
-        textColor = 'var(--text-main)';
+        textColor = 'var(--md-error-text, var(--text-main))';
     }
 
     notification.style.cssText = `

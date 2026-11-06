@@ -430,9 +430,23 @@ border-top: none;
   letter-spacing: var(--letter-tight);
 }
 
-:root[data-ui="nothing"] .account-dropdown{
-  padding: var(--space-2);
-  border-radius: var(--radius-xl);
+:root[data-ui="nothing"] .account-surface {
+  padding: 0;
+  border-radius: 999px;
+  background: var(--bg-card-t);
+  border-color: var(--border-color);
+  box-shadow: none;
+  backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+  -webkit-backdrop-filter: blur(var(--blur-xl)) saturate(1.75);
+}
+
+:root[data-ui="nothing"] .account-surface.account-expanded {
+  padding: 0;
+  border-radius: 20px;
+}
+
+:root[data-ui="nothing"] .account-surface:not(.account-expanded):hover {
+  background: var(--bg-card-t);
 }
 
 /* Dialog red signal bar */

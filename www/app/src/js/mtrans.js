@@ -584,7 +584,10 @@
     if ($('appDialogOverlay')?.classList.contains('show')) return true;
     const menus = ['shareDropdown', 'textStyleDropdown', 'noteActionsMenu',
       'folderActionsMenu', 'accountDropdown', 'viewOptionsMenu'];
-    if (menus.some(id => $(id)?.classList.contains('open'))) return true;
+    if (menus.some(id =>
+      $(id)?.classList.contains('open') ||
+      $(id)?.classList.contains('account-closing')
+    )) return true;
     if ($('selectionToolbar')?.style.display === 'flex') return true;
     if (app.ui.multiSelect) return true;
     return false;

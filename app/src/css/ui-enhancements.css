@@ -381,7 +381,7 @@ html[data-ui="md3e"] .icon-btn {
 }
 
 html[data-ui="nothing"] .account-btn {
-  font-family: 'NDot 57 Aligned', monospace;
+  font-family: 'Geist', sans-serif;
   letter-spacing: 0.02em;
   border: none;
 }

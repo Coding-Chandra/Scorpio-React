@@ -324,7 +324,7 @@ html[data-ui="md3e"] .grid-mode .folder-item .folder-icon {
 html[data-ui="nothing"] .grid-mode .note-item,
 html[data-ui="nothing"] .grid-mode .folder-item {
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xl);
     background: var(--bg-card);
     backdrop-filter: saturate(1.2) blur(var(--blur-m));
 }
@@ -356,7 +356,7 @@ html[data-ui="nothing"] .grid-mode .note-item.active::before {
 html[data-ui="nothing"] .grid-mode .note-item .note-more-btn,
 html[data-ui="nothing"] .grid-mode .folder-item .folder-more-btn {
     background: var(--bg-elevated);
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-xl);
 }
 
 /* =====================================================
