@@ -6,15 +6,6 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
-    inputs:
-      build_mode:
-        description: 'Build Mode (debug or release)'
-        required: true
-        default: 'debug'
-        type: choice
-        options:
-          - debug
-          - release
 
 jobs:
   build-rust-android:
@@ -72,17 +63,15 @@ jobs:
       - name: Initialize Tauri Android Scaffolding
         run: npx @tauri-apps/cli android init --ci --skip-targets-install
 
-      - name: Build Rust Native Android APK
-        run: |
-          BUILD_FLAG="--debug"
-          if [ "${{ github.event.inputs.build_mode }}" = "release" ]; then
-            BUILD_FLAG=""
-          fi
-          npx @tauri-apps/cli android build --apk $BUILD_FLAG --ci
+      - name: Apply Notoz Android Customizations (Icons, Permissions, Release Signing)
+        run: node scripts/patch-android.js
+
+      - name: Build Optimized Rust Native Android APK
+        run: npx @tauri-apps/cli android build --apk --split-per-abi --ci
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
 
-      - name: Upload APK Artifact
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: notoz-rust-native-apk
