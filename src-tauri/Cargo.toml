@@ -1,6 +1,6 @@
 [package]
 name = "notoz"
-version = "1.0.0"
+version = "2.4.5700"
 description = "Notoz Android Native"
 authors = ["Notoz Team"]
 edition = "2021"

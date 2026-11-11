@@ -1,5 +1,5 @@
 {
-  "appId": "app.notoz.android",
+  "appId": "notoz.android.rust",
   "appName": "Notoz",
   "webDir": "www",
   "server": {

@@ -1,6 +1,6 @@
 {
-  "name": "scorpio-native",
-  "version": "1.0.0",
+  "name": "notoz-android-rust",
+  "version": "2.4.5700",
   "description": "**Project Scorpio** is a modern Progressive Web Application (PWA) designed for speed, clarity, and offline-first usage. It delivers a minimalist yet powerful note-taking experience with rich editing tools, folder organization, user profiles, and seamless cross-platform support.",
   "main": "sw.js",
   "scripts": {

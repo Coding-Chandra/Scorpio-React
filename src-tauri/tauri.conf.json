@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Notoz",
-  "version": "1.0.0",
-  "identifier": "app.notoz.android",
+  "version": "2.4.5700",
+  "identifier": "notoz.android.rust",
   "build": {
     "frontendDist": "../www",
     "beforeBuildCommand": "node scripts/copy-web.js"

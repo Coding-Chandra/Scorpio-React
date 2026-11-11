@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "app.notoz.android"
+    namespace = "notoz.android.rust"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.notoz.android"
+        applicationId "notoz.android.rust"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2040550
-        versionName "2.4.550"
+        versionCode 2045700
+        versionName "2.4.5700"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
