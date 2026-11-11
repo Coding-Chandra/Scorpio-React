@@ -1,3 +1,10 @@
+# Dependencies
+node_modules/
+
+# Rust / Cargo
+src-tauri/target/
+**/target/
+
 # Ignore local repository structure definition
 structure.ini
 .DS_Store

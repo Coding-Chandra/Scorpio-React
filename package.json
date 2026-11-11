@@ -9,6 +9,12 @@
     "cap:open": "npx cap open android",
     "cap:run": "npx cap run android",
     "cap:build": "npm run copy-web && npx cap sync android && cd android && gradlew assembleDebug",
+    "tauri": "tauri",
+    "tauri:android:init": "tauri android init --ci",
+    "tauri:android:build": "tauri android build --apk --debug --ci",
+    "tauri:android:release": "tauri android build --apk --ci",
+    "tauri:build": "tauri build",
+    "tauri:dev": "tauri dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -31,6 +37,8 @@
     "@capacitor/status-bar": "^8.0.4"
   },
   "devDependencies": {
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/cli": "^2.12.4",
     "typescript": "^7.0.2"
   }
 }

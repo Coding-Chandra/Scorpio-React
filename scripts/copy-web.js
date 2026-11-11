@@ -17,7 +17,7 @@ const ROOT = path.resolve(__dirname, '..');
 const WWW = path.join(ROOT, 'www');
 
 const EXCLUDE = new Set([
-  'node_modules', 'android', 'www', '.git', '.github', 'scripts',
+  'node_modules', 'android', 'www', '.git', '.github', 'scripts', 'src-tauri',
   'package.json', 'package-lock.json',
   'capacitor.config.json', 'capacitor.config.ts',
   'structure.ini', 'working of sw'
@@ -27,6 +27,7 @@ const EXCLUDE = new Set([
 const WWW_ONLY = new Set([
   'capacitor-bridge.js',
   'capacitor-native.css',
+  'tauri-bridge.js',
   'error.html',
   'vendor'
 ]);

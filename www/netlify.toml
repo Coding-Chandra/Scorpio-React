@@ -12,6 +12,19 @@
   functions = "functions"
   publish = "."
 
+# Block direct web access to Android, Capacitor, and internal script files
+[[redirects]]
+  from = "/android/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/scripts/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/app/index.html"
@@ -21,4 +34,3 @@
 
 [[plugins]]
 package = "@netlify/plugin-functions-install-core"
-
