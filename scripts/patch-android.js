@@ -8,7 +8,6 @@ const MANIFEST_PATH = path.join(ANDROID_GEN, 'app', 'src', 'main', 'AndroidManif
 const BUILD_GRADLE_KTS = path.join(ANDROID_GEN, 'app', 'build.gradle.kts');
 
 const ICONS_SRC = path.join(ROOT, 'src-tauri', 'icons', 'android');
-const ANDROID_ORIGINAL_RES = path.join(ROOT, 'android', 'app', 'src', 'main', 'res');
 
 function copyDirRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
@@ -26,18 +25,39 @@ function copyDirRecursive(src, dest) {
 
 function patchIcons() {
   console.log('[patch-android] Copying authentic app icons to gen/android/app/src/main/res ...');
-  const source = fs.existsSync(ICONS_SRC) ? ICONS_SRC : ANDROID_ORIGINAL_RES;
-  if (fs.existsSync(source) && fs.existsSync(RES_GEN)) {
-    for (const folder of fs.readdirSync(source)) {
+  if (fs.existsSync(ICONS_SRC) && fs.existsSync(RES_GEN)) {
+    for (const folder of fs.readdirSync(ICONS_SRC)) {
       if (folder.startsWith('mipmap') || folder.startsWith('drawable') || folder === 'values') {
-        const srcFolder = path.join(source, folder);
+        const srcFolder = path.join(ICONS_SRC, folder);
         const destFolder = path.join(RES_GEN, folder);
         copyDirRecursive(srcFolder, destFolder);
       }
     }
-    console.log('[patch-android] ✓ App icons copied from', source);
+    console.log('[patch-android] ✓ App icons copied.');
   } else {
-    console.warn('[patch-android] ! Icon directory not found:', { source, RES_GEN });
+    console.warn('[patch-android] ! Icon directory not found:', { ICONS_SRC, RES_GEN });
+  }
+
+  // Clean any Theme.SplashScreen references if present in gen/android values
+  if (fs.existsSync(RES_GEN)) {
+    const valuesDirs = fs.readdirSync(RES_GEN).filter(d => d.startsWith('values'));
+    for (const vDir of valuesDirs) {
+      const fullDir = path.join(RES_GEN, vDir);
+      for (const file of fs.readdirSync(fullDir)) {
+        if (file.endsWith('.xml')) {
+          const filePath = path.join(fullDir, file);
+          let content = fs.readFileSync(filePath, 'utf8');
+          if (content.includes('Theme.SplashScreen') || content.includes('windowSplashScreenBackground')) {
+            console.log(`[patch-android] Cleaning Theme.SplashScreen references from ${file}...`);
+            content = content.replace(/<style[^>]*name="AppTheme\.NoActionBarLaunch"[^>]*>[\s\S]*?<\/style>/gi, '');
+            content = content.replace(/parent="Theme\.SplashScreen"/gi, 'parent="Theme.Material3.DayNight.NoActionBar"');
+            content = content.replace(/<item name="windowSplashScreen[^"]*">[^<]*<\/item>/gi, '');
+            content = content.replace(/<item name="postSplashScreenTheme">[^<]*<\/item>/gi, '');
+            fs.writeFileSync(filePath, content, 'utf8');
+          }
+        }
+      }
+    }
   }
 }
 
@@ -49,6 +69,9 @@ function patchManifest() {
   }
 
   let xml = fs.readFileSync(MANIFEST_PATH, 'utf8');
+
+  // Replace any legacy splashscreen theme references
+  xml = xml.replace(/android:theme="@style\/AppTheme\.NoActionBarLaunch"/g, 'android:theme="@style/Theme.Material3.DayNight.NoActionBar"');
 
   const permissions = `
     <!-- Essential permissions for Camera, Photos, Biometrics, and Downloads -->
