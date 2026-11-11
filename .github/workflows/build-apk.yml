@@ -42,10 +42,15 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
 
-      - name: Install Android NDK & Build Tools
+      - name: Install Android NDK
         run: |
-          yes | sdkmanager "ndk;${{ env.NDK_VERSION }}" "platforms;android-34" "build-tools;34.0.0" || true
+          yes | sdkmanager "ndk;${{ env.NDK_VERSION }}" || true
           echo "NDK_HOME=$ANDROID_HOME/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
 
       - name: Setup Rust Stable & Android Targets
